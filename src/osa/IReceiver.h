@@ -6,7 +6,7 @@
 class IReceiver {
 public:
     virtual ~IReceiver() = default;
-    virtual bool Rcv(ISerializable & objToPopulte) = 0;
+    virtual bool Rcv(ISerializable & objToPopulate) = 0;
 };
 
 #endif //OSFUNCTIONS_IRECV_H_

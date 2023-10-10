@@ -4,11 +4,13 @@
 #include <vector>
 #include <cstdint>  
 
-class ISerializable {
+class ISerializable 
+{
 public:
     virtual ~ISerializable() = default;
-    virtual std::vector<uint8_t> Serialize() const = 0;
-    virtual void Deserialize(const std::vector<uint8_t>& data) = 0;
+    virtual bool Serialize(uint8_t *& pSerializedData, uint32_t &size) const = 0;
+    virtual const uint8_t * GetSerializableDataBuffer(uint32_t &size) const = 0;
+    virtual bool Deserialize() = 0;
 };
 
 #endif //#define OSFUNCTIONS_ISER_H_

@@ -10,6 +10,7 @@ typedef int OSAStatusCode;
 extern const int OSA_OK;
 extern const int OSA_ERROR;
 extern const int OSA_SOCKET_ERROR;
+extern const int OSA_NO_DATA;
 
 
 #ifdef __cplusplus
