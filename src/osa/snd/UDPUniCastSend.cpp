@@ -23,12 +23,12 @@ bool UDPUniCastSend::Init(const std::string_view dstIp,const int port)
 {
   if(!NwAid::SetupSendSocket(dstIp, port, m_dstSendInf))
   {
-    LogMsg(LogPrioCritical,"ERROR: UDPUniCastSend::Init failed to create socket %d %s %d",m_dstSendInf.socket, dstIp.data(),  port);
+    LogMsg(LogPrioCritical,"ERROR: UDPUniCastSend::Init failed to create socket %d %s %d",m_dstSendInf.socket, dstIp.data(), port);
     m_dstSendInf.socket = -1;
     return false;
   }
   
-  LogMsg(LogPrioInfo,"UDPMCastSend::Init successfully created socket for UDP unicast to %d %s %d",m_dstSendInf.socket, dstIp.data(),  port);
+  LogMsg(LogPrioInfo,"UDPMCastSend::Init successfully created socket for UDP unicast to %d %s %d",m_dstSendInf.socket, dstIp.data(), port);
   return true;
 }
 
