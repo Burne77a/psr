@@ -3,7 +3,7 @@
 #include <tickLib.h>
 #include <errnoLib.h>
 
-OSATaskId OSACreateTask(const std::string & name, const int prio, OSATaskFunction pEntryFunction,PTSInstancePtr instancePtr)
+OSATaskId OSACreateTask(const std::string & name, const int prio, OSATaskFunction pEntryFunction,OSAInstancePtr instancePtr)
 {
 	static const int defaultStackSz = 40 * 1024;
 	static const int defaultOptions = 0;
@@ -13,7 +13,7 @@ OSATaskId OSACreateTask(const std::string & name, const int prio, OSATaskFunctio
 	return (OSATaskId) tskIdSender;
 }
 
-void OSATaskSleep(const unsigned int waitTimeInMs)
+void OSATaskSleep(const uint32_t waitTimeInMs)
 {
 	//assumes one ms tick
 	taskDelay(waitTimeInMs);

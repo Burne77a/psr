@@ -35,3 +35,38 @@ bool GMM::IsQuorumConnected(const int id)
   return (m_members.at(id).ConnectionCount() + 1) >= requiredConnections;
   return false;
 }
+
+void GMM::UpdateMemberHeartbeat(const int id) 
+{
+  if (auto member = GetMember(id)) 
+  {
+    member->UpdateHeartbeat();
+  }
+}
+
+std::chrono::system_clock::time_point GMM::GetMemberLastHeartbeat(const int id) 
+{
+  if (auto member = GetMember(id)) 
+  {
+      return member->GetLastHeartbeat();
+  }
+  return std::chrono::system_clock::time_point(); // Return epoch time if member is not found
+}
+
+bool GMM::HasMemberHeartbeatExceeded(const int id, const std::chrono::milliseconds& duration) 
+{
+  if (auto member = GetMember(id)) 
+  {
+      return member->HasHeartbeatExceeded(duration);
+  }
+  return true; // Consider it as exceeded if member is not found
+}
+
+void GMM::ForEachMember(const std::function<void(const int, Member&)>& func) 
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for (auto& pair : m_members) 
+  {
+    func(pair.first, pair.second);
+  }
+}

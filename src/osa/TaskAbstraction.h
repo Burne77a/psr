@@ -12,12 +12,12 @@ typedef long OSATaskId;
 
 typedef int (*OSATaskFunction)(); 
 
-typedef void * PTSInstancePtr;
+typedef void * OSAInstancePtr;
 
 
-OSATaskId OSACreateTask(const std::string & name, const int prio, OSATaskFunction pEntryFunction,PTSInstancePtr instancePtr);
+OSATaskId OSACreateTask(const std::string & name, const int prio, OSATaskFunction pEntryFunction,OSAInstancePtr instancePtr);
 
-void OSATaskSleep(const unsigned int waitTimeInMs);
+void OSATaskSleep(const uint32_t waitTimeInMs);
 
 unsigned int OSAGetMsCount();
 

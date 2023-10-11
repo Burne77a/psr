@@ -32,3 +32,20 @@ const std::string& Member::GetIP() const
 {
   return m_ip;
 }
+
+void Member::UpdateHeartbeat() 
+{
+  m_lastHeartbeat = std::chrono::system_clock::now();
+}
+
+std::chrono::system_clock::time_point Member::GetLastHeartbeat() const 
+{
+  return m_lastHeartbeat;
+}
+
+bool Member::HasHeartbeatExceeded(const std::chrono::milliseconds& duration) const 
+{
+  auto now = std::chrono::system_clock::now();
+  auto elapsed = now - m_lastHeartbeat;
+  return elapsed > duration;
+}
