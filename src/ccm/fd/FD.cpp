@@ -1,7 +1,10 @@
 #include "FD.h"    
 #include "Logger.h"
+#include "HeartbeatCCM.h"
 #include <errnoLib.h>
-FD::FD(GMM & gmm) : m_gmm(gmm) //Reference to the GMM class, could be changed to a interface to make the dependency injection better. 
+#include <vector>
+FD::FD(GMM & gmm,ISender & sender, IReceiver receiver) : m_gmm(gmm), //Reference to the GMM class, could be changed to a interface to make the dependency injection better. 
+m_sender(sender),m_receiver(receiver)
 {
   
 }
@@ -34,22 +37,51 @@ void FD::Stop()
 
 void FD::PopulateAndSendHeartbeat()
 {
-  Populate();
+  std::vector<HeartbeatCCM> outgoingHeartbeats;
+  Populate(outgoingHeartbeats);
   Send();
 }
 
-void FD::Populate()
+void FD::Populate(std::vector<HeartbeatCCM> &heartbeats)
 {
   //vector with heartbeats, populated by the lambda function below
-  m_gmm.ForEachMember([](int id, Member& member) 
+  
+  const int myId = m_gmm.GetMyId();
+  std::bitset<MAX_MEMBERS> myConnectionPerception;
+  std::string myIp;
+  
+  m_gmm.ForMyMember([&myConnectionPerception] (int id, Member& myself)
   {
-      member.
+    myConnectionPerception = myself.GetConnections();
+    myIp = myself.GetIP();
+  });
+  
+  m_gmm.ForEachMember([&heartbeats,myId,&myConnectionPerception,&myIp](int id, Member& member) 
+  {
+    if(myId != member.GetID())
+    {
+      HeartbeatCCM hb;
+    
+      hb.SetOutbound(true);
+      hb.SetDstIp(member.GetIP());
+      hb.SetSrcIp(myIp.GetIP());
+      
+      hb.SetConnectionPerception(myConnectionPerception);
+      hb.SetSenderId(myId);
+     
+   
+      heartbeats.push_back(hb);
+    }
   });
 }
 
-void FD::Send()
+void FD::Send(std::vector<HeartbeatCCM> &heartbeats)
 {
-  
+  //If this would be multicast, only one send would be needed.
+  for(auto hb : heartbeats)
+  {
+    m_sender.Send(hb);
+  }
 }
 
 void FD::HandleIncommingHeartbeat()
