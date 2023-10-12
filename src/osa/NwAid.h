@@ -3,8 +3,11 @@
 
 #include "ISerializable.h"
 #include "ErrorCodes.h"
+#include "ISender.h"
+#include "IReceiver.h"
 #include <string_view>
-#include <netinet/in.h> 
+#include <netinet/in.h>
+#include <memory>
 
 class NwAid
 {
@@ -15,6 +18,8 @@ class NwAid
       struct sockaddr_in dstInf;
     }NwSendInf;
     
+    static std::unique_ptr<IReceiver> CreateUniCastReceiver(const int port);
+    static std::unique_ptr<ISender> CreateUniCastSender(const std::string_view dstIp, const int port);
     static bool SetupSendSocket(const std::string_view dstIp, const int dstPort, NwSendInf & nwSendInfToPopulate);
     static int SetupRcvSocket(const int port);
     static bool JoinMcastGroup(const std::string_view group, const std::string_view ifIp, const int socket);

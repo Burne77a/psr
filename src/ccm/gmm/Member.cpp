@@ -18,6 +18,11 @@ std::bitset<MAX_MEMBERS> Member::GetConnections() const
   return m_connections;
 }
 
+void Member::SetConnectionPerception(const std::bitset<MAX_MEMBERS> &connectionPerception)
+{
+  m_connections = connectionPerception;
+}
+
 int Member::GetID() const 
 {
   return m_id;
@@ -49,3 +54,5 @@ bool Member::HasHeartbeatExceeded(const std::chrono::milliseconds& duration) con
   auto elapsed = now - m_lastHeartbeat;
   return elapsed > duration;
 }
+
+

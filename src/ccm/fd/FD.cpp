@@ -1,12 +1,71 @@
 #include "FD.h"    
 #include "Logger.h"
 #include "HeartbeatCCM.h"
+#include "NwAid.h"
 #include <errnoLib.h>
 #include <vector>
-FD::FD(GMM & gmm,ISender & sender, IReceiver receiver) : m_gmm(gmm), //Reference to the GMM class, could be changed to a interface to make the dependency injection better. 
-m_sender(sender),m_receiver(receiver)
+
+
+std::unique_ptr<FD> FD::CreateFD(GMM & gmm)
 {
+  static const int FAILURE_DETECTION_UDP_PORT = 4444;
+  const int myId = gmm.GetMyId();
+  bool isAllCreationOk = true;
+  std::vector<std::unique_ptr<ISender>> senders;
+  gmm.ForEachMember([myId,&isAllCreationOk,&senders,&gmm](int id, Member& member)
+  {
+    if(myId != member.GetID())
+    {
+      std::unique_ptr<ISender> pSender = NwAid::CreateUniCastSender(member.GetIP(), FAILURE_DETECTION_UDP_PORT);
+      if(pSender)
+      {
+        senders.push_back(std::move(pSender));
+      }
+      else
+      {
+        LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create sender. %s %d Errno: 0x%x (%s)",member.GetIP().c_str(),myId,errnoGet(),strerror(errnoGet()));
+        isAllCreationOk = false;
+      }
+    }
+  });
   
+  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(FAILURE_DETECTION_UDP_PORT);
+  if(!pRcv)
+  {
+    LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create receiver. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    isAllCreationOk = false;
+  }
+  
+  if(isAllCreationOk)
+  {
+    std::unique_ptr<FD> pFd = std::make_unique<FD>(gmm,senders,pRcv);
+    if(!pFd)
+    {
+      LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create FD.");
+    }
+    else
+    {
+      LogMsg(LogPrioInfo, "FD::CreateFD Successfully created a FD instance.");
+      return pFd;
+    }
+    
+  }
+  else
+  {
+    LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create sender.");
+  }
+  
+  return nullptr;
+}
+
+
+FD::FD(GMM & gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver) : m_gmm(gmm), //Reference to the GMM class, could be changed to a interface to make the dependency injection better. 
+m_senders(),m_pReceiver(std::move(pReceiver))
+{
+  for(auto & pSender : senders)
+  {
+    m_senders.push_back(std::move(pSender));
+  }
 }
 
 FD::~FD()
@@ -43,9 +102,7 @@ void FD::PopulateAndSendHeartbeat()
 }
 
 void FD::Populate(HeartbeatCCM &heartbeat)
-{
-  //vector with heartbeats, populated by the lambda function below
-  
+{ 
   const int myId = m_gmm.GetMyId();
   std::bitset<MAX_MEMBERS> myConnectionPerception;
   std::string myIp;
@@ -60,20 +117,55 @@ void FD::Populate(HeartbeatCCM &heartbeat)
   heartbeat.SetSenderId(myId);
   heartbeat.SetOutbound(true);
   heartbeat.SetSrcIp(myIp);
-  
 }
 
 void FD::Send(HeartbeatCCM &heartbeat)
 {
-
-    //m_sender.Send(hb);
+  for(auto &pSender : m_senders)
+  {
+    if(!pSender->Send(heartbeat))
+    {
+      LogMsg(LogPrioInfo, "FD::Send - failed to send heartbeat");
+    }
+  }
 }
 
 void FD::HandleIncommingHeartbeat()
 {
+  HeartbeatCCM incomingHeartbeat;
+  while(m_pReceiver->Rcv(incomingHeartbeat))
+  {
+    UpdateMemberWithReceivedHeartbeatData(incomingHeartbeat);
+    UpdateMySelfWithReceivedHeartbeatData(incomingHeartbeat);
+  };
   
 }
-    
+
+
+void FD::UpdateMySelfWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat)
+{
+  const int hbSenderId = rcvdHeartbeat.GetSenderId();
+  m_gmm.ForMyMember([hbSenderId](int id, Member & myself)
+   {
+     myself.AddConnection(hbSenderId);
+   });
+}
+
+void FD::UpdateMemberWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat)
+{
+  const int hbSenderId = rcvdHeartbeat.GetSenderId();
+  
+  m_gmm.ForIdMember(hbSenderId, [&rcvdHeartbeat](int id, Member & senderMember)
+  {
+    senderMember.SetConnectionPerception(rcvdHeartbeat.GetConnectionPerception());
+    senderMember.UpdateHeartbeat();
+  });
+}
+
+void FD::CheckForFailingMembersAndUpdate()
+{
+  //Check for timeouts
+}
 
 OSAStatusCode FD::FailureDetectionTaskMethod()
 {
@@ -82,6 +174,7 @@ OSAStatusCode FD::FailureDetectionTaskMethod()
   {
     PopulateAndSendHeartbeat();
     HandleIncommingHeartbeat();
+    CheckForFailingMembersAndUpdate();
     
     OSATaskSleep(m_periodInMs);
   }while(m_isRunning);

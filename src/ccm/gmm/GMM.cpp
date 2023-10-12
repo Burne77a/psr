@@ -79,6 +79,25 @@ bool GMM::HasMemberHeartbeatExceeded(const int id, const std::chrono::millisecon
   {
     LogMsg(LogPrioCritical,"ERROR: GMM::HasMemberHeartbeatExceeded member not found %d",id);
     return true; // Consider it as exceeded if member is not found
+  } 
+}
+
+void GMM::UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& duration)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMySelf = GetMember(m_myId);
+  if(pMySelf)
+  {
+    for (auto& pair : m_members) 
+    {
+      if(pair.second.GetID() != m_myId)
+      {
+        if(pair.second.HasHeartbeatExceeded(duration))
+        {
+          pair.second.
+        }
+      }
+    }
   }
   
 }
@@ -92,17 +111,22 @@ void GMM::ForEachMember(const std::function<void(const int, Member&)>& func)
   }
 }
 
-void GMM::ForMyMember(const std::function<void(const int, Member&)>& func)
+void GMM::ForIdMember(const int id, const std::function<void(const int, Member&)>& func)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  if (auto pMember = GetMember(m_myId)) 
+  if (auto pMember = GetMember(id)) 
   {
     func(m_myId,*pMember);
   }
   else
   {
-    LogMsg(LogPrioCritical,"ERROR: GMM::ForMyMember member not found %d",m_myId);
+    LogMsg(LogPrioCritical,"ERROR: GMM::ForIdMember member not found %d",m_myId);
   }
+}
+
+void GMM::ForMyMember(const std::function<void(const int, Member&)>& func)
+{
+  ForIdMember(m_myId,func);
 }
 
 Member* GMM::GetMember(const int id) 

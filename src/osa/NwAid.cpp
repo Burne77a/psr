@@ -1,4 +1,6 @@
 #include "NwAid.h"
+#include "snd/UDPUniCastSend.h"
+#include "rcv/UDPUniCastRcv.h"
 #include "Logger.h"
 #include "ErrorCodes.h"
 #include <arpa/inet.h>
@@ -9,6 +11,48 @@
 #include <netinet/in.h>
 #include <selectLib.h>
 
+
+std::unique_ptr<IReceiver> NwAid::CreateUniCastReceiver(const int port)
+{
+  std::unique_ptr<UDPUniCastRcv> pRcv = std::make_unique<UDPUniCastRcv>();
+  if(pRcv != nullptr)
+  {
+    if(pRcv->Init(port))
+    {
+      return pRcv;
+    }
+    else
+    {
+      LogMsg(LogPrioCritical, "ERROR: NwAid::CreateUniCastReceiver init socket %d 0x%x (%s)",port, errnoGet(), strerror(errnoGet()));
+    }
+  }
+  else
+  {
+    LogMsg(LogPrioCritical, "ERROR: NwAid::CreateUniCastReceiver Failed to create unique pointer %d 0x%x (%s)",port, errnoGet(), strerror(errnoGet()));
+  }
+  return pRcv;
+}
+
+std::unique_ptr<ISender> NwAid::CreateUniCastSender(const std::string_view dstIp, const int port)
+{
+  std::unique_ptr<UDPUniCastSend> pSend = std::make_unique<UDPUniCastSend>();
+  if(pSend != nullptr)
+  {
+    if(pSend->Init(dstIp, port))
+    {
+      return pSend;
+    }
+    else
+    {
+      LogMsg(LogPrioCritical, "ERROR: NwAid::CreateUniCastSender init socket %s:%d 0x%x (%s)",dstIp.data(), port, errnoGet(), strerror(errnoGet()));
+    }
+  }
+  else
+  {
+    LogMsg(LogPrioCritical, "ERROR: NwAid::CreateUniCastSender Failed to create unique pointer %s:%d 0x%x (%s)",dstIp.data(), port, errnoGet(), strerror(errnoGet()));
+  }
+  return pSend;
+}
 
 bool NwAid::SetupSendSocket(const std::string_view dstIp, const int dstPort, NwSendInf & nwSendInfToPopulate)
 {

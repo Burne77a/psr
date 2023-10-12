@@ -17,6 +17,7 @@ class GMM {
     bool HasMemberHeartbeatExceeded(const int id, const std::chrono::milliseconds& duration);
     void ForEachMember(const std::function<void(const int, Member&)>& func);
     void ForMyMember(const std::function<void(const int, Member&)>& func);
+    void ForIdMember(const int id, const std::function<void(const int, Member&)>& func);
     const int GetMyId() const {return m_myId;}
 
   private:

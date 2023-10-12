@@ -7,27 +7,33 @@
 #include "HeartbeatCCM.h"
 #include "../gmm/GMM.h"
 #include <vector>
+#include <memory>
 
 class FD
 {
   public:
-    FD(GMM & gmm,ISender & sender, IReceiver receiver);
+    static std::unique_ptr<FD> CreateFD(GMM & gmm);
+    FD(GMM & gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver);
     ~FD();
     OSAStatusCode Start();
     void Stop();
-    
+ 
   private:
+   
     void PopulateAndSendHeartbeat();
     void Populate(HeartbeatCCM &heartbeat);
     void Send(HeartbeatCCM &heartbeat);
     void HandleIncommingHeartbeat();
+    void UpdateMemberWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat);
+    void UpdateMySelfWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat);
+    void CheckForFailingMembersAndUpdate();
     OSAStatusCode FailureDetectionTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
     bool m_isRunning{false};
     uint32_t  m_periodInMs{1000U};
     GMM & m_gmm;
-    ISender m_sender; 
-    IReceiver m_receiver;
+    std::vector<std::unique_ptr<ISender>> m_senders; 
+    std::unique_ptr<IReceiver> m_pReceiver;
 };
 
 #endif //CCM_FD_H
