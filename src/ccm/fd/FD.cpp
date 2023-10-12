@@ -37,12 +37,12 @@ void FD::Stop()
 
 void FD::PopulateAndSendHeartbeat()
 {
-  std::vector<HeartbeatCCM> outgoingHeartbeats;
-  Populate(outgoingHeartbeats);
-  Send();
+  HeartbeatCCM outgoingHeartbeat;
+  Populate(outgoingHeartbeat);
+  Send(outgoingHeartbeat);
 }
 
-void FD::Populate(std::vector<HeartbeatCCM> &heartbeats)
+void FD::Populate(HeartbeatCCM &heartbeat)
 {
   //vector with heartbeats, populated by the lambda function below
   
@@ -50,38 +50,23 @@ void FD::Populate(std::vector<HeartbeatCCM> &heartbeats)
   std::bitset<MAX_MEMBERS> myConnectionPerception;
   std::string myIp;
   
-  m_gmm.ForMyMember([&myConnectionPerception] (int id, Member& myself)
+  m_gmm.ForMyMember([&myConnectionPerception,&myIp] (int id, Member& myself)
   {
     myConnectionPerception = myself.GetConnections();
     myIp = myself.GetIP();
   });
   
-  m_gmm.ForEachMember([&heartbeats,myId,&myConnectionPerception,&myIp](int id, Member& member) 
-  {
-    if(myId != member.GetID())
-    {
-      HeartbeatCCM hb;
-    
-      hb.SetOutbound(true);
-      hb.SetDstIp(member.GetIP());
-      hb.SetSrcIp(myIp.GetIP());
-      
-      hb.SetConnectionPerception(myConnectionPerception);
-      hb.SetSenderId(myId);
-     
-   
-      heartbeats.push_back(hb);
-    }
-  });
+  heartbeat.SetConnectionPerception(myConnectionPerception);
+  heartbeat.SetSenderId(myId);
+  heartbeat.SetOutbound(true);
+  heartbeat.SetSrcIp(myIp);
+  
 }
 
-void FD::Send(std::vector<HeartbeatCCM> &heartbeats)
+void FD::Send(HeartbeatCCM &heartbeat)
 {
-  //If this would be multicast, only one send would be needed.
-  for(auto hb : heartbeats)
-  {
-    m_sender.Send(hb);
-  }
+
+    //m_sender.Send(hb);
 }
 
 void FD::HandleIncommingHeartbeat()

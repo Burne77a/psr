@@ -30,7 +30,7 @@ class HeartbeatCCM : public ISerializable
     HeartbeatCCM();
     ~HeartbeatCCM();
     
-    void SetConnectionPerception(std::bitset<MAX_MEMBERS> & connectionPerception){m_connectionPerception = connectionPerception};
+    void SetConnectionPerception(std::bitset<MAX_MEMBERS> & connectionPerception){m_connectionPerception = connectionPerception;}
     void SetSenderId(const int id) {m_dataToExchange.m_senderId = id;}
     
     //ISerializable

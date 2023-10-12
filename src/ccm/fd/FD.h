@@ -18,8 +18,8 @@ class FD
     
   private:
     void PopulateAndSendHeartbeat();
-    void Populate(std::vector<HeartbeatCCM> &heartbeats);
-    void Send(std::vector<HeartbeatCCM> &heartbeats);
+    void Populate(HeartbeatCCM &heartbeat);
+    void Send(HeartbeatCCM &heartbeat);
     void HandleIncommingHeartbeat();
     OSAStatusCode FailureDetectionTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
