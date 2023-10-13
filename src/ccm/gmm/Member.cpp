@@ -1,11 +1,39 @@
 #include "Member.h"
+#include "Logger.h"
 
 Member::Member(const int id, const std::string& name, const std::string& ip)
     : m_id(id), m_name(name), m_ip(ip) {}
 
-void Member::AddConnection(int memberId) 
+void Member::AddConnection(const int memberId) 
 {
+  if(memberId >= 0 && memberId <= MAX_MEMBERS)
+  {
+    if(!m_connections.test(memberId))
+    {
+      LogMsg(LogPrioInfo," Member connection changed. Connection added: %d --> %d",m_id,memberId);
+    }
     m_connections.set(memberId);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: Member::AddConnection invalid member id %d",memberId);
+  }
+}
+
+void Member::RemoveConnection(const int memberId)
+{
+  if(memberId >= 0 && memberId <= MAX_MEMBERS)
+  {
+    if(m_connections.test(memberId))
+    {
+      LogMsg(LogPrioInfo," Member connection changed. Connection removed: %d --> %d",m_id,memberId);
+    }
+    m_connections.reset(memberId);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: Member::RemoveConnection invalid member id %d",memberId);
+  }
 }
 
 int Member::ConnectionCount() const 

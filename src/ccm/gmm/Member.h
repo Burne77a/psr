@@ -11,7 +11,8 @@ class Member {
   public:
     Member(const int id, const std::string& name, const std::string& ip);
     
-    void AddConnection(int memberId);
+    void AddConnection(const int memberId);
+    void RemoveConnection(const int memberId);
     int ConnectionCount() const;
     std::bitset<MAX_MEMBERS> GetConnections() const;
     void SetConnectionPerception(const std::bitset<MAX_MEMBERS> &connectionPerception);
@@ -23,7 +24,6 @@ class Member {
     void UpdateHeartbeat();
     std::chrono::system_clock::time_point GetLastHeartbeat() const;
     bool HasHeartbeatExceeded(const std::chrono::milliseconds& duration) const;
-    bool UpdateConnectionStatusBasedOnHearbeat(const std::chrono::milliseconds& duration);
 
 private:
     int m_id;

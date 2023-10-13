@@ -94,12 +94,15 @@ void GMM::UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& durat
       {
         if(pair.second.HasHeartbeatExceeded(duration))
         {
-          pair.second.
+          pMySelf->RemoveConnection(pair.second.GetID());
+        }
+        else
+        {
+          pMySelf->AddConnection(pair.second.GetID());
         }
       }
     }
   }
-  
 }
 
 void GMM::ForEachMember(const std::function<void(const int, Member&)>& func) 

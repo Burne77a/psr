@@ -15,6 +15,7 @@ class GMM {
     void UpdateMemberHeartbeat(const int id);
     std::chrono::system_clock::time_point GetMemberLastHeartbeat(const int id);
     bool HasMemberHeartbeatExceeded(const int id, const std::chrono::milliseconds& duration);
+    void UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& duration);
     void ForEachMember(const std::function<void(const int, Member&)>& func);
     void ForMyMember(const std::function<void(const int, Member&)>& func);
     void ForIdMember(const int id, const std::function<void(const int, Member&)>& func);

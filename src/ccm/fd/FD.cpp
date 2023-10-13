@@ -164,7 +164,8 @@ void FD::UpdateMemberWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat
 
 void FD::CheckForFailingMembersAndUpdate()
 {
-  //Check for timeouts
+  static const std::chrono::milliseconds HbTimeoutDuration(m_periodInMs * 3);
+  m_gmm.UpdateConnectionStatusForMySelf(HbTimeoutDuration);
 }
 
 OSAStatusCode FD::FailureDetectionTaskMethod()

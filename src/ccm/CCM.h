@@ -1,14 +1,18 @@
 #ifndef CCM_CCM_H
 #define CCM_CCM_H
-#include "gmm\GMM.h"
+#include "gmm/GMM.h"
+#include "fd/FD.h"
+#include <memory>
 class CCM
 {
   public:
-    CCM();
+    static std::unique_ptr<CCM> CreateAndInitForTest(const int myId);
+    CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd);
    ~CCM();
-   void InitForTest();
+   OSAStatusCode Start();
   private: 
-   GMM m_gmm{};
+   std::unique_ptr<GMM> m_pGmm;
+   std::unique_ptr<FD> m_pFd;
    
 };
 
