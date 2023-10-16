@@ -3,7 +3,6 @@
 #include "HeartbeatCCM.h"
 #include "NwAid.h"
 #include <errnoLib.h>
-#include <vector>
 
 
 std::unique_ptr<FD> FD::CreateFD(GMM & gmm)
