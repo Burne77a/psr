@@ -1,5 +1,6 @@
 #include "Member.h"
 #include "Logger.h"
+#include <string>
 
 Member::Member(const int id, const std::string& name, const std::string& ip)
     : m_id(id), m_name(name), m_ip(ip) {}
@@ -26,7 +27,7 @@ void Member::RemoveConnection(const int memberId)
   {
     if(m_connections.test(memberId))
     {
-      LogMsg(LogPrioInfo," Member connection changed. Connection removed: %d --> %d",m_id,memberId);
+      LogMsg(LogPrioInfo," Member connection changed. Connection removed: %d -/> %d",m_id,memberId);
     }
     m_connections.reset(memberId);
   }
@@ -81,6 +82,25 @@ bool Member::HasHeartbeatExceeded(const std::chrono::milliseconds& duration) con
   auto now = std::chrono::system_clock::now();
   auto elapsed = now - m_lastHeartbeat;
   return elapsed > duration;
+}
+
+void Member::Print() const
+{
+  std::string bitsAsStr("");
+  for(int i = 0; i < m_connections.size(); i++)
+  {
+    if(m_connections.test(i))
+    {
+      bitsAsStr += "1";
+    }
+    else
+    {
+      bitsAsStr += "0";
+    }
+  }
+  LogMsg(LogPrioInfo,"Member %d name %s ip %s ",m_id,m_name.c_str(),m_ip.c_str());
+  LogMsg(LogPrioInfo,"Connections %s",bitsAsStr.c_str());
+  
 }
 
 

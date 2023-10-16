@@ -170,7 +170,7 @@ bool NwAid::SetOutgoingIfForMcastGroup(const std::string_view group, const std::
 OSAStatusCode NwAid::Send(const NwSendInf &dstSendInf,const ISerializable & objToSend)
 {
   uint32_t sizeSerializedData = 0;
-  const void * const pSerializedDataToSend = objToSend.GetSerializableDataBuffer(sizeSerializedData);
+  const void * const pSerializedDataToSend = objToSend.Serialize(sizeSerializedData);
   
   if((pSerializedDataToSend == NULL) || (sizeSerializedData == 0))
   {
@@ -207,7 +207,7 @@ OSAStatusCode NwAid::Rcv(const int socket, ISerializable & objToPopulte)
   }
   
   
-  const int recvSize = recv(socket, (char*)&pBuffer, size, 0);
+  const int recvSize = recv(socket, (char*)pBuffer, size, 0);
   if(recvSize == size)
   {
     if(objToPopulte.Deserialize())
@@ -224,9 +224,21 @@ OSAStatusCode NwAid::Rcv(const int socket, ISerializable & objToPopulte)
   {
     return OSA_NO_DATA;
   }
+  else if(recvSize < 0)
+  {
+    if(EWOULDBLOCK != errnoGet())
+    {
+      LogMsg(LogPrioCritical,"ERROR: NwAid::Rcv recv return error %d 0x%x (%s) 0x%x %u",recvSize,errnoGet(),strerror(errnoGet()), pBuffer,size);
+      return OSA_ERROR;
+    }
+    else
+    {
+      return OSA_NO_DATA;
+    }
+  }
   else
   {
-    LogMsg(LogPrioCritical,"ERROR: NwAid::Rcv recv return error %d 0x%x (%s) 0x%x %u",recvSize,errnoGet(),strerror(errnoGet()), pBuffer,size);
+    LogMsg(LogPrioCritical,"ERROR: NwAid::Rcv Size missmatch %d %d 0x%x (%s) 0x%x %u",recvSize,size,errnoGet(),strerror(errnoGet()), pBuffer,size);
     return OSA_ERROR;
   }
 }

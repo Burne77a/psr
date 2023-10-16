@@ -20,6 +20,7 @@ class GMM {
     void ForMyMember(const std::function<void(const int, Member&)>& func);
     void ForIdMember(const int id, const std::function<void(const int, Member&)>& func);
     const int GetMyId() const {return m_myId;}
+    void Print() const;
 
   private:
     const int m_myId;

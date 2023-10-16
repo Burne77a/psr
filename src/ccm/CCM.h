@@ -10,6 +10,7 @@ class CCM
     CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd);
    ~CCM();
    OSAStatusCode Start();
+   void Print() const;
   private: 
    std::unique_ptr<GMM> m_pGmm;
    std::unique_ptr<FD> m_pFd;

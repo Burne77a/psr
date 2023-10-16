@@ -24,6 +24,7 @@ class Member {
     void UpdateHeartbeat();
     std::chrono::system_clock::time_point GetLastHeartbeat() const;
     bool HasHeartbeatExceeded(const std::chrono::milliseconds& duration) const;
+    void Print() const;
 
 private:
     int m_id;

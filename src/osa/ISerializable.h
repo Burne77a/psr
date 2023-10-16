@@ -8,7 +8,7 @@ class ISerializable
 {
 public:
     virtual ~ISerializable() = default;
-    virtual bool Serialize(uint8_t *& pSerializedData, uint32_t &size) const = 0;
+    virtual const uint8_t *  Serialize(uint32_t &size) const = 0;
     virtual const uint8_t * GetSerializableDataBuffer(uint32_t &size) const = 0;
     virtual bool Deserialize() = 0;
 };

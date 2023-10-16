@@ -134,10 +134,36 @@ void GMM::ForMyMember(const std::function<void(const int, Member&)>& func)
 
 Member* GMM::GetMember(const int id) 
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
   if (m_members.find(id) != m_members.end()) 
   {
     return &m_members.at(id);
   }
   return nullptr;
 }
+
+void GMM::Print() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  LogMsg(LogPrioInfo,"--- GMM members ---");
+  
+  LogMsg(LogPrioInfo,"My Member: ");
+  if (m_members.find(m_myId) != m_members.end()) 
+  {
+    const auto pMyMember = &m_members.at(m_myId);
+    if(pMyMember)
+    {
+      pMyMember->Print();
+    }
+  }
+  LogMsg(LogPrioInfo,"The other members: ");
+  for (auto& pair : m_members) 
+  {
+    if(m_myId != pair.second.GetID())
+    {
+      pair.second.Print();
+    }
+  }
+  LogMsg(LogPrioInfo,"-------------");
+}
+
+

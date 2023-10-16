@@ -36,7 +36,7 @@ class HeartbeatCCM : public ISerializable
     int GetSenderId() const {return m_dataToExchange.m_senderId;}
     
     //ISerializable
-    bool Serialize(uint8_t *& pSerializedData, uint32_t &size) const override;
+    uint8_t *  Serialize(uint32_t &size) const override;
     const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;
     bool Deserialize() override;
     
@@ -51,7 +51,7 @@ class HeartbeatCCM : public ISerializable
   private:
     HeartbeatCCMMeta m_meta;
     std::bitset<MAX_MEMBERS> m_connectionPerception;
-    HeartbeatData m_dataToExchange;
+    mutable HeartbeatData m_dataToExchange;
     
   
 };

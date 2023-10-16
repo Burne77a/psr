@@ -1,4 +1,5 @@
 #include "HeartbeatCCM.h"
+#include "Logger.h"
 
 HeartbeatCCM::HeartbeatCCM()
 {
@@ -10,17 +11,23 @@ HeartbeatCCM::~HeartbeatCCM()
   
 }
 
-bool HeartbeatCCM::Serialize(uint8_t *& pSerializedData, uint32_t &size) const
+uint8_t *  HeartbeatCCM::Serialize(uint32_t &size) const
 {
-  return false;
+  m_dataToExchange.m_connectionPerceptionBits = m_connectionPerception.to_ulong();
+  //TODO: adapt to endian differences, for now we just run little endian. 
+  size = sizeof(m_dataToExchange);
+  return (uint8_t*)&m_dataToExchange;
 }
 
 const uint8_t * HeartbeatCCM::GetSerializableDataBuffer(uint32_t &size) const
 {
-  return nullptr;
+  size = sizeof(m_dataToExchange);
+  return (uint8_t*)&m_dataToExchange;
 }
 
 bool HeartbeatCCM::Deserialize()
 {
-  return false;
+  //TODO: adapt to endian differences, for now we just run little endian. 
+  m_connectionPerception = m_dataToExchange.m_connectionPerceptionBits;
+  return true;
 }

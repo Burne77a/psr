@@ -11,9 +11,9 @@ std::unique_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create GMM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
-  pGmm->AddMember(1, "Instance 1", "192.168.101.1");
-  pGmm->AddMember(2, "Instance 2", "192.168.101.2");
-  pGmm->AddMember(3, "Instance 3", "192.168.101.3");
+  pGmm->AddMember(1, "Instance 1", "192.168.213.101");
+  pGmm->AddMember(2, "Instance 2", "192.168.213.102");
+  pGmm->AddMember(3, "Instance 3", "192.168.213.103");
   
   std::unique_ptr<FD> pFd = FD::CreateFD(*pGmm);
   if(!pFd)
@@ -52,6 +52,11 @@ OSAStatusCode CCM::Start()
   }
   LogMsg(LogPrioInfo, "CCM::Start successful");
   return OSA_OK;
+}
+
+void CCM::Print() const
+{
+  m_pGmm->Print();
 }
 
 

@@ -4,8 +4,9 @@
 extern "C" {
 #endif
 
-OSAStatusCode StartPSRTest();
+OSAStatusCode StartPSRTest(const int id);
 
+void Print();
 
 #ifdef __cplusplus
 }
