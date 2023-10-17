@@ -22,8 +22,11 @@ StateBaseLE::StateValue Follower::CheckForAndHandleLeaderLoss(GMM &gmm)
   {
     if(elapsed > leaderTimeoutTimeInMs)
     {
-      LogMsg(LogPrioInfo,"Follower lost leader entering electing.");
-      return StateValue::Electing;
+      if(gmm.IsAnyMemberQuorumConnected())
+      {
+        LogMsg(LogPrioInfo,"Follower lost leader entering and QC member exist, entering electing.");
+        return StateValue::Electing;
+      }      
     }
   }
   return StateValue::Follower;   

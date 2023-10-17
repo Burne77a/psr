@@ -13,6 +13,7 @@ class GMM {
     void AddMember(const int id, const std::string& name, const std::string& ip);
     void EstablishConnection(const int id1, const int id2);
     bool IsQuorumConnected(const int id);
+    bool IsAnyMemberQuorumConnected();
     void UpdateMemberHeartbeat(const HeartbeatCCM & hb);
     std::chrono::system_clock::time_point GetMemberLastHeartbeat(const int id);
     bool HasMemberHeartbeatExceeded(const int id, const std::chrono::milliseconds& duration);
@@ -27,6 +28,7 @@ class GMM {
 
   private:
     const int m_myId;
+    bool IsQuorumConnectedNoLock(const int id) const;
     Member* GetMember(const int id);
     std::unordered_map<int, Member> m_members;
     mutable std::mutex m_mutex;

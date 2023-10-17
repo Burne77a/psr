@@ -29,16 +29,23 @@ void GMM::EstablishConnection(const int id1, const int id2)
 bool GMM::IsQuorumConnected(const int id)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  if (m_members.find(id) == m_members.end()) 
-  {
-    LogMsg(LogPrioCritical,"ERROR: GMM::IsQuorumConnected member not found %d",id);
-    return false;
-  }
-
-  const int totalMembers = m_members.size();
-  const int requiredConnections = (totalMembers / 2) + (totalMembers % 2);
-  return (m_members.at(id).ConnectionCount() + 1) >= requiredConnections;
+  return IsQuorumConnectedNoLock(id);
 }
+
+bool GMM::IsAnyMemberQuorumConnected()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for (auto& pair : m_members) 
+  {
+    if(IsQuorumConnectedNoLock(pair.second.GetID()))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 
 void GMM::UpdateMemberHeartbeat(const HeartbeatCCM & hb) 
 {
@@ -159,6 +166,19 @@ Member* GMM::GetMember(const int id)
   return nullptr;
 }
 
+bool GMM::IsQuorumConnectedNoLock(const int id) const
+{
+  if (m_members.find(id) == m_members.end()) 
+  {
+   LogMsg(LogPrioCritical,"ERROR: GMM::IsQuorumConnected member not found %d",id);
+   return false;
+  }
+  
+  const int totalMembers = m_members.size();
+  const int requiredConnections = (totalMembers / 2) + (totalMembers % 2);
+  return (m_members.at(id).ConnectionCount() + 1) >= requiredConnections;
+}
+
 void GMM::Print() const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
@@ -171,6 +191,7 @@ void GMM::Print() const
     if(pMyMember)
     {
       pMyMember->Print();
+      LogMsg(LogPrioInfo,"QC: %s ",IsQuorumConnectedNoLock(m_myId) ? "Yes": "No");
     }
   }
   LogMsg(LogPrioInfo,"The other members: ");
@@ -179,6 +200,7 @@ void GMM::Print() const
     if(m_myId != pair.second.GetID())
     {
       pair.second.Print();
+      LogMsg(LogPrioInfo,"QC: %s ",IsQuorumConnectedNoLock(pair.second.GetID()) ? "Yes": "No");
     }
   }
   LogMsg(LogPrioInfo,"-------------");

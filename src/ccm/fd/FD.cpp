@@ -2,58 +2,49 @@
 #include "Logger.h"
 #include "HeartbeatCCM.h"
 #include "NwAid.h"
+#include "../misc/Misc.h"
 #include <errnoLib.h>
 
 
 std::unique_ptr<FD> FD::CreateFD(GMM & gmm)
 {
   static const int FAILURE_DETECTION_UDP_PORT = 4444;
-  const int myId = gmm.GetMyId();
-  bool isAllCreationOk = true;
   std::vector<std::unique_ptr<ISender>> senders;
-  gmm.ForEachMember([myId,&isAllCreationOk,&senders,&gmm](int id, Member& member)
-  {
-    if(myId != member.GetID())
-    {
-      std::unique_ptr<ISender> pSender = NwAid::CreateUniCastSender(member.GetIP(), FAILURE_DETECTION_UDP_PORT);
-      if(pSender)
-      {
-        senders.push_back(std::move(pSender));
-      }
-      else
-      {
-        LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create sender. %s %d Errno: 0x%x (%s)",member.GetIP().c_str(),myId,errnoGet(),strerror(errnoGet()));
-        isAllCreationOk = false;
-      }
-    }
-  });
   
-  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(FAILURE_DETECTION_UDP_PORT);
-  if(!pRcv)
-  {
-    LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create receiver. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    isAllCreationOk = false;
-  }
+  bool isAllCreationOk = Misc::CreateISendersFromMembers(FAILURE_DETECTION_UDP_PORT,gmm,senders);
   
-  if(isAllCreationOk)
+  if(!isAllCreationOk)
   {
-    std::unique_ptr<FD> pFd = std::make_unique<FD>(gmm,senders,pRcv);
-    if(!pFd)
-    {
-      LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create FD.");
-    }
-    else
-    {
-      LogMsg(LogPrioInfo, "FD::CreateFD Successfully created a FD instance.");
-      return pFd;
-    }
-    
+    LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create sender(s). Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
   }
   else
   {
-    LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create sender.");
-  }
-  
+    std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(FAILURE_DETECTION_UDP_PORT);
+    if(!pRcv)
+    {
+      LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create receiver. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+      isAllCreationOk = false;
+    }
+    
+    if(isAllCreationOk)
+    {
+      std::unique_ptr<FD> pFd = std::make_unique<FD>(gmm,senders,pRcv);
+      if(!pFd)
+      {
+        LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create FD.");
+      }
+      else
+      {
+        LogMsg(LogPrioInfo, "FD::CreateFD Successfully created a FD instance.");
+        return pFd;
+      }
+      
+    }
+    else
+    {
+      LogMsg(LogPrioCritical, "ERROR FD::CreateFD failed to create sender.");
+    }
+  } 
   return nullptr;
 }
 

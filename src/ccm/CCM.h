@@ -12,7 +12,6 @@ class CCM
    ~CCM();
    OSAStatusCode Start();
    void Stop();
-   
    void Print() const;
    
   private: 
@@ -25,7 +24,8 @@ class CCM
    std::unique_ptr<FD> m_pFd;
    std::unique_ptr<LE> m_pLe;
    bool m_isRunning{false};
-   
+   unsigned int m_viewNumber{0U};
+   unsigned int m_operationNumber{0U};
 };
 
 #endif //CCM_CCM_H
