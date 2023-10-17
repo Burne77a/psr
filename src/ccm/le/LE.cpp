@@ -5,6 +5,20 @@
 #include "Leader.h"
 #include <errnoLib.h>
 
+std::unique_ptr<LE> LE::CreateLE(GMM & gmm)
+{
+  std::unique_ptr<LE> pLe = std::make_unique<LE>(gmm);
+  if(!pLe)
+  {
+   LogMsg(LogPrioCritical, "ERROR LE::CreateLE failed to create LE.");
+  }
+  else
+  {
+   LogMsg(LogPrioInfo, "LE::CreateLE Successfully created a LE instance.");
+  }
+  return pLe;
+}
+
 LE::LE(GMM &gmm) : m_gmm(gmm), m_currentState(std::make_unique<Follower>())
 {
   
@@ -15,51 +29,15 @@ LE::~LE()
   
 }
 
-
-OSAStatusCode LE::Start()
-{
-  static const int TaskPrio = 30;   
-  static const std::string TaskName("tLeCcm");
-  
-  const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)LE::ClassTaskMethod,(OSAInstancePtr)this);
-  
-  if(taskId == OSA_ERROR)
-  {
-    LogMsg(LogPrioError, "ERROR LE::Start Failed to spawn CCM LE task. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return OSA_ERROR;
-  }
-  return OSA_OK;
-  
-}
-
-void LE::Stop()
-{
-  LogMsg(LogPrioInfo, "LE::Stop() - Commanding LE task to end. ");
-  m_isRunning = false;
-}
-
 void LE::HandleActivity()
 {
-  m_currentState->HandleActivity();
-}
-
-OSAStatusCode LE::LeaderElectionTaskMethod()
-{
-  m_isRunning = true;
-  do
+  StateBaseLE::StateValue nextState = m_currentState->GetValue();
+  m_currentState->HandleActivity(nextState,m_gmm);
+  if(nextState != m_currentState->GetValue())
   {
-    HandleActivity();
-    
-    OSATaskSleep(m_periodInMs);
-  }while(m_isRunning);
-  return OSA_OK;
+    SetState(CreateState(nextState));
+  }
 }
-
-OSAStatusCode LE::ClassTaskMethod(void * const pInstance)
-{
-  return ((LE*)(pInstance))->LeaderElectionTaskMethod();
-}
-
 
 void LE::SetState(std::unique_ptr<StateBaseLE> newState)
 {
@@ -80,9 +58,46 @@ StateBaseLE::StateValue LE::GetCurrentStateValue() const
   return m_currentState->GetValue();
 }
 
+std::unique_ptr<StateBaseLE> LE::CreateState(StateBaseLE::StateValue stateValue)
+{
+  std::unique_ptr<StateBaseLE> pState = nullptr;
+  if(stateValue == StateBaseLE::StateValue::Follower)
+  {
+    pState = std::make_unique<Follower>(); 
+  }
+  else if(stateValue == StateBaseLE::StateValue::Electing)
+  {
+    pState = std::make_unique<Electing>(); 
+  }
+  else if(stateValue == StateBaseLE::StateValue::Leader)
+  {
+    pState = std::make_unique<Leader>(); 
+  }
+  else
+  {
+    LogMsg(LogPrioEmergency, "ERROR: LE::CreateState invalid state value 0x%x",stateValue);
+  }
+  
+  if(!pState)
+  {
+    LogMsg(LogPrioEmergency, "ERROR: LE::CreateState failed to create state",stateValue);
+  }
+  
+  return pState;
+}
+
 void LE::LogStateChange(const std::string& from, const std::string& to)
 {
   LogMsg(LogPrioInfo, "LE state change: %s --> %s", from.c_str(), to.c_str());
+}
+
+void LE::Print()
+{
+  LogMsg(LogPrioInfo, "--- LE ---");
+  
+  m_currentState->Print();
+  
+  LogMsg(LogPrioInfo, "----------");
 }
 
 

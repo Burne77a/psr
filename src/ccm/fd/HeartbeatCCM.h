@@ -23,6 +23,7 @@ class HeartbeatCCM : public ISerializable
     {
      int32_t m_senderId;   
      uint64_t m_connectionPerceptionBits;
+     int32_t m_leaderId;
     }HeartbeatData;
     
   public:
@@ -33,7 +34,9 @@ class HeartbeatCCM : public ISerializable
     void SetConnectionPerception(std::bitset<MAX_MEMBERS> & connectionPerception){m_connectionPerception = connectionPerception;}
     std::bitset<MAX_MEMBERS> GetConnectionPerception() const {return m_connectionPerception;}
     void SetSenderId(const int id) {m_dataToExchange.m_senderId = id;}
+    void SetLeaderId(const int leaderId){m_dataToExchange.m_leaderId = leaderId;}
     int GetSenderId() const {return m_dataToExchange.m_senderId;}
+    int GetLeaderId() const {return m_dataToExchange.m_leaderId;}
     
     //ISerializable
     uint8_t *  Serialize(uint32_t &size) const override;
@@ -48,6 +51,7 @@ class HeartbeatCCM : public ISerializable
     std::string GetSrcIp(const std::string & srcIp) {return m_meta.m_srcIp;}
     std::string GetDstIp(const std::string & dstIp) {return m_meta.m_dstIp;}
     bool IsOutbound(const bool isOutbound) {return m_meta.m_isOutbound;}
+    static void InitHeartbeatData(HeartbeatData &hbData);
   private:
     HeartbeatCCMMeta m_meta;
     std::bitset<MAX_MEMBERS> m_connectionPerception;

@@ -3,7 +3,7 @@
 
 HeartbeatCCM::HeartbeatCCM()
 {
-  
+  InitHeartbeatData(m_dataToExchange);
 }
 
 HeartbeatCCM::~HeartbeatCCM()
@@ -30,4 +30,9 @@ bool HeartbeatCCM::Deserialize()
   //TODO: adapt to endian differences, for now we just run little endian. 
   m_connectionPerception = m_dataToExchange.m_connectionPerceptionBits;
   return true;
+}
+
+void HeartbeatCCM::InitHeartbeatData(HeartbeatData &hbData)
+{
+  memset((void*)&hbData,0, sizeof(HeartbeatData));
 }

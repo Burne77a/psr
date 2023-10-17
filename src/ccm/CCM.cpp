@@ -22,7 +22,14 @@ std::unique_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     return nullptr;
   }
   
-  std::unique_ptr<CCM> pCmm = std::make_unique<CCM>(pGmm,pFd);
+  std::unique_ptr<LE> pLe = LE::CreateLE(*pGmm);
+  if(!pLe)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create LE. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::unique_ptr<CCM> pCmm = std::make_unique<CCM>(pGmm,pFd,pLe);
   
   if(!pCmm)
   {
@@ -32,7 +39,8 @@ std::unique_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
   return pCmm;
 }
 
-CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd) : m_pGmm(std::move(pGmm)),m_pFd(std::move(pFd))
+CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe) : 
+    m_pGmm(std::move(pGmm)),m_pFd(std::move(pFd)),m_pLe(std::move(pLe))
 {
   
 }
@@ -40,6 +48,12 @@ CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd) : m_pGmm(std::mov
 CCM::~CCM()
 {
   
+}
+
+void CCM::Stop()
+{
+  LogMsg(LogPrioInfo, "LE::Stop() - Commanding LE task to end. ");
+  m_isRunning = false;
 }
 
 OSAStatusCode CCM::Start()
@@ -50,13 +64,57 @@ OSAStatusCode CCM::Start()
     LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start FD task. %d Errno: 0x%x (%s)",fdStartSts,errnoGet(),strerror(errnoGet()));
     return fdStartSts;
   }
+  
+  const OSAStatusCode ccmStartSts = StartCCMTask();
+  if(ccmStartSts != OSA_OK)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start CCM task. %d Errno: 0x%x (%s)",ccmStartSts,errnoGet(),strerror(errnoGet()));
+    m_pFd->Stop();
+    return ccmStartSts;
+  }
+  
   LogMsg(LogPrioInfo, "CCM::Start successful");
   return OSA_OK;
+  
+
+}
+
+OSAStatusCode CCM::StartCCMTask()
+{
+  static const int TaskPrio = 30;   
+  static const std::string TaskName("tCcm");
+  
+  const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)CCM::ClassTaskMethod,(OSAInstancePtr)this);
+  
+  if(taskId == OSA_ERROR)
+  {
+    LogMsg(LogPrioError, "ERROR CCM::Start Failed to spawn CCM task. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
+  return OSA_OK;
+}
+
+OSAStatusCode CCM::InstanceTaskMethod()
+{
+  m_isRunning = true;
+  do
+  {
+    m_pLe->HandleActivity();
+    
+    OSATaskSleep(m_periodInMs);
+  }while(m_isRunning);
+  return OSA_OK;
+}
+
+OSAStatusCode CCM::ClassTaskMethod(void * const pInstance)
+{
+  return ((CCM*)(pInstance))->InstanceTaskMethod();
 }
 
 void CCM::Print() const
 {
   m_pGmm->Print();
+  m_pLe->Print();
 }
 
 

@@ -10,22 +10,21 @@
 class LE 
 {
   public:
+    static std::unique_ptr<LE> CreateLE(GMM & gmm);
     LE(GMM &gmm);
     ~LE();
-    OSAStatusCode Start();
-    void Stop();
-    
+  
     std::string GetCurrentStateName() const;
     StateBaseLE::StateValue GetCurrentStateValue() const;
     void SetState(std::unique_ptr<StateBaseLE> newState);
     void HandleActivity();
+    void Print();
 
   private:
     static void LogStateChange(const std::string& from, const std::string& to);
+    static std::unique_ptr<StateBaseLE> CreateState(StateBaseLE::StateValue stateValue);
     OSAStatusCode LeaderElectionTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
-    bool m_isRunning{false};
-    uint32_t  m_periodInMs{1000U};
     GMM & m_gmm;
     std::unique_ptr<StateBaseLE> m_currentState;
 };

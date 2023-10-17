@@ -16,7 +16,9 @@ public:
     return StateValue::Leader;;
   }
 
-  void HandleActivity(StateBaseLE::StateValue &nextState) override;
+  void HandleActivity(StateBaseLE::StateValue &nextState, GMM &gmm) override;
+  
+  void Print() const override;
   
 };
 

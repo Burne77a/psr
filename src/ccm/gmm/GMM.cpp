@@ -40,16 +40,16 @@ bool GMM::IsQuorumConnected(const int id)
   return (m_members.at(id).ConnectionCount() + 1) >= requiredConnections;
 }
 
-void GMM::UpdateMemberHeartbeat(const int id) 
+void GMM::UpdateMemberHeartbeat(const HeartbeatCCM & hb) 
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  if (auto pMember = GetMember(id)) 
+  if (auto pMember = GetMember(hb.GetSenderId())) 
   {
-    pMember->UpdateHeartbeat();
+    pMember->UpdateHeartbeat(hb.GetLeaderId());
   }
   else
   {
-    LogMsg(LogPrioCritical,"ERROR: GMM::UpdateMemberHeartbeat member not found %d",id);
+    LogMsg(LogPrioCritical,"ERROR: GMM::UpdateMemberHeartbeat member not found %d",hb.GetSenderId());
   }
 }
 
@@ -95,6 +95,7 @@ void GMM::UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& durat
         if(pair.second.HasHeartbeatExceeded(duration))
         {
           pMySelf->RemoveConnection(pair.second.GetID());
+          pair.second.ClearLeaderId();
         }
         else
         {
@@ -103,6 +104,23 @@ void GMM::UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& durat
       }
     }
   }
+}
+
+int GMM::GetLeaderId(void)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMySelf = GetMember(m_myId);
+  int leaderId = INVALID_LEADER_ID; 
+ 
+  for (auto& pair : m_members) 
+  {
+    leaderId = pair.second.GetLeaderId();
+    if(leaderId != INVALID_LEADER_ID)
+    {
+      break;
+    }
+  }
+  return leaderId;
 }
 
 void GMM::ForEachMember(const std::function<void(const int, Member&)>& func) 

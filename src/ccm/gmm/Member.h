@@ -6,22 +6,26 @@
 #include <chrono>
 
 const size_t MAX_MEMBERS = 64; 
+const int INVALID_LEADER_ID = 0U;
 
 class Member {
   public:
     Member(const int id, const std::string& name, const std::string& ip);
-    
+    //Connection related
     void AddConnection(const int memberId);
     void RemoveConnection(const int memberId);
     int ConnectionCount() const;
     std::bitset<MAX_MEMBERS> GetConnections() const;
     void SetConnectionPerception(const std::bitset<MAX_MEMBERS> &connectionPerception);
-    
+    //Leader related
+    int GetLeaderId() const {return m_leaderId;}
+    void ClearLeaderId(){m_leaderId = INVALID_LEADER_ID;}
+    //Member related
     int GetID() const;
     const std::string& GetName() const;
     const std::string& GetIP() const;
     
-    void UpdateHeartbeat();
+    void UpdateHeartbeat(const int leaderId);
     std::chrono::system_clock::time_point GetLastHeartbeat() const;
     bool HasHeartbeatExceeded(const std::chrono::milliseconds& duration) const;
     void Print() const;
@@ -32,6 +36,7 @@ private:
     std::string m_ip;
     std::bitset<MAX_MEMBERS> m_connections;
     std::chrono::system_clock::time_point m_lastHeartbeat;
+    int m_leaderId{INVALID_LEADER_ID};
 };
 
 #endif // CCM_MEMBER_H

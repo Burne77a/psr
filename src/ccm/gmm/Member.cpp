@@ -67,9 +67,10 @@ const std::string& Member::GetIP() const
   return m_ip;
 }
 
-void Member::UpdateHeartbeat() 
+void Member::UpdateHeartbeat(const int leaderId) 
 {
   m_lastHeartbeat = std::chrono::system_clock::now();
+  m_leaderId = leaderId;
 }
 
 std::chrono::system_clock::time_point Member::GetLastHeartbeat() const 
@@ -100,6 +101,14 @@ void Member::Print() const
   }
   LogMsg(LogPrioInfo,"Member %d name %s ip %s ",m_id,m_name.c_str(),m_ip.c_str());
   LogMsg(LogPrioInfo,"Connections %s",bitsAsStr.c_str());
+  if(m_leaderId == INVALID_LEADER_ID)
+  {
+    LogMsg(LogPrioInfo,"No leader");
+  }
+  else
+  {
+    LogMsg(LogPrioInfo,"Leader ID %d",m_leaderId);
+  }
   
 }
 

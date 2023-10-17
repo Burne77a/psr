@@ -103,8 +103,10 @@ void FD::PopulateAndSendHeartbeat()
 void FD::Populate(HeartbeatCCM &heartbeat)
 { 
   const int myId = m_gmm.GetMyId();
+  const int leaderId = m_gmm.GetLeaderId();
   std::bitset<MAX_MEMBERS> myConnectionPerception;
   std::string myIp;
+  
   
   m_gmm.ForMyMember([&myConnectionPerception,&myIp] (int id, Member& myself)
   {
@@ -116,6 +118,7 @@ void FD::Populate(HeartbeatCCM &heartbeat)
   heartbeat.SetSenderId(myId);
   heartbeat.SetOutbound(true);
   heartbeat.SetSrcIp(myIp);
+  heartbeat.SetLeaderId(leaderId);
 }
 
 void FD::Send(HeartbeatCCM &heartbeat)
@@ -157,7 +160,7 @@ void FD::UpdateMemberWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat
   m_gmm.ForIdMember(hbSenderId, [&rcvdHeartbeat](int id, Member & senderMember)
   {
     senderMember.SetConnectionPerception(rcvdHeartbeat.GetConnectionPerception());
-    senderMember.UpdateHeartbeat();
+    senderMember.UpdateHeartbeat(rcvdHeartbeat.GetLeaderId());
   });
 }
 
