@@ -16,11 +16,8 @@ public:
     return StateValue::Leader;;
   }
 
-  void HandleActivity() override
-  {
-    // Implement electing-specific behavior here.
-    LogMsg(LogPrioInfo, "Handling activity in Leader state.");
-  }
+  void HandleActivity(StateBaseLE::StateValue &nextState) override;
+  
 };
 
 #endif //CCM_LEADER_H

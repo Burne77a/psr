@@ -1,9 +1,11 @@
 #ifndef CCM_LE_H
 #define CCM_LE_H
 
+#include "StateBaseLE.h"
 #include "TaskAbstraction.h"
 #include "../gmm/GMM.h"
 #include <memory>
+#include <string>
 
 class LE 
 {
@@ -19,6 +21,7 @@ class LE
     void HandleActivity();
 
   private:
+    static void LogStateChange(const std::string& from, const std::string& to);
     OSAStatusCode LeaderElectionTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
     bool m_isRunning{false};

@@ -19,6 +19,6 @@ class StateBaseLE
     virtual StateValue GetValue() const = 0;
     
     // Introducing activity handler in state base.
-    virtual void HandleActivity() = 0;
+    virtual void HandleActivity(StateBaseLE::StateValue &nextState) = 0;
 };
 #endif //CCM_STATEBASELE_H

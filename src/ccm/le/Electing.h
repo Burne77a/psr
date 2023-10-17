@@ -16,11 +16,7 @@ public:
     return StateValue::Electing;
   }
 
-  void HandleActivity() override
-  {
-    // Implement electing-specific behavior here.
-    LogMsg(LogPrioInfo, "Handling activity in Electing state.");
-  }
+  void HandleActivity(StateBaseLE::StateValue &nextState) override;
 };
 
 #endif //CCM_ELECTING_H

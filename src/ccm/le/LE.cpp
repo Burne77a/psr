@@ -1,5 +1,8 @@
 #include "LE.h"    
 #include "Logger.h"
+#include "Follower.h"
+#include "Electing.h"
+#include "Leader.h"
 #include <errnoLib.h>
 
 LE::LE(GMM &gmm) : m_gmm(gmm), m_currentState(std::make_unique<Follower>())
