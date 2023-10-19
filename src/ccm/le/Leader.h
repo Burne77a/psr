@@ -16,7 +16,7 @@ public:
     return StateValue::Leader;;
   }
 
-  void HandleActivity(StateBaseLE::StateValue &nextState, GMM &gmm) override;
+  void HandleActivity(std::unique_ptr<LeaderElectionMsg> &pMsg, StateBaseLE::StateValue &nextState, GMM &gmm) override;
   
   void Print() const override;
   

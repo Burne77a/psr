@@ -4,7 +4,7 @@
 #include <string>
 
 
-
+class LeaderElectionMsg;
 class StateBaseLE
 {
   public:
@@ -14,6 +14,18 @@ class StateBaseLE
       Electing,
       Leader
     };
+    
+    enum class Event
+    {
+        NoEvent = 1,
+        ElectionStartRcvd,
+        ElectionCompletedRcvd
+    };
+    
+    typedef struct
+    {
+        
+    }EventInfo;
   
     virtual ~StateBaseLE() = default;
     virtual std::string GetStateName() const = 0;
@@ -22,6 +34,6 @@ class StateBaseLE
     virtual void Print() const = 0;
     
     // Introducing activity handler in state base.
-    virtual void HandleActivity(StateBaseLE::StateValue &nextState, GMM &gmm) = 0;
+    virtual void HandleActivity(std::unique_ptr<LeaderElectionMsg> &pMsg,StateBaseLE::StateValue &nextState, GMM &gmm) = 0;
 };
 #endif //CCM_STATEBASELE_H

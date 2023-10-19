@@ -18,7 +18,7 @@ class Follower : public StateBaseLE
       return StateValue::Follower;
     }
   
-    void HandleActivity(StateBaseLE::StateValue &nextState, GMM &gmm)  override;
+    void HandleActivity(std::unique_ptr<LeaderElectionMsg> &pMsg, StateBaseLE::StateValue &nextState, GMM &gmm)  override;
     
     void Print() const override;
   

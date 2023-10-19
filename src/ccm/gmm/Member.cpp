@@ -103,13 +103,20 @@ void Member::Print() const
   LogMsg(LogPrioInfo,"Connections %s",bitsAsStr.c_str());
   if(m_leaderId == INVALID_LEADER_ID)
   {
-    LogMsg(LogPrioInfo,"No leader");
+    LogMsg(LogPrioInfo,"No leader. Vote count: %d",m_leaderVoteCnt);
   }
   else
   {
-    LogMsg(LogPrioInfo,"Leader ID %d",m_leaderId);
+    if(m_leaderId == m_id)
+    {
+      LogMsg(LogPrioInfo,"I'm leader!");
+    }
+    else
+    {
+      LogMsg(LogPrioInfo,"Leader ID %d",m_leaderId);
+    }
   }
-  
+  LogMsg(LogPrioInfo,"View number %u",m_viewNumber);
 }
 
 

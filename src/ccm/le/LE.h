@@ -2,6 +2,7 @@
 #define CCM_LE_H
 
 #include "StateBaseLE.h"
+#include "LeaderElectionMsg.h"
 #include "TaskAbstraction.h"
 #include "ISender.h"
 #include "IReceiver.h"
@@ -19,12 +20,15 @@ class LE
     std::string GetCurrentStateName() const;
     StateBaseLE::StateValue GetCurrentStateValue() const;
     void SetState(std::unique_ptr<StateBaseLE> newState);
+    void CheckForAndHandleIncommingMsg();
     void HandleActivity();
     void Print();
 
   private:
+    static bool RcvMsg(IReceiver &rcv, LeaderElectionMsg &msg);
     static void LogStateChange(const std::string& from, const std::string& to);
-    static std::unique_ptr<StateBaseLE> CreateState(StateBaseLE::StateValue stateValue);
+    std::unique_ptr<StateBaseLE> CreateState(StateBaseLE::StateValue stateValue);
+    void HandleActivityAndChangeStateIfNeeded(std::unique_ptr<LeaderElectionMsg> &pMsg);
     OSAStatusCode LeaderElectionTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
     GMM & m_gmm;

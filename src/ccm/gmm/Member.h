@@ -20,6 +20,11 @@ class Member {
     //Leader related
     int GetLeaderId() const {return m_leaderId;}
     void ClearLeaderId(){m_leaderId = INVALID_LEADER_ID;}
+    void IncrementVoteCnt() {m_leaderVoteCnt++;}
+    void ResetVoteCnt(){m_leaderVoteCnt = 0U;}
+    unsigned int GetLeaderVoteCnt(){return m_leaderVoteCnt;}
+    void SetViewNumber(const unsigned int viewNumber){m_viewNumber = viewNumber;}
+    unsigned int GetViewNumber() const {return m_viewNumber;}
     //Member related
     int GetID() const;
     const std::string& GetName() const;
@@ -37,6 +42,8 @@ private:
     std::bitset<MAX_MEMBERS> m_connections;
     std::chrono::system_clock::time_point m_lastHeartbeat;
     int m_leaderId{INVALID_LEADER_ID};
+    unsigned int m_viewNumber{0U};
+    unsigned int m_leaderVoteCnt{0U};
 };
 
 #endif // CCM_MEMBER_H

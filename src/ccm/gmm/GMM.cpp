@@ -1,5 +1,5 @@
 #include "GMM.h"
-
+#include <algorithm>
 
 GMM::GMM(const int myId) : m_myId(myId)
 {
@@ -129,6 +129,121 @@ int GMM::GetLeaderId(void)
   }
   return leaderId;
 }
+
+void GMM::ResetLeaderVoteCount()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for (auto& pair : m_members) 
+  {
+    pair.second.ResetVoteCnt();
+  }
+}
+
+void GMM::AddLeaderVote(const int id)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  if(pMember)
+  {
+    pMember->IncrementVoteCnt();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::AddLeaderVote member not found %d",id);
+  }
+  
+}
+
+void GMM::SetViewNumber(const int id, const unsigned int viewNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  if(pMember)
+  {
+    pMember->SetViewNumber(viewNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetViewNumber member not found %d",id);
+  }
+}
+
+const unsigned int GMM::GetViewNumber(const int id) 
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  unsigned int viewNumberToReturn = 0U;
+  if(pMember)
+  {
+    viewNumberToReturn = pMember->GetViewNumber();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetViewNumber member not found %d",id);
+  }
+  return viewNumberToReturn;
+}
+
+void GMM::SetMyViewNumber(const unsigned int viewNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMyMember = GetMember(m_myId);
+  if(pMyMember)
+  {
+    pMyMember->SetViewNumber(viewNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetMyViewNumber member not found %d",m_myId);
+  }
+}
+
+const unsigned int GMM::GetMyViewNumber()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int viewNumberToReturn = 0U;
+  auto pMyMember = GetMember(m_myId);
+  if(pMyMember)
+  {
+    viewNumberToReturn = pMyMember->GetViewNumber();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetMyViewNumber member not found %d",m_myId);
+  }
+  return viewNumberToReturn;
+}
+
+const unsigned int GMM::GetLargestViewNumber()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int maxViewNumberToReturn = 0U;
+  for (auto& pair : m_members) 
+  {
+    maxViewNumberToReturn = std::max<unsigned int>(pair.second.GetViewNumber(),maxViewNumberToReturn);
+  }
+  return maxViewNumberToReturn;
+}
+
+bool GMM::IsVoteCntForMySelfLargerThanMajority()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMyMember = GetMember(m_myId);
+  bool isAMajorityReached = false;
+  if(pMyMember)
+  {
+    const unsigned int votes = pMyMember->GetLeaderVoteCnt();
+    const unsigned int total = m_members.size();
+    const unsigned int halfRoundedUp = (total/2) + (total%2);
+    isAMajorityReached =  (votes > halfRoundedUp);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::IsVoteCntForMySelfLargerThanMajority member not found %d",m_myId);
+  }
+  return isAMajorityReached;
+}
+
 
 void GMM::ForEachMember(const std::function<void(const int, Member&)>& func) 
 {

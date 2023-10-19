@@ -18,8 +18,19 @@ class GMM {
     std::chrono::system_clock::time_point GetMemberLastHeartbeat(const int id);
     bool HasMemberHeartbeatExceeded(const int id, const std::chrono::milliseconds& duration);
     void UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& duration);
+    
+    
     int GetLeaderId(void);
     bool IsLeaderAvailable(void) {return (GetLeaderId() != INVALID_LEADER_ID);}
+    void ResetLeaderVoteCount();
+    void AddLeaderVote(const int id);
+    void SetViewNumber(const int id, const unsigned int viewNumber);
+    const unsigned int GetViewNumber(const int id);
+    void SetMyViewNumber(const unsigned int viewNumber);
+    const unsigned int GetMyViewNumber();
+    const unsigned int GetLargestViewNumber();
+    bool IsVoteCntForMySelfLargerThanMajority();
+    
     void ForEachMember(const std::function<void(const int, Member&)>& func);
     void ForMyMember(const std::function<void(const int, Member&)>& func);
     void ForIdMember(const int id, const std::function<void(const int, Member&)>& func);
