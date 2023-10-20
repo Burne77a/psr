@@ -61,7 +61,7 @@ StateBaseLE::StateValue Follower::CheckForAndHandleLeaderLoss(GMM &gmm)
     {
       if(gmm.IsAnyMemberQuorumConnected())
       {
-        gmm.SetMyViewNumber(gmm.GetLargestViewNumber() + 1Ú);
+        gmm.SetMyViewNumber(gmm.GetLargestViewNumber() + 1U); 
         
         LogMsg(LogPrioInfo,"Follower lost leader entering and QC member exist, entering electing. Setting view number to %u", gmm.GetMyViewNumber());
         return StateValue::Electing;

@@ -32,6 +32,28 @@ bool GMM::IsQuorumConnected(const int id)
   return IsQuorumConnectedNoLock(id);
 }
 
+
+bool GMM::GetLowestQuorumConnectedId(int &id)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  bool isQcFound = false;
+  id = 0;
+  for (auto& pair : m_members) 
+  {
+    const int currentMemberId = pair.second.GetID();
+   
+    if(IsQuorumConnectedNoLock(currentMemberId))
+    {
+      if(id==0 || currentMemberId < id)
+      {
+        id = currentMemberId;
+        isQcFound = true;
+      }
+     }
+  }
+  return isQcFound;
+}
+
 bool GMM::IsAnyMemberQuorumConnected()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
@@ -280,6 +302,7 @@ Member* GMM::GetMember(const int id)
   }
   return nullptr;
 }
+
 
 bool GMM::IsQuorumConnectedNoLock(const int id) const
 {

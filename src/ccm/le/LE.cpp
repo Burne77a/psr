@@ -120,7 +120,7 @@ std::unique_ptr<StateBaseLE> LE::CreateState(StateBaseLE::StateValue stateValue)
   }
   else if(stateValue == StateBaseLE::StateValue::Leader)
   {
-    pState = std::make_unique<Leader>(); 
+    pState = std::make_unique<Leader>(m_senders); 
   }
   else
   {

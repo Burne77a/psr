@@ -12,6 +12,7 @@ class GMM {
     GMM(const int myId);
     void AddMember(const int id, const std::string& name, const std::string& ip);
     void EstablishConnection(const int id1, const int id2);
+    bool GetLowestQuorumConnectedId(int &id);
     bool IsQuorumConnected(const int id);
     bool IsAnyMemberQuorumConnected();
     void UpdateMemberHeartbeat(const HeartbeatCCM & hb);

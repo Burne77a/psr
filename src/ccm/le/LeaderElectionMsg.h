@@ -23,20 +23,22 @@ class LeaderElectionMsg : public ISerializable
   public:
     LeaderElectionMsg(const MsgType typeOfMsg);
     ~LeaderElectionMsg() = default;
-    MsgType GetType(){return m_theMsgData.type;} 
+    MsgType GetType() const {return m_theMsgData.type;} 
     static const std::string GetMsgTypeStateAsString(const MsgType type);
-    unsigned int GetViewNumber(){return m_theMsgData.viewNumber;} 
-    unsigned int GetSenderId(){return m_theMsgData.senderId;}
-    unsigned int GetIdOfVoteDst(){return m_theMsgData.idOfVoteReceiver;}
+    unsigned int GetViewNumber() const {return m_theMsgData.viewNumber;} 
+    unsigned int GetSenderId() const {return m_theMsgData.senderId;}
+    unsigned int GetIdOfVoteDst() const {return m_theMsgData.idOfVoteReceiver;}
     
-    void SetViewNumber(const unsigned int viewNumber){m_theMsgData.viewNumber;}
-    void SetSenderId(const unsigned int senderId){m_theMsgData.senderId;}
+    void SetViewNumber(const unsigned int viewNumber){m_theMsgData.viewNumber = viewNumber;}
+    void SetSenderId(const unsigned int senderId){m_theMsgData.senderId = senderId;}
+    void SetVoteDstId(const unsigned int voteDstId){m_theMsgData.idOfVoteReceiver = voteDstId;}
+    
     
     
     void SetViewNumberWhenRcvd(const unsigned int viewNo){m_viewNumberWhenRcvd = viewNo;}
-    unsigned int GetViewNumberWhenRcvd() const{return m_viewNumberWhenRcvd;}
-    static bool IsValidViewNumber(const unsigned int viewNumber){return viewNumber > 0;}
-    bool IsMsgViewNumberHigherThanViewNumberWhenRcvd()
+    unsigned int GetViewNumberWhenRcvd() const {return m_viewNumberWhenRcvd;}
+    static bool IsValidViewNumber(const unsigned int viewNumber) {return viewNumber > 0;}
+    bool IsMsgViewNumberHigherThanViewNumberWhenRcvd() const
     { 
       return IsValidViewNumber(m_viewNumberWhenRcvd) && IsValidViewNumber(m_theMsgData.viewNumber) && (m_viewNumberWhenRcvd < m_theMsgData.viewNumber);
     } 

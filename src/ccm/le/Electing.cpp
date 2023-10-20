@@ -9,32 +9,35 @@ Electing::Electing(std::vector<std::unique_ptr<ISender>> &senders) : m_senders(s
 
 void Electing::HandleActivity(std::unique_ptr<LeaderElectionMsg> &pMsg, StateBaseLE::StateValue &nextState, GMM &gmm) 
 {
-  PerformFirstTimeInStateActionsIfNeeded();
-  
-  CheckMessageTypeAndActAccordingly();
-  
-  
-  if(gmm.IsVoteCntForMySelfLargerThanMajority())
+  if(gmm.IsAnyMemberQuorumConnected())
   {
-    //Become leader
+    PerformFirstTimeInStateActionsIfNeeded(gmm);
+    Vote(gmm);
+    
+    nextState = CheckMessageTypeAndActAccordingly(pMsg,gmm);
+    if(nextState == StateValue::Electing)
+    {
+      RestartElectionPeriodIfTmo(gmm);
+    }
   }
   else
   {
-    //restart election period if needed.
+    //If no instace is QC, no one can become leader. Revert to Follower and wait. 
+    nextState = StateValue::Follower;
   }
 }
 
 
-void Electing::HandleVote(const LeaderElectionMsg &msg,GMM &gmm)
+void Electing::HandleVote(const LeaderElectionMsg &msg, GMM &gmm)
 {
-  const unsigned int msgViewNumber = pMsg->GetViewNumber();
+  const unsigned int msgViewNumber = msg.GetViewNumber();
   const unsigned int myViewNumber = gmm.GetMyViewNumber();
   const unsigned int voteAddressedToId = msg.GetIdOfVoteDst();
   const unsigned int voteFromId = msg.GetSenderId();
   
   if(msgViewNumber > myViewNumber) //There is a higher view out there..
   {
-    LogMsg(LogPrioInfo, "Electing::HandleVote vote with higher view number received, restarting election period %u %u %u --> %u",msgViewNumber,myViewNumber,voteFromId,voteAddressedToId);
+    LogMsg(LogPrioInfo, "Electing::HandleVote vote with higher view number received, restarting election period msgv:%u myv:%u %u --> %u",msgViewNumber,myViewNumber,voteFromId,voteAddressedToId);
     RestartElectionPeriod(msgViewNumber,gmm);
   }
   
@@ -56,33 +59,81 @@ void Electing::HandleVote(const LeaderElectionMsg &msg,GMM &gmm)
   }
 }
 
-void Electing::CheckMessageTypeAndActAccordingly(const std::unique_ptr<LeaderElectionMsg> &pMsg,GMM &gmm)
+void Electing::HandleElectionStart(const LeaderElectionMsg &msg, GMM &gmm)
 {
+  const unsigned int msgViewNumber = msg.GetViewNumber();
+  const unsigned int myViewNumber = gmm.GetMyViewNumber();
+  const unsigned int msgFromId = msg.GetSenderId();
+  if(msgViewNumber > myViewNumber) //There is a higher view out there..
+  {
+    LogMsg(LogPrioInfo, "Electing::HandleElectionStart ElectionStart with higher view number received, restarting election period msgv:%u myv:%u from: %u",msgViewNumber,myViewNumber,msgFromId);
+    RestartElectionPeriod(msgViewNumber,gmm);
+  }
+  else
+  {
+    LogMsg(LogPrioInfo, "Electing::HandleElectionStart ElectionStart with lower or equal view number received, restarting election period msgv:%u myv:%u from: %u",msgViewNumber,myViewNumber,msgFromId);
+  }
+}
+
+StateBaseLE::StateValue Electing::HandleElectionCompleted(const LeaderElectionMsg &msg, GMM &gmm)
+{
+  StateValue nextState = StateValue::Electing;
+  const unsigned int msgViewNumber = msg.GetViewNumber();
+  const unsigned int myViewNumber = gmm.GetMyViewNumber();
+  const unsigned int msgFromId = msg.GetSenderId();
+  if(msgViewNumber >= myViewNumber)
+  {
+    LogMsg(LogPrioInfo, "Electing::HandleElectionCompleted ElectionCompleted with higher view number received, entering follower state msgv:%u myv:%u from: %u",msgViewNumber,myViewNumber,msgFromId);
+    nextState = StateValue::Follower;
+  }
+  else
+   {
+     LogMsg(LogPrioInfo, "Electing::HandleElectionCompleted ElectionCompleted with lower view number received - ignoring msgv:%u myv:%u from: %u",msgViewNumber,myViewNumber,msgFromId);
+   }
+  return nextState;
+}
+
+StateBaseLE::StateValue Electing::CheckMessageTypeAndActAccordingly(const std::unique_ptr<LeaderElectionMsg> &pMsg, GMM &gmm)
+{
+  StateValue stateToGoTo = StateValue::Electing;
   if(pMsg)
   {
-    const unsigned int msgViewNumber = pMsg->GetViewNumber();
-    const unsigned int myViewNumber = gmm.GetMyViewNumber();
     if(pMsg->IsVoteMsg())
     {
       HandleVote(*pMsg, gmm);
+      if(gmm.IsVoteCntForMySelfLargerThanMajority())
+      {
+        stateToGoTo = StateValue::Leader;
+      }
     }
     else if(pMsg->IsElectionStartMsg())
     {
+      HandleElectionStart(*pMsg, gmm);
       
     }
+    else if(pMsg->IsElectionCompletedMsg())
+    {
+      stateToGoTo = HandleElectionCompleted(*pMsg, gmm);
+    }
+    else
+    {
+      LogMsg(LogPrioCritical, "ERROR: Electing::CheckMessageTypeAndActAccordingly Invalid leader election msg type");
+      pMsg->Print(); 
+    }
   }
+  return stateToGoTo;
 }
 
 void Electing::PerformFirstTimeInStateActionsIfNeeded(GMM &gmm)
 {
-  if(m_isFirstTimeInState)
+  if(m_isFirstIterationInState)
   {
     LogMsg(LogPrioInfo, "Electing::PerformFirstTimeInStateActionsIfNeeded entered Election state - performing first actions");
     SendStartElectionToAllMembers(gmm);
     
-    //Cast vote
+    Vote(gmm);
     
-    m_isFirstTimeInState = false;
+    m_isFirstIterationInState = false;
   }
 }
 
@@ -106,6 +157,47 @@ void Electing::SendStartElectionToAllMembers(GMM &gmm)
   }
 }
 
+void Electing::Vote(GMM &gmm)
+{
+  if(!m_isVoteCastForPeriod)
+  {
+    int idToVoteFor = 0;
+    if(gmm.GetLowestQuorumConnectedId(idToVoteFor))
+    {
+      SendVote(idToVoteFor, gmm);
+      m_isVoteCastForPeriod = true;
+    }
+  }
+}
+
+void Electing::SendVote(unsigned int voteOnId,GMM &gmm)
+{
+  LeaderElectionMsg voteMsg(LeaderElectionMsg::MsgType::ElectionVote);
+  voteMsg.SetViewNumber(gmm.GetMyViewNumber());
+  voteMsg.SetSenderId(gmm.GetMyId());
+  voteMsg.SetVoteDstId(voteOnId);
+  LogMsg(LogPrioInfo, "Electing::SendVote Voting on %u view %u",voteMsg.GetIdOfVoteDst(),voteMsg.GetViewNumber());
+  for(auto & pSender : m_senders )
+  {
+    if(!pSender->Send(voteMsg))
+    {
+      LogMsg(LogPrioCritical, "ERROR: Electing::SendVote Failed to send ElectionVote message");
+    }
+  }
+}
+
+void Electing::RestartElectionPeriodIfTmo(GMM &gmm)
+{
+  static const std::chrono::milliseconds electionPeriodTimeInMs(5000);
+  const auto now = std::chrono::system_clock::now();
+  const auto elapsed = now - m_startOfElectionPeriod;
+  if(elapsed > electionPeriodTimeInMs)
+  {
+    const unsigned int largestViewSeenIncremented = gmm.GetLargestViewNumber() + 1;
+    LogMsg(LogPrioInfo, "Electing::RestartElectionPeriodIfTmo  election period expired - restarting new view: %u", largestViewSeenIncremented);
+    RestartElectionPeriod(largestViewSeenIncremented, gmm);
+  }
+}
 
 void Electing::RestartElectionPeriod(const unsigned int newViewNumber,GMM &gmm)
 {
@@ -115,6 +207,7 @@ void Electing::RestartElectionPeriod(const unsigned int newViewNumber,GMM &gmm)
   gmm.SetMyViewNumber(newViewNumber);
   
   SendStartElectionToAllMembers(gmm);
+  m_isVoteCastForPeriod = false;
 }
 
 void Electing::Print() const

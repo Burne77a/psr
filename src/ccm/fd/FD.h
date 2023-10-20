@@ -30,7 +30,7 @@ class FD
     OSAStatusCode FailureDetectionTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
     bool m_isRunning{false};
-    uint32_t  m_periodInMs{1000U};
+    uint32_t  m_periodInMs{200U};
     GMM & m_gmm;
     std::vector<std::unique_ptr<ISender>> m_senders; 
     std::unique_ptr<IReceiver> m_pReceiver;
