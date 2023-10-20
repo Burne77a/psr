@@ -26,6 +26,7 @@ public:
   void Print() const override;
 private:
   void PerformFirstTimeLeaderActions(GMM &gmm);
+  void PerformLeavingLeaderStateActions(const StateBaseLE::StateValue nextState, GMM &gmm);
   void SendElectionCompleted(GMM &gmm);
   std::vector<std::unique_ptr<ISender>> &m_senders; 
   bool m_isFirstIterationInState{true};

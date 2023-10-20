@@ -46,7 +46,10 @@ std::unique_ptr<LE> LE::CreateLE(GMM & gmm)
 LE::LE(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver) : 
     m_gmm(gmm), m_currentState(std::make_unique<Follower>()),m_senders(),m_pReceiver(std::move(pReceiver))
 {
-  
+  for(auto & pSender : senders)
+  {
+    m_senders.push_back(std::move(pSender));
+  }
 }
 
 LE::~LE()

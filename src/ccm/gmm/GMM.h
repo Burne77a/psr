@@ -19,6 +19,8 @@ class GMM {
     std::chrono::system_clock::time_point GetMemberLastHeartbeat(const int id);
     bool HasMemberHeartbeatExceeded(const int id, const std::chrono::milliseconds& duration);
     void UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& duration);
+    void SetMySelfToLeader();
+    void RemoveMySelfAsLeader();
     
     
     int GetLeaderId(void);

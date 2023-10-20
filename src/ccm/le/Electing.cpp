@@ -71,7 +71,7 @@ void Electing::HandleElectionStart(const LeaderElectionMsg &msg, GMM &gmm)
   }
   else
   {
-    LogMsg(LogPrioInfo, "Electing::HandleElectionStart ElectionStart with lower or equal view number received, restarting election period msgv:%u myv:%u from: %u",msgViewNumber,myViewNumber,msgFromId);
+    LogMsg(LogPrioInfo, "Electing::HandleElectionStart ElectionStart with lower or equal view number received - ignoring msgv:%u myv:%u from: %u",msgViewNumber,myViewNumber,msgFromId);
   }
 }
 
@@ -165,6 +165,10 @@ void Electing::Vote(GMM &gmm)
     if(gmm.GetLowestQuorumConnectedId(idToVoteFor))
     {
       SendVote(idToVoteFor, gmm);
+      if(idToVoteFor == gmm.GetMyId())
+      {
+        gmm.AddLeaderVote(idToVoteFor);
+      }
       m_isVoteCastForPeriod = true;
     }
   }

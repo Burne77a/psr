@@ -125,6 +125,7 @@ void GMM::UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& durat
         {
           pMySelf->RemoveConnection(pair.second.GetID());
           pair.second.ClearLeaderId();
+          pair.second.ResetConnectionPerception();
         }
         else
         {
@@ -132,6 +133,34 @@ void GMM::UpdateConnectionStatusForMySelf(const std::chrono::milliseconds& durat
         }
       }
     }
+  }
+}
+
+void GMM::SetMySelfToLeader()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMySelf = GetMember(m_myId);
+  if(pMySelf)
+  {
+    pMySelf->SetLeaderId(m_myId);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetMySelfToLeader member not found %d",m_myId);
+  }
+}
+
+void GMM::RemoveMySelfAsLeader()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMySelf = GetMember(m_myId);
+  if(pMySelf)
+  {
+    pMySelf->ClearLeaderId();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::RemoveMySelfAsLeader member not found %d",m_myId);  
   }
 }
 
@@ -144,7 +173,7 @@ int GMM::GetLeaderId(void)
   for (auto& pair : m_members) 
   {
     leaderId = pair.second.GetLeaderId();
-    if(leaderId != INVALID_LEADER_ID)
+    if((leaderId != INVALID_LEADER_ID) && (leaderId == pair.second.GetID()))
     {
       break;
     }
@@ -256,8 +285,8 @@ bool GMM::IsVoteCntForMySelfLargerThanMajority()
   {
     const unsigned int votes = pMyMember->GetLeaderVoteCnt();
     const unsigned int total = m_members.size();
-    const unsigned int halfRoundedUp = (total/2) + (total%2);
-    isAMajorityReached =  (votes > halfRoundedUp);
+    const unsigned int halfRoundedUp = (total/2) +1 ;
+    isAMajorityReached =  (votes >= halfRoundedUp);
   }
   else
   {
@@ -313,7 +342,7 @@ bool GMM::IsQuorumConnectedNoLock(const int id) const
   }
   
   const int totalMembers = m_members.size();
-  const int requiredConnections = (totalMembers / 2) + (totalMembers % 2);
+  const int requiredConnections = (totalMembers / 2) +1;
   return (m_members.at(id).ConnectionCount() + 1) >= requiredConnections;
 }
 

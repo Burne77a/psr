@@ -17,8 +17,10 @@ class Member {
     int ConnectionCount() const;
     std::bitset<MAX_MEMBERS> GetConnections() const;
     void SetConnectionPerception(const std::bitset<MAX_MEMBERS> &connectionPerception);
+    void ResetConnectionPerception();
     //Leader related
     int GetLeaderId() const {return m_leaderId;}
+    void SetLeaderId(const int id) {m_leaderId = id;}
     void ClearLeaderId(){m_leaderId = INVALID_LEADER_ID;}
     void IncrementVoteCnt() {m_leaderVoteCnt++;}
     void ResetVoteCnt(){m_leaderVoteCnt = 0U;}

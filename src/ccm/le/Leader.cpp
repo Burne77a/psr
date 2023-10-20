@@ -12,6 +12,9 @@ void Leader::HandleActivity(std::unique_ptr<LeaderElectionMsg> &pMsg, StateBaseL
   PerformFirstTimeLeaderActions(gmm);
   
   nextState = CheckIfToLeaveLeaderState(pMsg,gmm); 
+  
+  PerformLeavingLeaderStateActions(nextState,gmm);
+  
 }
 
 StateBaseLE::StateValue Leader::CheckIfToLeaveLeaderState(std::unique_ptr<LeaderElectionMsg> &pMsg,GMM &gmm)
@@ -40,9 +43,18 @@ void Leader::PerformFirstTimeLeaderActions(GMM &gmm)
 {
   if(m_isFirstIterationInState)
   {
+    gmm.SetMySelfToLeader();
     SendElectionCompleted(gmm);
   }
   m_isFirstIterationInState = false;
+}
+
+void Leader::PerformLeavingLeaderStateActions(const StateBaseLE::StateValue nextState, GMM &gmm)
+{
+  if(nextState != StateValue::Leader)
+  {
+    gmm.RemoveMySelfAsLeader();
+  }
 }
 
 void Leader::SendElectionCompleted(GMM &gmm)

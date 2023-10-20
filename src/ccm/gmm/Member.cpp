@@ -52,6 +52,11 @@ void Member::SetConnectionPerception(const std::bitset<MAX_MEMBERS> &connectionP
   m_connections = connectionPerception;
 }
 
+void Member::ResetConnectionPerception()
+{
+  m_connections = 0U;
+}
+
 int Member::GetID() const 
 {
   return m_id;
