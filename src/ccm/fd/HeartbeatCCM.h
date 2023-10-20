@@ -24,6 +24,7 @@ class HeartbeatCCM : public ISerializable
      int32_t m_senderId;   
      uint64_t m_connectionPerceptionBits;
      int32_t m_leaderId;
+     uint32_t m_viewNo;
     }HeartbeatData;
     
   public:
@@ -35,8 +36,10 @@ class HeartbeatCCM : public ISerializable
     std::bitset<MAX_MEMBERS> GetConnectionPerception() const {return m_connectionPerception;}
     void SetSenderId(const int id) {m_dataToExchange.m_senderId = id;}
     void SetLeaderId(const int leaderId){m_dataToExchange.m_leaderId = leaderId;}
+    void SetViewNumber(const unsigned int viewNumber){m_dataToExchange.m_viewNo = viewNumber;}
     int GetSenderId() const {return m_dataToExchange.m_senderId;}
     int GetLeaderId() const {return m_dataToExchange.m_leaderId;}
+    void GetViewNumber(){return m_dataToExchange.m_viewNo;}
     
     //ISerializable
     uint8_t *  Serialize(uint32_t &size) const override;

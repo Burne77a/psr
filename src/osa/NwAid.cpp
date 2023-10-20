@@ -81,9 +81,6 @@ bool NwAid::SetupSendSocket(const std::string_view dstIp, const int dstPort, NwS
   return true;
 }
 
-
-
-
 int NwAid::SetupRcvSocket(const int port)
 {
   struct sockaddr_in address;
@@ -241,4 +238,15 @@ OSAStatusCode NwAid::Rcv(const int socket, ISerializable & objToPopulte)
     LogMsg(LogPrioCritical,"ERROR: NwAid::Rcv Size missmatch %d %d 0x%x (%s) 0x%x %u",recvSize,size,errnoGet(),strerror(errnoGet()), pBuffer,size);
     return OSA_ERROR;
   }
+}
+
+
+static OSAStatusCode NwAid::AddIpOnNwIf(int ifNo, const std::string_view ifIp)
+{
+  return OSA_OK;
+}
+
+static OSAStatusCode RemoveIpOnNwIf(int ifNo, const std::string_view ifIp)
+{
+  return OSA_OK;
 }

@@ -100,6 +100,11 @@ OSAStatusCode CCM::InstanceTaskMethod()
   do
   {
     m_pLe->HandleActivity();
+    //Check if newly leader
+    //Change IP address 
+    //Read from client serving IP address.
+    //Pass request to LR
+    //
     
     OSATaskSleep(m_periodInMs);
   }while(m_isRunning);

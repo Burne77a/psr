@@ -110,6 +110,7 @@ void FD::Populate(HeartbeatCCM &heartbeat)
   heartbeat.SetOutbound(true);
   heartbeat.SetSrcIp(myIp);
   heartbeat.SetLeaderId(leaderId);
+  heartbeat.SetViewNumber(m_gmm.GetMyViewNumber());
 }
 
 void FD::Send(HeartbeatCCM &heartbeat)
@@ -152,6 +153,7 @@ void FD::UpdateMemberWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat
   {
     senderMember.SetConnectionPerception(rcvdHeartbeat.GetConnectionPerception());
     senderMember.UpdateHeartbeat(rcvdHeartbeat.GetLeaderId());
+    senderMember.SetViewNumber(rcvdHeartbeat.GetViewNumber());
   });
 }
 

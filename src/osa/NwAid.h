@@ -26,6 +26,8 @@ class NwAid
     static bool SetOutgoingIfForMcastGroup(const std::string_view group, const std::string_view ifIp, const int socket);
     static OSAStatusCode Send(const NwSendInf &dstSendInf,const ISerializable & objToSend);
     static OSAStatusCode Rcv(const int socket, ISerializable & objToPopulte);
+    static OSAStatusCode AddIpOnNwIf(int ifNo, const std::string_view ifIp);
+    static OSAStatusCode RemoveIpOnNwIf(int ifNo, const std::string_view ifIp);
 };
 
 
