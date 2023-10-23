@@ -13,10 +13,17 @@
 class LE 
 {
   public:
+    class ILeaderRoleChangeCallbacks
+    {
+      public:
+      virtual void EnteredLeaderRole() = 0; 
+      virtual void LeftLeaderRole() = 0;
+    };
     static std::unique_ptr<LE> CreateLE(GMM & gmm);
     LE(GMM &gmm,std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver);
     ~LE();
-  
+    
+    void SetLeaderCallback(std::weak_ptr<ILeaderRoleChangeCallbacks> pLeaderCb) {m_pLeaderCb = pLeaderCb;}
     std::string GetCurrentStateName() const;
     StateBaseLE::StateValue GetCurrentStateValue() const;
     void SetState(std::unique_ptr<StateBaseLE> newState);
@@ -35,6 +42,7 @@ class LE
     std::unique_ptr<StateBaseLE> m_currentState;
     std::vector<std::unique_ptr<ISender>> m_senders; 
     std::unique_ptr<IReceiver> m_pReceiver;
+    std::weak_ptr<ILeaderRoleChangeCallbacks> m_pLeaderCb;
 };
 
 #endif //CCM_LE_H

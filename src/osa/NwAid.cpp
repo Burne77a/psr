@@ -9,7 +9,8 @@
 #include <sys/types.h>    
 #include <sys/socket.h>   
 #include <netinet/in.h>
-#include <selectLib.h>
+#include <net/utils/ifconfig.h>
+#include <arpLib.h>
 
 
 std::unique_ptr<IReceiver> NwAid::CreateUniCastReceiver(const int port)
@@ -241,12 +242,43 @@ OSAStatusCode NwAid::Rcv(const int socket, ISerializable & objToPopulte)
 }
 
 
-static OSAStatusCode NwAid::AddIpOnNwIf(int ifNo, const std::string_view ifIp)
+OSAStatusCode NwAid::AddIpOnNwIf(const EthIfNo ifNo, const std::string_view ifIp)
 {
+  //TODO: hardcoded netmask for now.
+  std::string ifConfigParams{GetIfNameAsStr(ifNo) + " inet add " + ifIp.data() + " netmask 255.255.255.0 up"};
+  const auto sts = ifconfig(const_cast<char*>(ifConfigParams.c_str()));
+  if(sts != OK)
+  {
+    LogMsg(LogPrioCritical,"ERROR: NwAid::AddIpOnNwIf failed to add ip. Cmd %s 0x%x (%s)",ifConfigParams.c_str(),errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
   return OSA_OK;
 }
 
-static OSAStatusCode RemoveIpOnNwIf(int ifNo, const std::string_view ifIp)
+OSAStatusCode NwAid::RemoveIpOnNwIf(const EthIfNo ifNo, const std::string_view ifIp)
 {
+  //TODO: hardcoded netmask for now.
+  std::string ifConfigParams{GetIfNameAsStr(ifNo) + " inet delete " + ifIp.data()};
+  const auto sts = ifconfig(const_cast<char*>(ifConfigParams.c_str()));
+  if(sts != OK)
+  {
+    LogMsg(LogPrioCritical,"ERROR: NwAid::RemoveIpOnNwIf failed to add ip. Cmd %s 0x%x (%s)",ifConfigParams.c_str(),errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
   return OSA_OK;
 }
+
+void NwAid::ArpFlush()
+{
+  arpFlush();
+}
+
+
+
+static const char * const ifNameStr[3] = {"gei0", "gei1"};
+const std::string NwAid::GetIfNameAsStr(const EthIfNo ifNo)
+{
+  return std::string(ifNameStr[(int)ifNo]);
+}
+
+

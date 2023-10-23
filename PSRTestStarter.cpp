@@ -4,7 +4,7 @@
 #include <errnoLib.h>
 #include <memory>
 
-static std::unique_ptr<CCM> g_pCmm;
+static std::shared_ptr<CCM> g_pCmm;
 static bool g_isRunning = false;
 
 OSAStatusCode StartPSRTest(const int id)

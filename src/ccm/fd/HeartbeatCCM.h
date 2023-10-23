@@ -39,7 +39,7 @@ class HeartbeatCCM : public ISerializable
     void SetViewNumber(const unsigned int viewNumber){m_dataToExchange.m_viewNo = viewNumber;}
     int GetSenderId() const {return m_dataToExchange.m_senderId;}
     int GetLeaderId() const {return m_dataToExchange.m_leaderId;}
-    void GetViewNumber(){return m_dataToExchange.m_viewNo;}
+    unsigned int GetViewNumber() const {return m_dataToExchange.m_viewNo;}
     
     //ISerializable
     uint8_t *  Serialize(uint32_t &size) const override;

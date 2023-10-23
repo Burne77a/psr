@@ -44,7 +44,7 @@ std::unique_ptr<LE> LE::CreateLE(GMM & gmm)
 }
 
 LE::LE(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver) : 
-    m_gmm(gmm), m_currentState(std::make_unique<Follower>()),m_senders(),m_pReceiver(std::move(pReceiver))
+    m_gmm(gmm), m_currentState(std::make_unique<Follower>()),m_senders(),m_pReceiver(std::move(pReceiver)),m_pLeaderCb(nullptr)
 {
   for(auto & pSender : senders)
   {
@@ -123,7 +123,7 @@ std::unique_ptr<StateBaseLE> LE::CreateState(StateBaseLE::StateValue stateValue)
   }
   else if(stateValue == StateBaseLE::StateValue::Leader)
   {
-    pState = std::make_unique<Leader>(m_senders); 
+    pState = std::make_unique<Leader>(m_senders,m_pLeaderCb); 
   }
   else
   {

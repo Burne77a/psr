@@ -3,13 +3,15 @@
 
 #include "StateBaseLE.h"
 #include "ISender.h"
+#include "LE.h"
 #include <vector>
+#include <memory>
 
 class Leader : public StateBaseLE
 {
 public:
     
-  Leader(std::vector<std::unique_ptr<ISender>> &senders);
+  Leader(std::vector<std::unique_ptr<ISender>> &senders,std::weak_ptr<LE::ILeaderRoleChangeCallbacks> pLeaderCb);
   std::string GetStateName() const override
   {
     return "Leader";
@@ -30,6 +32,7 @@ private:
   void SendElectionCompleted(GMM &gmm);
   std::vector<std::unique_ptr<ISender>> &m_senders; 
   bool m_isFirstIterationInState{true};
+  std::weak_ptr<LE::ILeaderRoleChangeCallbacks> m_pLeaderCb;
   
 };
 

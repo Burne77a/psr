@@ -1,8 +1,11 @@
 #include "CCM.h"
 #include "Logger.h"
+#include "NwAid.h"
 #include <errnoLib.h>
 
-std::unique_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
+static constexpr std::string_view IP_ADDRESS_OF_LEADER{"192.168.213.10"};
+
+std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
 {
  
   std::unique_ptr<GMM> pGmm = std::make_unique<GMM>(myId);
@@ -29,7 +32,7 @@ std::unique_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     return nullptr;
   }
   
-  std::unique_ptr<CCM> pCmm = std::make_unique<CCM>(pGmm,pFd,pLe);
+  std::shared_ptr<CCM> pCmm = std::make_shared<CCM>(pGmm,pFd,pLe);
   
   if(!pCmm)
   {
@@ -42,7 +45,8 @@ std::unique_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
 CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe) : 
     m_pGmm(std::move(pGmm)),m_pFd(std::move(pFd)),m_pLe(std::move(pLe))
 {
-  
+ 
+ 
 }
 
 CCM::~CCM()
@@ -59,6 +63,8 @@ void CCM::Stop()
 OSAStatusCode CCM::Start()
 {
   const OSAStatusCode fdStartSts = m_pFd->Start();
+  m_leaderCb = shared_from_this(); //TODO: This is stupid, but will do for now. 
+  m_pLe->SetLeaderCallback(m_leaderCb);
   if(fdStartSts != OSA_OK)
   {
     LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start FD task. %d Errno: 0x%x (%s)",fdStartSts,errnoGet(),strerror(errnoGet()));
@@ -75,8 +81,20 @@ OSAStatusCode CCM::Start()
   
   LogMsg(LogPrioInfo, "CCM::Start successful");
   return OSA_OK;
-  
+}
 
+void CCM::EnteredLeaderRole() 
+{
+  LogMsg(LogPrioInfo, "CCM::EnteredLeaderRole() - Assigning leader ip address %s to this node.",IP_ADDRESS_OF_LEADER);
+  NwAid::AddIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
+  NwAid::ArpFlush();
+}
+
+void CCM::LeftLeaderRole()
+{
+  LogMsg(LogPrioInfo, "CCM::LeftLeaderRole() - Removing leader IP address %s from this node.",IP_ADDRESS_OF_LEADER);
+  NwAid::RemoveIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
+  NwAid::ArpFlush();
 }
 
 OSAStatusCode CCM::StartCCMTask()

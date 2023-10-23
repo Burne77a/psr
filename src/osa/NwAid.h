@@ -12,6 +12,12 @@
 class NwAid
 {
   public:
+    
+    enum class EthIfNo
+    {
+      IfOne = 0,
+      IfTwo
+    }; 
     typedef struct
     {
       int socket;
@@ -26,8 +32,10 @@ class NwAid
     static bool SetOutgoingIfForMcastGroup(const std::string_view group, const std::string_view ifIp, const int socket);
     static OSAStatusCode Send(const NwSendInf &dstSendInf,const ISerializable & objToSend);
     static OSAStatusCode Rcv(const int socket, ISerializable & objToPopulte);
-    static OSAStatusCode AddIpOnNwIf(int ifNo, const std::string_view ifIp);
-    static OSAStatusCode RemoveIpOnNwIf(int ifNo, const std::string_view ifIp);
+    static OSAStatusCode AddIpOnNwIf(const EthIfNo ifNo, const std::string_view ifIp);
+    static OSAStatusCode RemoveIpOnNwIf(const EthIfNo ifNo, const std::string_view ifIp);
+    static void ArpFlush();
+    static const std::string GetIfNameAsStr(const EthIfNo type);
 };
 
 

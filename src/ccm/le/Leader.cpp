@@ -2,7 +2,9 @@
 #include "LeaderElectionMsg.h"
 #include "Logger.h"
 
-Leader::Leader(std::vector<std::unique_ptr<ISender>> &senders) : m_senders(senders) //Requires that the lifespan of the senders are longer than that of Leader. 
+Leader::Leader(std::vector<std::unique_ptr<ISender>> &senders,std::weak_ptr<LE::ILeaderRoleChangeCallbacks> pLeaderCb) 
+: m_senders{senders}, //Requires that the lifespan of the senders are longer than that of Leader. 
+  m_pLeaderCb{pLeaderCb}
 {
   
 }
@@ -45,6 +47,11 @@ void Leader::PerformFirstTimeLeaderActions(GMM &gmm)
   {
     gmm.SetMySelfToLeader();
     SendElectionCompleted(gmm);
+    auto pLeaderCb = m_pLeaderCb.lock();
+    if(pLeaderCb)
+    {
+      pLeaderCb->EnteredLeaderRole();
+    }
   }
   m_isFirstIterationInState = false;
 }
@@ -54,6 +61,11 @@ void Leader::PerformLeavingLeaderStateActions(const StateBaseLE::StateValue next
   if(nextState != StateValue::Leader)
   {
     gmm.RemoveMySelfAsLeader();
+    auto pLeaderCb = m_pLeaderCb.lock();
+    if(pLeaderCb)
+    {
+      pLeaderCb->LeftLeaderRole();
+    }
   }
 }
 

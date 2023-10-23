@@ -25,13 +25,13 @@ bool LeaderElectionMsg::Deserialize()
 }
 
 static const char * const msgTypeStr[3] =  {"ElectionStart","ElectionCompleted","ElectionVote"};
-const std::string LeaderElectionMsg::GetMsgTypeStateAsString(const MsgType type)
+const std::string LeaderElectionMsg::GetMsgTypeAsString(const MsgType type)
 {
   return std::string(msgTypeStr[(int)type]);
 }
 
 void LeaderElectionMsg::Print() const
 {
-  LogMsg(LogPrioInfo,"LeaderElectionMsg type: %d (%s) ViewNo: %u (%u) Sender: %u Vote: %u",m_theMsgData.type,GetMsgTypeStateAsString(m_theMsgData.type).c_str(),
+  LogMsg(LogPrioInfo,"LeaderElectionMsg type: %d (%s) ViewNo: %u (%u) Sender: %u Vote: %u",m_theMsgData.type,GetMsgTypeAsString(m_theMsgData.type).c_str(),
       m_viewNumberWhenRcvd,m_theMsgData.viewNumber, m_theMsgData.senderId,m_theMsgData.idOfVoteReceiver);
 }

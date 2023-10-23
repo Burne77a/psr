@@ -24,7 +24,7 @@ class LeaderElectionMsg : public ISerializable
     LeaderElectionMsg(const MsgType typeOfMsg);
     ~LeaderElectionMsg() = default;
     MsgType GetType() const {return m_theMsgData.type;} 
-    static const std::string GetMsgTypeStateAsString(const MsgType type);
+    static const std::string GetMsgTypeAsString(const MsgType type);
     unsigned int GetViewNumber() const {return m_theMsgData.viewNumber;} 
     unsigned int GetSenderId() const {return m_theMsgData.senderId;}
     unsigned int GetIdOfVoteDst() const {return m_theMsgData.idOfVoteReceiver;}
