@@ -7,6 +7,7 @@ class ISender {
 public:
     virtual ~ISender() = default;
     virtual bool Send(const ISerializable & objToSend) = 0;
+    virtual std::string GetIpAddr(void) = 0;
 };
 
 #endif //OSFUNCTIONS_ISENDER_H_

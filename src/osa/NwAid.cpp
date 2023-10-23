@@ -78,7 +78,7 @@ bool NwAid::SetupSendSocket(const std::string_view dstIp, const int dstPort, NwS
     nwSendInfToPopulate.socket = -1;
     return false;
   }
-  
+  nwSendInfToPopulate.ipAdr = std::string(dstIp);
   return true;
 }
 

@@ -22,6 +22,7 @@ class NwAid
     {
       int socket;
       struct sockaddr_in dstInf;
+      std::string ipAdr;
     }NwSendInf;
     
     static std::unique_ptr<IReceiver> CreateUniCastReceiver(const int port);

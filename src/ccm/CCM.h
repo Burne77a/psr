@@ -3,12 +3,13 @@
 #include "gmm/GMM.h"
 #include "fd/FD.h"
 #include "le/LE.h"
+#include "lr/LR.h"
 #include <memory>
 class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from_this<CCM>
 {
   public:
     static std::shared_ptr<CCM> CreateAndInitForTest(const int myId);
-    CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe);
+    CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe, std::unique_ptr<LR> &pLr);
    ~CCM();
    OSAStatusCode Start();
    void Stop();
@@ -26,6 +27,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    std::unique_ptr<GMM> m_pGmm;
    std::unique_ptr<FD> m_pFd;
    std::unique_ptr<LE> m_pLe;
+   std::unique_ptr<LR> m_pLr;
    std::shared_ptr<LE::ILeaderRoleChangeCallbacks> m_leaderCb{nullptr};
    bool m_isRunning{false};
    unsigned int m_viewNumber{0U};

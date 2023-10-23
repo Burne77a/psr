@@ -32,7 +32,14 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     return nullptr;
   }
   
-  std::shared_ptr<CCM> pCmm = std::make_shared<CCM>(pGmm,pFd,pLe);
+  std::unique_ptr<LR> pLr = LR::CreateLR(*pGmm);
+  if(!pLr)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create LR. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::shared_ptr<CCM> pCmm = std::make_shared<CCM>(pGmm,pFd,pLe,pLr);
   
   if(!pCmm)
   {
@@ -42,8 +49,8 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
   return pCmm;
 }
 
-CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe) : 
-    m_pGmm(std::move(pGmm)),m_pFd(std::move(pFd)),m_pLe(std::move(pLe))
+CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe,std::unique_ptr<LR> &pLr) : 
+    m_pGmm{std::move(pGmm)},m_pFd{std::move(pFd)},m_pLe{std::move(pLe)},m_pLr{std::move(pLr)}
 {
  
  
@@ -85,16 +92,22 @@ OSAStatusCode CCM::Start()
 
 void CCM::EnteredLeaderRole() 
 {
-  LogMsg(LogPrioInfo, "CCM::EnteredLeaderRole() - Assigning leader ip address %s to this node.",IP_ADDRESS_OF_LEADER);
+  LogMsg(LogPrioInfo, "CCM::EnteredLeaderRole() - Assigning leader IP address %s to this node.",IP_ADDRESS_OF_LEADER);
+  //TODO: Hardcoded interfaces for the floating leader IP address is most likely not the best idea in the long run, but it works for now. 
   NwAid::AddIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
   NwAid::ArpFlush();
+  
+  m_pLr->BecameLeaderActivity();
 }
 
 void CCM::LeftLeaderRole()
 {
   LogMsg(LogPrioInfo, "CCM::LeftLeaderRole() - Removing leader IP address %s from this node.",IP_ADDRESS_OF_LEADER);
+  //TODO: Hardcoded interfaces for the floating leader IP address is most likely not the best idea in the long run, but it works for now. 
   NwAid::RemoveIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
   NwAid::ArpFlush();
+  
+  m_pLr->NoLongerLeaderActivity();
 }
 
 OSAStatusCode CCM::StartCCMTask()
@@ -118,6 +131,15 @@ OSAStatusCode CCM::InstanceTaskMethod()
   do
   {
     m_pLe->HandleActivity();
+    if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Leader)
+    {
+      m_pLr->HandleActivityAsLeader();
+    }
+    else if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Follower)
+    {
+      m_pLr->HandleActivityAsFollower();
+    }
+    
     //Check if newly leader
     //Change IP address 
     //Read from client serving IP address.
@@ -138,6 +160,7 @@ void CCM::Print() const
 {
   m_pGmm->Print();
   m_pLe->Print();
+  m_pLr->Print();
 }
 
 

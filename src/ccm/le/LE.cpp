@@ -44,7 +44,7 @@ std::unique_ptr<LE> LE::CreateLE(GMM & gmm)
 }
 
 LE::LE(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver) : 
-    m_gmm(gmm), m_currentState(std::make_unique<Follower>()),m_senders(),m_pReceiver(std::move(pReceiver)),m_pLeaderCb(nullptr)
+    m_gmm{gmm}, m_currentState{std::make_unique<Follower>()},m_senders{},m_pReceiver{std::move(pReceiver)},m_pLeaderCb{nullptr}
 {
   for(auto & pSender : senders)
   {
@@ -70,7 +70,7 @@ void LE::HandleActivityAndChangeStateIfNeeded(std::unique_ptr<LeaderElectionMsg>
 
 void LE::CheckForAndHandleIncommingMsg()
 {
-  //TODO: Not very with dynamic allocation etc., but it will do for now. 
+  //TODO: Not very good with dynamic allocation etc., but it will do for now. 
   std::unique_ptr<LeaderElectionMsg> pMsg = std::make_unique<LeaderElectionMsg>(LeaderElectionMsg::MsgType::ElectionStart);
   bool isMsgRcvd = false;
   do

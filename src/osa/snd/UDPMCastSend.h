@@ -10,7 +10,8 @@ class UDPMCastSend : public ISender
     UDPMCastSend();
     ~UDPMCastSend();
     bool Init(const std::string_view group, const std::string_view ifIp,const int port);
-    virtual bool Send(const ISerializable & objToSend);
+    bool Send(const ISerializable & objToSend) override;
+    std::string GetIpAddr(void) override {return m_dstSendInf.ipAdr;}
 
   private:
     NwAid::NwSendInf m_dstSendInf;
