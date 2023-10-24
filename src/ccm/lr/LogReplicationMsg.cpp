@@ -6,6 +6,15 @@ LogReplicationMsg::LogReplicationMsg(const MsgType typeOfMsg)
   m_theMsgData.type = typeOfMsg;
 }
 
+LogReplicationMsg::LogReplicationMsg(const MsgType typeOfMsg, const unsigned int opNumber, const unsigned int viewNumber, const unsigned int srcId, const unsigned int dstId)
+{
+  m_theMsgData.type = typeOfMsg;
+  m_theMsgData.operationNumber = opNumber;
+  m_theMsgData.viewNumber = viewNumber;
+  m_theMsgData.srcId = srcId;
+  m_theMsgData.dstId = dstId;
+}
+
 
 
 

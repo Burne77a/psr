@@ -25,6 +25,7 @@ class LogReplicationMsg : public ISerializable
     };
   public:
     LogReplicationMsg(const MsgType typeOfMsg);
+    LogReplicationMsg(const MsgType typeOfMsg, const unsigned int opNumber, const unsigned int viewNumber, const unsigned int srcId, const unsigned int dstId);
     ~LogReplicationMsg() = default;
     MsgType GetType() const {return m_theMsgData.type;} 
     static const std::string GetMsgTypeAsString(const MsgType type);
@@ -33,13 +34,16 @@ class LogReplicationMsg : public ISerializable
     unsigned int GetSrcId() const {return m_theMsgData.srcId;}
     unsigned int GetDstId() const {return m_theMsgData.dstId;}
     unsigned int GetOpNumber() const {return m_theMsgData.operationNumber;}
+    unsigned int GetReqId() const {return m_theMsgData.requestId;}
     
     void SetViewNumber(const unsigned int viewNumber){m_theMsgData.viewNumber = viewNumber;}
     void SetSrcId(const unsigned int srcId){m_theMsgData.srcId = srcId;}
     void SetDstId(const unsigned int dstId){m_theMsgData.dstId = dstId;}
     void SetOpNumber(const unsigned int opNumber){m_theMsgData.operationNumber = opNumber;}
     
-    
+    bool IsPrepareOKMsg() const {return (m_theMsgData.type == MsgType::PrepareOK);}
+    bool IsPrepareMsg() const {return (m_theMsgData.type == MsgType::Prepare);}
+    bool IsCommitMsg() const {return (m_theMsgData.type == MsgType::Commit);}
     
    
     //ISerializable
