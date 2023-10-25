@@ -69,6 +69,46 @@ bool ReplicatedLog::AddEntryToLogIfNotAlreadyIn(const LogReplicationMsg &msgToMa
   return isSuccessfullyHandled;
 }
 
+bool ReplicatedLog::CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCorespondingEntryFor)
+{
+  bool isSuccessfullyCommitted = false; 
+  if(!IsEntryAlreadyExisting(msgToCommitCorespondingEntryFor))
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto & pEntry = GetEntryWithOpNumber(msgToCommitCorespondingEntryFor.GetOpNumber());
+    if(pEntry)
+    {
+      pEntry->SetCommitted();
+      isSuccessfullyCommitted = true;
+      LogMsg(LogPrioInfo,"ReplicatedLog::CommitEntryIfPresent() - entry committed");
+      pEntry->Print();
+    }
+    else
+    {
+      LogMsg(LogPrioCritical,"ReplicatedLog::CommitEntryIfPresent() - failed to find entry");
+      msgToCommitCorespondingEntryFor.Print();
+    }
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ReplicatedLog::CommitEntryIfPresent() - trying to commit entry that does not exist in log.");
+    msgToCommitCorespondingEntryFor.Print();
+  }
+  return isSuccessfullyCommitted;
+}
+
+void ReplicatedLog::PerformUpcalls()
+{
+  for(auto &pEntry : m_logEntries)
+  {
+    if(!pEntry->IsUpcallDone())
+    {
+      LogMsg(LogPrioInfo,"ReplicatedLog::PerformUpcalls() - Upcall performed for entry (ONLY STUBB FOR NOW)");
+      pEntry->SetUpCallDone();
+    }
+  }
+}
+
 bool ReplicatedLog::AddOrOverwriteDependingOnView(const LogReplicationMsg &msg)
 {
   bool isHandledOK = false;

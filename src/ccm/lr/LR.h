@@ -17,9 +17,11 @@ class LR
     void HandleActivityAsLeader();
     void BecameLeaderActivity();
     void NoLongerLeaderActivity();
+    void PerformUpcalls();
     void Print() const;
   private:
     void HandlePrepare(const LogReplicationMsg &lrMsg);
+    void HandleCommit(const LogReplicationMsg &lrMsg);
     void HandleMsgAsFollower();
     void RcvFlush();
     bool RcvMsg(IReceiver &rcv, LogReplicationMsg &msg);

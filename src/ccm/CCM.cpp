@@ -125,6 +125,11 @@ OSAStatusCode CCM::StartCCMTask()
   return OSA_OK;
 }
 
+void CCM::MakeUpcalls()
+{
+  m_pLr->PerformUpcalls();
+}
+
 OSAStatusCode CCM::InstanceTaskMethod()
 {
   m_isRunning = true;
@@ -140,8 +145,7 @@ OSAStatusCode CCM::InstanceTaskMethod()
       m_pLr->HandleActivityAsFollower();
     }
     
-    //Check if newly leader
-    //Change IP address 
+    MakeUpcalls();
     //Read from client serving IP address.
     //Pass request to LR
     //

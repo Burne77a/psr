@@ -13,6 +13,8 @@ class LogEntry
     unsigned int GetOpNumber() const {return m_opNumber;}
     unsigned int GetViewNumber() const {return m_viewNumber;}
     unsigned int GetReqId() const{return m_rid;}
+    void SetCommitted() {m_isCommited = true;}
+    void SetUpCallDone() {m_isUpcallDone = true;}
     bool IsCommited() const {return m_isCommited;}
     bool IsUpcallDone() const {return m_isUpcallDone;}
   

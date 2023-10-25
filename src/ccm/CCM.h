@@ -16,6 +16,8 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    void Print() const;
    
   private: 
+   void MakeUpcalls();
+   
    //ILeaderRoleChangeCallbacks
    void EnteredLeaderRole() override; 
    void LeftLeaderRole() override;

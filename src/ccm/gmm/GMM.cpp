@@ -181,6 +181,24 @@ int GMM::GetLeaderId(void)
   return leaderId;
 }
 
+std::string GMM::GetLeaderIp()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMySelf = GetMember(m_myId);
+  int leaderId = INVALID_LEADER_ID; 
+  std::string leaderIpAddr{"None"};
+  for (auto& pair : m_members) 
+  {
+    leaderId = pair.second.GetLeaderId();
+    if((leaderId != INVALID_LEADER_ID) && (leaderId == pair.second.GetID()))
+    {
+      leaderIpAddr = pair.second.GetIP();
+      break;
+    }
+  }
+  return leaderIpAddr;
+}
+
 void GMM::ResetLeaderVoteCount()
 {
   std::lock_guard<std::mutex> lock(m_mutex);

@@ -15,7 +15,8 @@ class ReplicatedLog
     bool IsEntryAlreadyExisting(const unsigned int opNumber, const unsigned int viewNumber);
     bool IsEntryAlreadyExisting(const LogReplicationMsg &msg) {return IsEntryAlreadyExisting(msg.GetOpNumber(),msg.GetViewNumber());}
     bool AddEntryToLogIfNotAlreadyIn(const LogReplicationMsg &msgToMakeEntryFrom);
-    
+    bool CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCorespondingEntryFor);
+    void PerformUpcalls();
     void Print() const;
   private:
     bool AddOrOverwriteDependingOnView(const LogReplicationMsg &msg);

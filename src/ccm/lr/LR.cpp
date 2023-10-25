@@ -32,8 +32,6 @@ std::unique_ptr<LR> LR::CreateLR(GMM & gmm)
     }
   }
   
-  
-  
   if(isAllCreationOk)
   {
     pReplicatedLog = std::make_unique<ReplicatedLog>();
@@ -90,6 +88,11 @@ void LR::NoLongerLeaderActivity()
   LogMsg(LogPrioInfo, "LR::NoLongerLeaderActivity()");
 }
 
+void LR::PerformUpcalls()
+{
+  m_pRepLog->PerformUpcalls();
+}
+
 void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
 {
   const unsigned int msgViewNo = lrMsg.GetViewNumber();
@@ -102,20 +105,17 @@ void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
     {
        if(m_pRepLog->AddEntryToLogIfNotAlreadyIn(lrMsg))
        {
-         SendPrepareOK();
+         SendPrepareOK(lrMsg);
        }
        else
        {
          LogMsg(LogPrioCritical, "ERROR LR::HandlePrepare() Failed to add entry to log ");
          lrMsg.Print();
        }
-      //Add to log
-      //Send prepare OK.
-      
     }
     else
     {
-      //Trigger sync. 
+#warning trigger sync 
     }
   }
   else
@@ -127,8 +127,37 @@ void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
   //If it is, add to log, and send prepare OK
   //If not, trigger sync.
   //What to do with the current request?
-  
 }
+
+void LR::HandleCommit(const LogReplicationMsg &lrMsg)
+{
+  const unsigned int msgViewNo = lrMsg.GetViewNumber();
+  const unsigned int msgOpNo = lrMsg.GetOpNumber();
+  const unsigned int myViewNo = m_gmm.GetMyViewNumber();
+  const bool isMsgViewHigherOrEq = (myViewNo <= msgViewNo);
+  if(isMsgViewHigherOrEq)
+  {
+    if(m_pRepLog->IsEntryAlreadyExisting(lrMsg))
+    {
+      if(!m_pRepLog->CommitEntryIfPresent(lrMsg))
+      {
+        LogMsg(LogPrioCritical, "LR::HandleCommit() failed to commit entry for commit message");
+        lrMsg.Print();
+      }
+    }
+    else
+    {
+      LogMsg(LogPrioInfo, "LR::HandleCommit() received Commit for missing entry, triggering sync ");
+      #warning trigger sync 
+    }
+  }
+  else
+  {
+    LogMsg(LogPrioError, "LR::HandleCommit() received Commit with too low view number - ignoring %u %u ",myViewNo,msgViewNo);
+    lrMsg.Print();
+  }
+}
+
 
 void LR::HandleMsgAsFollower()
 {
@@ -141,11 +170,11 @@ void LR::HandleMsgAsFollower()
     }
     else if(lrMsg.IsPrepareOKMsg())
     {
-      
+      LogMsg(LogPrioInfo, "LR::HandlePrepare() received PrepareOK as follower from %u (%u:%u) ",lrMsg.GetSrcId(),lrMsg.GetViewNumber(),lrMsg.GetOpNumber());
     }
     else if(lrMsg.IsCommitMsg())
     {
-      
+      HandleCommit(lrMsg);
     }
     else
     {
@@ -168,26 +197,49 @@ bool LR::RcvMsg(IReceiver &rcv, LogReplicationMsg &msg)
 
 void LR::SendPrepareOK(const LogReplicationMsg & prepareMsg)
 {
-  LogReplicationMsg prepareOkMsg{LogReplicationMsg::MsgType::PrepareOK,prepareMsg.GetOpNumber(),prepareMsg.GetViewNumber(),m_gmm.GetMyId(),prepareMsg.GetSrcId()};
-  SendToLeader(prepareOkMsg);
+  LogReplicationMsg prepareOkMsg{LogReplicationMsg::MsgType::PrepareOK,prepareMsg.GetOpNumber(),prepareMsg.GetViewNumber(),static_cast<unsigned int>(m_gmm.GetMyId()),prepareMsg.GetSrcId()};
+  if(!SendToLeader(prepareOkMsg))
+  {
+    LogMsg(LogPrioError, "ERROR: LR::SendPrepareOK() - failed to send PrepareOK.");
+    prepareMsg.Print();
+  }
 
 }
 
 bool LR::SendToLeader(const LogReplicationMsg & msgToSend)
 {
-  //m_gmm.G
+  const std::string leaderIpAddr{m_gmm.GetLeaderIp()};
+  bool isSuccessfullySent = false;
+  bool isLeaderFound = false;
   for(auto & pSender : m_senders)
   {
     if(pSender)
     {
-      pSender->GetIpAddr() 
+      if(pSender->GetIpAddr().compare(leaderIpAddr) == 0)
+      {
+        isLeaderFound = true;
+        isSuccessfullySent = pSender->Send(msgToSend);
+      }
     }
   }
+  if(!isLeaderFound)
+  {
+    LogMsg(LogPrioError, "ERROR: LR::SendToLeader() - failed. No leader found. Leader IP %s ",leaderIpAddr.c_str());
+  }
+  else
+  {
+    if(!isSuccessfullySent)
+    {
+      LogMsg(LogPrioError, "ERROR: LR::SendToLeader() - failed to send. Leader IP %s ",leaderIpAddr.c_str());
+    }
+  }
+  return isSuccessfullySent;
 }
 
 void LR::Print() const
 {
   LogMsg(LogPrioInfo, "--- LR ---");
+  m_pRepLog->Print();
   
   LogMsg(LogPrioInfo, "--- --- ---");
 }
