@@ -90,13 +90,18 @@ OSAStatusCode CCM::Start()
   return OSA_OK;
 }
 
+std::string_view CCM::GetLeaderIp()
+{
+  return IP_ADDRESS_OF_LEADER;
+}
+
 void CCM::EnteredLeaderRole() 
 {
   LogMsg(LogPrioInfo, "CCM::EnteredLeaderRole() - Assigning leader IP address %s to this node.",IP_ADDRESS_OF_LEADER);
   //TODO: Hardcoded interfaces for the floating leader IP address is most likely not the best idea in the long run, but it works for now. 
   NwAid::AddIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
   NwAid::ArpFlush();
-  
+  //TODO: Ensure that the leader is synchronized and up to date, here or at other suitable location. 
   m_pLr->BecameLeaderActivity();
 }
 

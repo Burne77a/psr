@@ -4,6 +4,7 @@
 #include "fd/FD.h"
 #include "le/LE.h"
 #include "lr/LR.h"
+#include "csa/ClientMessage.h"
 #include <memory>
 class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from_this<CCM>
 {
@@ -13,7 +14,9 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    ~CCM();
    OSAStatusCode Start();
    void Stop();
+   std::string_view GetLeaderIp();
    void Print() const;
+  
    
   private: 
    void MakeUpcalls();

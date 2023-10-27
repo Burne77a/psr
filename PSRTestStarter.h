@@ -1,4 +1,7 @@
+#ifndef PSRTESTSTARTER_H_
+#define PSRTESTSTARTER_H_
 #include "ErrorCodes.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,4 +13,6 @@ void Print();
 
 #ifdef __cplusplus
 }
-#endif
+#endif 
+
+#endif //PSRTESTSTARTER_H_
