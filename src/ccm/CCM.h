@@ -14,7 +14,8 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    ~CCM();
    OSAStatusCode Start();
    void Stop();
-   std::string_view GetLeaderIp();
+   int GetMyId(){return m_pGmm->GetMyId();}
+   static std::string_view GetLeaderIp();
    void Print() const;
   
    

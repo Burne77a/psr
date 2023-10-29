@@ -6,6 +6,7 @@
 
 std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
 {
+  static const int CLIENT_REQ_PORT = 7777;
   std::shared_ptr<CCM> pCmm = CCM::CreateAndInitForTest(myId);
   if(!pCmm)
   {
@@ -20,7 +21,14 @@ std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
     return nullptr;
   }
   
-  std::unique_ptr<CSA> pCSA = std::make_unique<CSA>(pCmm,pSrvDispatcher);
+  std::unique_ptr<LeaderCommunicator> pLeaderComm = LeaderCommunicator::CreateLeaderCommunicator(CCM::GetLeaderIp(),CLIENT_REQ_PORT);
+  if(!pLeaderComm)
+  {
+    LogMsg(LogPrioCritical, "ERROR: CSA::CreateCSA failed to create LeaderCommunicator. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::unique_ptr<CSA> pCSA = std::make_unique<CSA>(pCmm,pSrvDispatcher,pLeaderComm);
   if(!pCSA)
   {
     LogMsg(LogPrioCritical, "ERROR: CSA::CreateCSA failed to create CSA. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -30,7 +38,8 @@ std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
 }
 
 
-CSA::CSA(std::shared_ptr<CCM> &pCmm, std::unique_ptr<ServiceUpcallDispatcher> & pSrvDispatcher) : m_pCcm{pCmm}, m_pSrvDispatcher{std::move(pSrvDispatcher)}
+CSA::CSA(std::shared_ptr<CCM> &pCmm, std::unique_ptr<ServiceUpcallDispatcher> & pSrvDispatcher,std::unique_ptr<LeaderCommunicator>& pLeaderComm) :
+    m_pCcm{pCmm}, m_pSrvDispatcher{std::move(pSrvDispatcher)},m_pLeaderComm{std::move(pLeaderComm)}
 {
   
 }
@@ -53,7 +62,7 @@ bool CSA::ReplicateRequest(const ClientMessage & msg)
     LogMsg(LogPrioError, "ERROR: CSA::ReplicateRequest failed - msg do not contain a valid request ID.");
     return false;
   }
-  if(!m_pCcm->SendToLeader(msg))
+  if(!SendToLeaderAndWaitForReply(msg))
   {
     LogMsg(LogPrioError, "ERROR: CSA::ReplicateRequest failed - failed to send ClientMessage to leader");
     return false;
@@ -70,13 +79,27 @@ ClientRequestId CSA::CreateUniqueId()
   static unsigned int reqNumber = ClientRequestId::LowestValidReqId;
   
   reqNumber++;
+  ClientRequestId newReq{reqNumber,static_cast<unsigned int>(m_pCcm->GetMyId())};
+  return newReq;
 }
 
-bool CSA::SendToLeader(const ClientMessage &msg)
+bool CSA::SendToLeaderAndWaitForReply(const ClientMessage &msg)
 {
-  bool isSuccessfullySent = false;
+  static const unsigned int RETRIES = 10U;
+  static const unsigned int WAIT_BETWEEN_RETRIES = 2000U;
+  const bool isSuccessfullySent = m_pLeaderComm->SendToLeaderWithRetries(msg, RETRIES, WAIT_BETWEEN_RETRIES);
   
-  return isSuccessfullySent;
+  if(!isSuccessfullySent)
+  {
+    LogMsg(LogPrioError, "ERROR: CSA::SendToLeaderAndWaitForReply failed - failed to send ClientMessage to leader");
+    msg.Print();
+    return false;
+  }
+  
+  
+  
+  
+  return true;
 }
 
 

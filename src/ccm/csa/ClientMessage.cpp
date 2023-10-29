@@ -1,5 +1,5 @@
 #include "ClientMessage.h"
-
+#include "Logger.h"
 ClientMessage::ClientMessage(const ISerializable &payload, const unsigned int serviceId, const ClientRequestId reqId) : m_serviceId{serviceId}, m_payload{payload}, m_reqId{reqId}
 {
   
@@ -21,3 +21,7 @@ bool ClientMessage::Deserialize()
 }
    
 
+void ClientMessage::Print() const
+{
+  LogMsg(LogPrioInfo, "ClientMessage: ServiceId %u, Req: %s ",m_serviceId,m_reqId.GetIdAsStr().c_str());
+}
