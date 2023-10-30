@@ -29,9 +29,15 @@ class GMM {
     void ResetLeaderVoteCount();
     void AddLeaderVote(const int id);
     void SetViewNumber(const int id, const unsigned int viewNumber);
-    const unsigned int GetViewNumber(const int id);
+    const unsigned int GetViewNumber(const int id) const;
     void SetMyViewNumber(const unsigned int viewNumber);
-    const unsigned int GetMyViewNumber();
+    const unsigned int GetMyViewNumber() const;
+    
+    void SetOpNumber(const int id, const unsigned int opNumber);
+    const unsigned int GetOpNumber(const int id) const;
+    void SetMyOpNumber(const unsigned int opNumber);
+    const unsigned int GetMyOpNumber() const;
+    
     const unsigned int GetLargestViewNumber();
     bool IsVoteCntForMySelfLargerThanMajority();
     
@@ -44,8 +50,8 @@ class GMM {
   private:
     const int m_myId;
     bool IsQuorumConnectedNoLock(const int id) const;
-    Member* GetMember(const int id);
-    std::unordered_map<int, Member> m_members;
+    Member* GetMember(const int id) const;
+    mutable std::unordered_map<int, Member> m_members;
     mutable std::mutex m_mutex;
 };
 

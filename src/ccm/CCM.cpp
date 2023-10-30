@@ -115,6 +115,8 @@ void CCM::LeftLeaderRole()
   NwAid::RemoveIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
   NwAid::ArpFlush();
   
+  m_pCsa->FlushOutMessageToLeader();
+  
   m_pLr->NoLongerLeaderActivity();
 }
 
@@ -138,6 +140,24 @@ void CCM::MakeUpcalls()
   m_pLr->PerformUpcalls();
 }
 
+void CCM::HandleIncomingClientRequestToLeader()
+{
+  ClientMessage incomingMsg;
+  if(m_pLr->IsLogReplicationPending())
+  {
+    //If we are about to process a replication, let is finish before starting next one.
+    return;
+  }
+  const bool isMsgRcvd = m_pCsa->GetClientRequestsSentToLeader(incomingMsg);
+  if(isMsgRcvd)
+  {
+#warning pass req..
+  }
+  //Retrieve client requests
+    //Pass to LR.
+  //When committed, send reply
+}
+
 OSAStatusCode CCM::InstanceTaskMethod()
 {
   m_isRunning = true;
@@ -146,9 +166,7 @@ OSAStatusCode CCM::InstanceTaskMethod()
     m_pLe->HandleActivity();
     if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Leader)
     {
-      //Retrieve client requests
-      //Pass to LR. 
-      //When committed, send reply
+      HandleIncomingClientRequestToLeader();
       m_pLr->HandleActivityAsLeader();
     }
     else if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Follower)
@@ -176,6 +194,7 @@ void CCM::Print() const
   m_pGmm->Print();
   m_pLe->Print();
   m_pLr->Print();
+  m_pCsa->Print();
 }
 
 

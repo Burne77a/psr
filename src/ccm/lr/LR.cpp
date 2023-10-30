@@ -66,9 +66,34 @@ LR::~LR()
   
 }
 
+bool LR::ReplicateRequest(ClientMessage &req)
+{
+  if(m_pOngoingRepMsg != nullptr)
+  {
+    LogMsg(LogPrioError, "LR::ReplicateRequest() trying to replicate new request while replication is ongoing");
+    return false;
+  }
+  else
+  {
+    m_gmm.SetMyOpNumber(m_gmm.GetMyOpNumber() + 1);
+    m_pOngoingRepMsg = LogReplicationMsg::CreateLogReplicationPrepareMessageFromClientMessage(req,m_gmm);
+    if(m_pOngoingRepMsg)
+    {
+      m_ongoingReqId = req.GetReqId();
+    }
+    else
+    {
+      LogMsg(LogPrioCritical, "LR::ReplicateRequest() failed to create new LogReplicationMessage");
+    }
+  }
+#warning Send requests
+  //Send it to all clients
+  //Set it as pending
+}
+
 void LR::HandleActivityAsFollower()
 {
-  
+  HandleMsgAsFollower();
 }
 
 void LR::HandleActivityAsLeader()
@@ -239,6 +264,7 @@ bool LR::SendToLeader(const LogReplicationMsg & msgToSend)
 void LR::Print() const
 {
   LogMsg(LogPrioInfo, "--- LR ---");
+  LogMsg(LogPrioInfo, "Ongoing req: %s from client: %d", m_ongoingReqId.GetIdAsStr().c_str(),m_requestingClientId);
   m_pRepLog->Print();
   
   LogMsg(LogPrioInfo, "--- --- ---");

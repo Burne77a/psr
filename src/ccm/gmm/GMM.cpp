@@ -237,7 +237,7 @@ void GMM::SetViewNumber(const int id, const unsigned int viewNumber)
   }
 }
 
-const unsigned int GMM::GetViewNumber(const int id) 
+const unsigned int GMM::GetViewNumber(const int id) const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   auto pMember = GetMember(id);
@@ -267,7 +267,7 @@ void GMM::SetMyViewNumber(const unsigned int viewNumber)
   }
 }
 
-const unsigned int GMM::GetMyViewNumber()
+const unsigned int GMM::GetMyViewNumber() const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   unsigned int viewNumberToReturn = 0U;
@@ -281,6 +281,68 @@ const unsigned int GMM::GetMyViewNumber()
     LogMsg(LogPrioCritical,"ERROR: GMM::GetMyViewNumber member not found %d",m_myId);
   }
   return viewNumberToReturn;
+}
+
+void GMM::SetOpNumber(const int id, const unsigned int opNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  if(pMember)
+  {
+    pMember->SetOperationNumber(opNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetOpNumber member not found %d",id);
+  }
+  
+}
+
+const unsigned int GMM::GetOpNumber(const int id) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  unsigned int opNumberToReturn = 0U;
+  if(pMember)
+  {
+    opNumberToReturn = pMember->GetOpNumber();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetOpNumber member not found %d",id);
+  }
+  return opNumberToReturn;
+  
+}
+
+void GMM::SetMyOpNumber(const unsigned int opNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMyMember = GetMember(m_myId);
+  if(pMyMember)
+  {
+    pMyMember->SetOperationNumber(opNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetMyOpNumber member not found %d",m_myId);
+  }
+}
+
+const unsigned int GMM::GetMyOpNumber() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int opNumberToReturn = 0U;
+  auto pMyMember = GetMember(m_myId);
+  if(pMyMember)
+  {
+    opNumberToReturn = pMyMember->GetOpNumber();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetMyOpNumber member not found %d",m_myId);
+  }
+  return opNumberToReturn;
 }
 
 const unsigned int GMM::GetLargestViewNumber()
@@ -341,7 +403,7 @@ void GMM::ForMyMember(const std::function<void(const int, Member&)>& func)
   ForIdMember(m_myId,func);
 }
 
-Member* GMM::GetMember(const int id) 
+Member* GMM::GetMember(const int id) const
 {
   if (m_members.find(id) != m_members.end()) 
   {

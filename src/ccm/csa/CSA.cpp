@@ -40,6 +40,11 @@ CSA::CSA(GMM& gmm, std::unique_ptr<ServiceUpcallDispatcher> & pSrvDispatcher,std
 }
 
 
+bool CSA::GetClientRequestsSentToLeader(ClientMessage & msg)
+{
+  const bool isReqRcvd = m_pLeaderComm->GetClientRequestsSentToLeader(msg);
+}
+
 
 bool CSA::ReplicateRequest(const ClientMessage & msg)
 {

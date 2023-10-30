@@ -28,12 +28,12 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    
   private: 
    void MakeUpcalls();
+   void HandleIncomingClientRequestToLeader();
    
    //ILeaderRoleChangeCallbacks
    void EnteredLeaderRole() override; 
    void LeftLeaderRole() override;
    OSAStatusCode StartCCMTask();
-   OSAStatusCode CCMMethod();
    OSAStatusCode InstanceTaskMethod();
    static OSAStatusCode ClassTaskMethod(void * const pInstance);
    uint32_t  m_periodInMs{500U};
@@ -44,8 +44,6 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    std::unique_ptr<CSA> m_pCsa;
    std::shared_ptr<LE::ILeaderRoleChangeCallbacks> m_leaderCb{nullptr};
    bool m_isRunning{false};
-   unsigned int m_viewNumber{0U};
-   unsigned int m_operationNumber{0U};
 };
 
 #endif //CCM_CCM_H

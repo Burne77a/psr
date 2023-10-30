@@ -16,6 +16,10 @@ class CSA :  public ICCM
     static std::unique_ptr<CSA> CreateCSA(const std::string_view leaderIp, GMM& gmm);
     CSA(GMM& gmm, std::unique_ptr<ServiceUpcallDispatcher> & pSrvDispatcher, std::unique_ptr<LeaderCommunicator>& pLeaderComm);
     ~CSA() = default;
+    
+    bool GetClientRequestsSentToLeader(ClientMessage & msg);
+    void FlushOutMessageToLeader() {m_pLeaderComm->FlushMsgToLeader();}
+    
     //ICCM
     bool ReplicateRequest(const ClientMessage & msg) override;
     bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override

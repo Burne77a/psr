@@ -6,6 +6,8 @@
 #include "TaskAbstraction.h"
 #include "ISender.h"
 #include "IReceiver.h"
+#include "../csa/ClientMessage.h"
+#include "../csa/ClientRequestId.h"
 #include <memory>
 class LR
 {
@@ -13,11 +15,13 @@ class LR
     static std::unique_ptr<LR> CreateLR(GMM & gmm);
     LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver, std::unique_ptr<ReplicatedLog> &pRepLog);
     ~LR();
+    bool ReplicateRequest(ClientMessage &req);
     void HandleActivityAsFollower();
     void HandleActivityAsLeader();
     void BecameLeaderActivity();
     void NoLongerLeaderActivity();
     void PerformUpcalls();
+    bool IsLogReplicationPending() const {return m_ongoingReqId.IsValid();}
     void Print() const;
   private:
     void HandlePrepare(const LogReplicationMsg &lrMsg);
@@ -31,6 +35,11 @@ class LR
     std::vector<std::unique_ptr<ISender>> m_senders; 
     std::unique_ptr<IReceiver> m_pReceiver;
     std::unique_ptr<ReplicatedLog> m_pRepLog;
+    ClientRequestId m_ongoingReqId{};
+    int m_requestingClientId{0U};
+    std::unique_ptr<LogReplicationMsg> m_pOngoingRepMsg{};
+    
+    
     
 };
 

@@ -141,9 +141,50 @@ bool LeaderCommunicator::SendToLeaderWithRetries(const ClientMessage &msg, const
   return isSuccessfullySent;
 }
 
+void LeaderCommunicator::FlushMsgToLeader()
+{
+  ClientMessage msgToDiscard;
+  while(ReceiveFromClient(msgToDiscard));
+}
+
+
+bool LeaderCommunicator::GetClientRequestsSentToLeader(ClientMessage & msg)
+{
+  bool isClientReqMsgReceived = false;
+  bool isToTryOneMoreTime = false;
+  do
+  {
+    isToTryOneMoreTime = false;
+    const bool isMsgRcvd = ReceiveFromClient(msg);
+    if(isMsgRcvd)
+    {
+      if(!msg.IsRequest())
+      {
+        LogMsg(LogPrioWarning, "ERROR: LeaderCommunicator::GetClientRequestsSentToLeader Received message as leader that is not a request - discarding and trying again");
+        msg.Print();
+        isToTryOneMoreTime = true;
+      }
+      else
+      {
+        isClientReqMsgReceived = true;
+      }
+    }
+  }while(isToTryOneMoreTime);
+  
+  return isClientReqMsgReceived;
+}
+
+
+
+bool LeaderCommunicator::ReceiveFromClient(ClientMessage &msg)
+{
+  const bool isSuccessfullyRcvd = m_pLeaderRcv->Rcv(msg);
+  return isSuccessfullyRcvd;  
+}
+
 bool LeaderCommunicator::ReceiveFromLeader(ClientMessage &rcvdMsg)
 {
-  const bool isSuccessfullyRcvd = m_pLeaderRcv->Rcv(rcvdMsg);
+  const bool isSuccessfullyRcvd = m_pClientRcv->Rcv(rcvdMsg);
   return isSuccessfullyRcvd;
 }
 

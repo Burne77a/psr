@@ -1,7 +1,11 @@
 #ifndef CCM_LR_MESSAGE_H
 #define CCM_LR_MESSAGE_H
 #include "ISerializable.h"
+#include "../csa/ClientMessage.h"
+#include "../gmm/GMM.h"
 #include <string>
+#include <vector>
+#include <memory>
 
 class LogReplicationMsg : public ISerializable
 {
@@ -24,6 +28,7 @@ class LogReplicationMsg : public ISerializable
       unsigned int dstId{0U};
     };
   public:
+    static std::unique_ptr<LogReplicationMsg> CreateLogReplicationPrepareMessageFromClientMessage(const ClientMessage &msg,const GMM &gmm);
     LogReplicationMsg(const MsgType typeOfMsg);
     LogReplicationMsg(const MsgType typeOfMsg, const unsigned int opNumber, const unsigned int viewNumber, const unsigned int srcId, const unsigned int dstId);
     ~LogReplicationMsg() = default;
@@ -45,6 +50,8 @@ class LogReplicationMsg : public ISerializable
     bool IsPrepareMsg() const {return (m_theMsgData.type == MsgType::Prepare);}
     bool IsCommitMsg() const {return (m_theMsgData.type == MsgType::Commit);}
     
+    void SetPayload(const ISerializable &payload);
+    void GetPayload(ISerializable &payload);
    
     //ISerializable
     virtual const uint8_t *  Serialize(uint32_t &size) const override;
@@ -54,6 +61,8 @@ class LogReplicationMsg : public ISerializable
     void Print() const;
   private:
     LogReplicationMsgData m_theMsgData;
+   mutable std::vector<uint8_t> m_payload;
+   mutable std::vector<uint8_t> m_serializedDataInclMsgAndPayload;
 };
 
 #endif //CCM_LR_MESSAGE_H

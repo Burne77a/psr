@@ -17,9 +17,13 @@ class LeaderCommunicator
     ~LeaderCommunicator() = default;
     bool WaitForCommitAckToRequest(const ClientMessage &req,const unsigned int timeToWaitInMs);
     bool SendToLeaderWithRetries(const ClientMessage &msg, const unsigned int retries, const unsigned int timeBetweenInMs);
+    bool GetClientRequestsSentToLeader(ClientMessage & msg);
+    
+    void FlushMsgToLeader();
     
  
   private:
+    bool ReceiveFromClient(ClientMessage &msg);
     bool SendToLeader(const ClientMessage &msg);
     bool ReceiveFromLeader(ClientMessage &rcvdMsg);
     bool IsValidReply(const ClientMessage &req,const ClientMessage &reply);

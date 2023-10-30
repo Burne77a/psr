@@ -27,6 +27,8 @@ class Member {
     unsigned int GetLeaderVoteCnt(){return m_leaderVoteCnt;}
     void SetViewNumber(const unsigned int viewNumber){m_viewNumber = viewNumber;}
     unsigned int GetViewNumber() const {return m_viewNumber;}
+    unsigned int GetOpNumber() const {return m_operationNumber;}
+    void SetOperationNumber(const unsigned int opNumber) {m_operationNumber = opNumber;}
     //Member related
     int GetID() const;
     const std::string& GetName() const;
@@ -46,6 +48,7 @@ private:
     int m_leaderId{INVALID_LEADER_ID};
     unsigned int m_viewNumber{0U};
     unsigned int m_leaderVoteCnt{0U};
+    unsigned int m_operationNumber{0U};
 };
 
 #endif // CCM_MEMBER_H
