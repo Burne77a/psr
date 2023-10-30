@@ -39,7 +39,14 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     return nullptr;
   }
   
-  std::shared_ptr<CCM> pCmm = std::make_shared<CCM>(pGmm,pFd,pLe,pLr);
+  std::unique_ptr<CSA> pCsa = CSA::CreateCSA(IP_ADDRESS_OF_LEADER,*pGmm);
+  if(!pCsa)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create CSA. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::shared_ptr<CCM> pCmm = std::make_shared<CCM>(pGmm,pFd,pLe,pLr,pCsa);
   
   if(!pCmm)
   {
@@ -49,8 +56,8 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
   return pCmm;
 }
 
-CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe,std::unique_ptr<LR> &pLr) : 
-    m_pGmm{std::move(pGmm)},m_pFd{std::move(pFd)},m_pLe{std::move(pLe)},m_pLr{std::move(pLr)}
+CCM::CCM(std::unique_ptr<GMM> &pGmm, std::unique_ptr<FD> &pFd, std::unique_ptr<LE> &pLe,std::unique_ptr<LR> &pLr,std::unique_ptr<CSA>& pCsa) : 
+    m_pGmm{std::move(pGmm)},m_pFd{std::move(pFd)},m_pLe{std::move(pLe)},m_pLr{std::move(pLr)},m_pCsa{std::move(pCsa)}
 {
  
  
@@ -90,10 +97,6 @@ OSAStatusCode CCM::Start()
   return OSA_OK;
 }
 
-std::string_view CCM::GetLeaderIp()
-{
-  return IP_ADDRESS_OF_LEADER;
-}
 
 void CCM::EnteredLeaderRole() 
 {
@@ -145,7 +148,7 @@ OSAStatusCode CCM::InstanceTaskMethod()
     {
       //Retrieve client requests
       //Pass to LR. 
-      //When commited, send reply
+      //When committed, send reply
       m_pLr->HandleActivityAsLeader();
     }
     else if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Follower)

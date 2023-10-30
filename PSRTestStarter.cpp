@@ -1,14 +1,15 @@
 #include "PSRTestStarter.h"
-#include "src/ccm/CSA/CSA.h"
+#include "src/ccm/CCM.h"
+#include "src/ccm/ICCM.h"
 
 #include "Logger.h"
 #include "TestClient.h"
 #include <errnoLib.h>
 #include <memory>
 
-static std::unique_ptr<CSA> g_pCsa;
+static std::shared_ptr<CCM> g_pCcm;
 
-static std::unique_ptr<TestClient> g_pTc;
+static std::shared_ptr<ICCM> g_pCsaIf;
 
 static bool g_isRunning = false;
 
@@ -16,41 +17,30 @@ OSAStatusCode StartPSRTest(const int id)
 {
   LogMsgInit();
   
-  g_pCsa = CSA::CreateCSA(id);
-  if(!g_pCsa)
-  {
-    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CSA::CreateCSA failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return OSA_ERROR;
-  }
-  
-  const OSAStatusCode startSts = g_pCsa->Start();
-  if(startSts != OSA_OK)
-  {
-    LogMsg(LogPrioCritical, "ERROR: StartPSRTest Start CSA (CMM) failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return OSA_ERROR;
-  }
-  
-  g_isRunning = true;
-  
-  g_pTc = std::make_unique<TestClient>(*g_pCsa);
-  if(!g_pTc)
-  {
-    LogMsg(LogPrioCritical, "ERROR: StartPSRTest Failed to create test client (TestClient). Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return OSA_ERROR;
-  }
-  
-  do
-  {
-    OSATaskSleep(1000);
-  }while(g_isRunning);
-  
+  g_pCcm = CCM::CreateAndInitForTest(id);
+   if(!g_pCcm)
+   {
+     LogMsg(LogPrioCritical, "ERROR StartPSRTest CreateAndInitForTest failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+     return OSA_ERROR;
+   }
+   
+   g_pCcm->Start();
+   
+   g_pCsaIf = g_pCcm;
+   
+   g_isRunning = true;
+   
+   do
+   {
+     OSATaskSleep(1000);
+   }while(g_isRunning);
   
   return OSA_OK;
 }
 
 void Print()
 {
-  g_pCsa->Print();
+  g_pCcm->Print();
 }
 
 void TriggerClientReq()

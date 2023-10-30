@@ -4,17 +4,11 @@
 #include <errnoLib.h>
 
 
-std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
+std::unique_ptr<CSA> CSA::CreateCSA(const std::string_view leaderIp, GMM& gmm)
 {
   static const int LEADER_PORT = 7777;
   static const int CLIENT_PORT = 7778;
-  std::shared_ptr<CCM> pCmm = CCM::CreateAndInitForTest(myId);
-  if(!pCmm)
-  {
-    LogMsg(LogPrioCritical, "ERROR:  CSA::CreateCSA CreateAndInitForTest failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return nullptr;
-  }
-    
+      
   std::unique_ptr<ServiceUpcallDispatcher> pSrvDispatcher = std::make_unique<ServiceUpcallDispatcher>();
   if(!pSrvDispatcher)
   {
@@ -22,14 +16,14 @@ std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
     return nullptr;
   }
   
-  std::unique_ptr<LeaderCommunicator> pLeaderComm = LeaderCommunicator::CreateLeaderCommunicator(CCM::GetLeaderIp(),LEADER_PORT,pCmm->GetGMM(),CLIENT_PORT);
+  std::unique_ptr<LeaderCommunicator> pLeaderComm = LeaderCommunicator::CreateLeaderCommunicator(leaderIp,LEADER_PORT,gmm,CLIENT_PORT);
   if(!pLeaderComm)
   {
     LogMsg(LogPrioCritical, "ERROR: CSA::CreateCSA failed to create LeaderCommunicator. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
-  std::unique_ptr<CSA> pCSA = std::make_unique<CSA>(pCmm,pSrvDispatcher,pLeaderComm);
+  std::unique_ptr<CSA> pCSA = std::make_unique<CSA>(gmm,pSrvDispatcher,pLeaderComm);
   if(!pCSA)
   {
     LogMsg(LogPrioCritical, "ERROR: CSA::CreateCSA failed to create CSA. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -39,22 +33,13 @@ std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
 }
 
 
-CSA::CSA(std::shared_ptr<CCM> &pCmm, std::unique_ptr<ServiceUpcallDispatcher> & pSrvDispatcher,std::unique_ptr<LeaderCommunicator>& pLeaderComm) :
-    m_pCcm{pCmm}, m_pSrvDispatcher{std::move(pSrvDispatcher)},m_pLeaderComm{std::move(pLeaderComm)}
+CSA::CSA(GMM& gmm, std::unique_ptr<ServiceUpcallDispatcher> & pSrvDispatcher,std::unique_ptr<LeaderCommunicator>& pLeaderComm) :
+    m_gmm{gmm}, m_pSrvDispatcher{std::move(pSrvDispatcher)},m_pLeaderComm{std::move(pLeaderComm)}
 {
   
 }
 
-const OSAStatusCode CSA::Start()
-{
-  const OSAStatusCode startSts = m_pCcm->Start();
-  if(startSts != OSA_OK)
-  {
-    LogMsg(LogPrioCritical, "ERROR: CSA::Start failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return OSA_ERROR;
-  }
-  return startSts;
-}
+
 
 bool CSA::ReplicateRequest(const ClientMessage & msg)
 {
@@ -80,7 +65,7 @@ ClientRequestId CSA::CreateUniqueId()
   static unsigned int reqNumber = ClientRequestId::LowestValidReqId;
   
   reqNumber++;
-  ClientRequestId newReq{reqNumber,static_cast<unsigned int>(m_pCcm->GetMyId())};
+  ClientRequestId newReq{reqNumber,static_cast<unsigned int>(m_gmm.GetMyId())};
   return newReq;
 }
 
@@ -110,8 +95,9 @@ bool CSA::SendToLeaderAndWaitForReply(const ClientMessage &msg)
 
 void CSA::Print() const
 {
-  m_pCcm->Print();
+  LogMsg(LogPrioInfo, "--- CSA ---");
   m_pSrvDispatcher->Print();
+  LogMsg(LogPrioInfo, "--- --- ---");
 }
 
 
