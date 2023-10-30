@@ -3,14 +3,26 @@
 #include "ISerializable.h"
 #include "ClientRequestId.h"
 #include <functional>
+#include <memory>
 
 class ClientMessage : public ISerializable
 {
   public:
-    ClientMessage(const ISerializable &payload, const unsigned int serviceId, const ClientRequestId reqId);
+    enum class MsgType
+     {
+       Request = 0,
+       ACK,
+       NACK
+     };   
+    ClientMessage();
+    ClientMessage(std::shared_ptr<ISerializable> pPayload, const unsigned int serviceId, const ClientRequestId reqId);
     ~ClientMessage() = default;
     unsigned int GetServiceId() const {return m_serviceId;}
     ClientRequestId GetReqId() const {return m_reqId;}
+    MsgType GetType() const {return m_type;}
+    bool IsRequest() const {return m_type == MsgType::Request;}
+    bool IsAck() const {return m_type == MsgType::ACK;}
+    bool IsNAck() const {return m_type == MsgType::NACK;}
     
     //ISerializable
     uint8_t *  Serialize(uint32_t &size) const override;
@@ -20,9 +32,10 @@ class ClientMessage : public ISerializable
     
     void Print() const;
   private:
-    const unsigned int m_serviceId;
-    const ISerializable &m_payload;
-    const ClientRequestId m_reqId;
+    unsigned int m_serviceId{0U};
+    std::shared_ptr<ISerializable> m_pPayload{nullptr};
+    ClientRequestId m_reqId{};
+    MsgType m_type{MsgType::NACK};
     
 };
 

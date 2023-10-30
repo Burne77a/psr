@@ -143,6 +143,9 @@ OSAStatusCode CCM::InstanceTaskMethod()
     m_pLe->HandleActivity();
     if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Leader)
     {
+      //Retrieve client requests
+      //Pass to LR. 
+      //When commited, send reply
       m_pLr->HandleActivityAsLeader();
     }
     else if(m_pLe->GetCurrentStateValue() == StateBaseLE::StateValue::Follower)

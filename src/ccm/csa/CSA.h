@@ -14,7 +14,11 @@ class CSA
     ~CSA() = default;
     const OSAStatusCode Start();
     bool ReplicateRequest(const ClientMessage & msg);
-    bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) {return m_pSrvDispatcher->RegisterService(serviceId, upcallCb);}
+    bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) 
+    {
+      std::lock_guard<std::mutex> lock(m_mutex); 
+      return m_pSrvDispatcher->RegisterService(serviceId, upcallCb);
+    }
     void Print() const;
     ClientRequestId CreateUniqueId();
   private:

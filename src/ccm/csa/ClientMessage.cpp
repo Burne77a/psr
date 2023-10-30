@@ -1,6 +1,11 @@
 #include "ClientMessage.h"
 #include "Logger.h"
-ClientMessage::ClientMessage(const ISerializable &payload, const unsigned int serviceId, const ClientRequestId reqId) : m_serviceId{serviceId}, m_payload{payload}, m_reqId{reqId}
+
+ClientMessage::ClientMessage() 
+{
+ 
+}
+ClientMessage::ClientMessage(std::shared_ptr<ISerializable> pPayload, const unsigned int serviceId, const ClientRequestId reqId) : m_serviceId{serviceId}, m_pPayload{pPayload}, m_reqId{reqId}
 {
   
 }

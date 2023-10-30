@@ -6,7 +6,8 @@
 
 std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
 {
-  static const int CLIENT_REQ_PORT = 7777;
+  static const int LEADER_PORT = 7777;
+  static const int CLIENT_PORT = 7778;
   std::shared_ptr<CCM> pCmm = CCM::CreateAndInitForTest(myId);
   if(!pCmm)
   {
@@ -21,7 +22,7 @@ std::unique_ptr<CSA> CSA::CreateCSA(const int myId)
     return nullptr;
   }
   
-  std::unique_ptr<LeaderCommunicator> pLeaderComm = LeaderCommunicator::CreateLeaderCommunicator(CCM::GetLeaderIp(),CLIENT_REQ_PORT);
+  std::unique_ptr<LeaderCommunicator> pLeaderComm = LeaderCommunicator::CreateLeaderCommunicator(CCM::GetLeaderIp(),LEADER_PORT,pCmm->GetGMM(),CLIENT_PORT);
   if(!pLeaderComm)
   {
     LogMsg(LogPrioCritical, "ERROR: CSA::CreateCSA failed to create LeaderCommunicator. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -57,6 +58,7 @@ const OSAStatusCode CSA::Start()
 
 bool CSA::ReplicateRequest(const ClientMessage & msg)
 {
+  std::lock_guard<std::mutex> lock(m_mutex); 
   if(!msg.GetReqId().IsValid())
   {
     LogMsg(LogPrioError, "ERROR: CSA::ReplicateRequest failed - msg do not contain a valid request ID.");
@@ -67,7 +69,6 @@ bool CSA::ReplicateRequest(const ClientMessage & msg)
     LogMsg(LogPrioError, "ERROR: CSA::ReplicateRequest failed - failed to send ClientMessage to leader");
     return false;
   }
-  //Wait for the response
   
   return true;
 }
@@ -87,6 +88,7 @@ bool CSA::SendToLeaderAndWaitForReply(const ClientMessage &msg)
 {
   static const unsigned int RETRIES = 10U;
   static const unsigned int WAIT_BETWEEN_RETRIES = 2000U;
+  static const unsigned int TIME_TO_WAIT_ON_REPLY = 5000U;
   const bool isSuccessfullySent = m_pLeaderComm->SendToLeaderWithRetries(msg, RETRIES, WAIT_BETWEEN_RETRIES);
   
   if(!isSuccessfullySent)
@@ -95,11 +97,14 @@ bool CSA::SendToLeaderAndWaitForReply(const ClientMessage &msg)
     msg.Print();
     return false;
   }
-  
-  
-  
-  
-  return true;
+  const bool isValidReplyRcvd = m_pLeaderComm->WaitForCommitAckToRequest(msg, TIME_TO_WAIT_ON_REPLY);
+  if(!isValidReplyRcvd)
+  {
+    LogMsg(LogPrioError, "ERROR: CSA::SendToLeaderAndWaitForReply failed - no valid reply received within timeout time");
+    msg.Print();
+  }
+    
+  return isValidReplyRcvd;
 }
 
 

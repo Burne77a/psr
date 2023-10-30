@@ -2,25 +2,41 @@
 #include "NwAid.h"
 #include "Logger.h"
 #include "TaskAbstraction.h"
+#include "../misc/Misc.h"
 #include <errnoLib.h>
+#include <chrono>
 
-std::unique_ptr<LeaderCommunicator> LeaderCommunicator::CreateLeaderCommunicator(const std::string_view leaderIpAddress, const int port)
+std::unique_ptr<LeaderCommunicator> LeaderCommunicator::CreateLeaderCommunicator(const std::string_view leaderIpAddress, const int leaderRcvPort,GMM & gmm, const int leaderSndPort)
 {
-  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(port);
-  if(!pRcv)
+  std::unique_ptr<IReceiver> pLeaderRcv = NwAid::CreateUniCastReceiver(leaderRcvPort);
+  if(!pLeaderRcv)
   {
-    LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create receiver. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create leader receiver. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
-  std::unique_ptr<ISender> pSender = NwAid::CreateUniCastSender(leaderIpAddress, port);
-  if(!pSender)
+  std::unique_ptr<ISender> pLeaderSnd = NwAid::CreateUniCastSender(leaderIpAddress, leaderRcvPort);
+  if(!pLeaderSnd)
   {
-    LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create sender. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create leader sender. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
-  std::unique_ptr<LeaderCommunicator> pLc = std::make_unique<LeaderCommunicator>(pSender,pRcv);
+  std::vector<std::unique_ptr<ISender>> clientSenders; 
+  if(!Misc::CreateISendersFromMembers(leaderSndPort, gmm, clientSenders))
+  {
+    LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create client senders. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::unique_ptr<IReceiver> pClientRcv = NwAid::CreateUniCastReceiver(leaderSndPort);
+  if(!pClientRcv)
+  {
+    LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create client receiver. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::unique_ptr<LeaderCommunicator> pLc = std::make_unique<LeaderCommunicator>(pLeaderSnd,pLeaderRcv,clientSenders,pClientRcv);
   if(!pLc)
   {
     LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create LeaderCommunicator. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -30,10 +46,76 @@ std::unique_ptr<LeaderCommunicator> LeaderCommunicator::CreateLeaderCommunicator
   return pLc;
 }
 
-LeaderCommunicator::LeaderCommunicator(std::unique_ptr<ISender>& pSender, std::unique_ptr<IReceiver>&  pReceiver) : 
-    m_pSender(std::move(pSender)), m_pReceiver(std::move(pReceiver))
+LeaderCommunicator::LeaderCommunicator(std::unique_ptr<ISender>& pLeaderSnd, std::unique_ptr<IReceiver>&  pLeaderRcv, std::vector<std::unique_ptr<ISender>>& clientSenders, std::unique_ptr<IReceiver>& pClientRcv) : 
+    m_pLeaderSnd{std::move(pLeaderSnd)}, m_pLeaderRcv{std::move(pLeaderRcv)}, m_pClientRcv{std::move(pClientRcv)}
 {
-  
+  for(auto & pSender : clientSenders)
+  {
+    m_clientSenders.push_back(std::move(pSender));
+  }
+}
+
+bool LeaderCommunicator::WaitForCommitAckToRequest(const ClientMessage &req,const unsigned int timeToWaitInMs)
+{
+  static constexpr unsigned int TimeToWaitInMs = 100U;
+  static const std::chrono::milliseconds TimeToWaitInMsDuration (TimeToWaitInMs * 3);
+  bool isCorrectReplyReceived = false;
+  bool isWaitOver = false;
+  auto startOfWait = std::chrono::system_clock::now();
+  do
+  {
+    bool isReplyReceived = false;
+    ClientMessage reply;
+    isReplyReceived = ReceiveFromLeader(reply);
+    if(isReplyReceived)
+    {
+      isCorrectReplyReceived = IsValidReply(req,reply);
+    }
+    else
+    {
+      auto elapsed = std::chrono::system_clock::now() - startOfWait;
+      isWaitOver = (elapsed > TimeToWaitInMsDuration);
+      if(!isWaitOver)
+      {
+        OSATaskSleep(TimeToWaitInMs);
+      }
+    }
+  }while(!isCorrectReplyReceived && !isWaitOver);
+  if(!isCorrectReplyReceived)
+  {
+    LogMsg(LogPrioError, "ERROR: LeaderCommunicator::WaitForCommitAckToRequest no reply received for request");
+    req.Print();
+  }
+  return isCorrectReplyReceived;
+}
+
+bool LeaderCommunicator::IsValidReply(const ClientMessage &req,const ClientMessage &reply)
+{
+  bool isValidReply = false;
+  if(reply.GetReqId() == req.GetReqId())
+  {
+    if(reply.IsAck())
+    {
+      isValidReply = true;
+    }
+    else if(reply.IsNAck())
+    {
+      LogMsg(LogPrioError, "WARNING: LeaderCommunicator::IsValidReply Received reply NACK");
+    }
+    else
+    {
+      LogMsg(LogPrioError, "WARNING: LeaderCommunicator::IsValidReply Received reply request as reply");
+    } 
+  }
+  else
+  {
+    LogMsg(LogPrioError, "ERROR: LeaderCommunicator::IsValidReply Received reply to another request");
+  }
+  if(!isValidReply)
+  {
+    reply.Print();
+  }
+  return isValidReply;
 }
 
 bool LeaderCommunicator::SendToLeaderWithRetries(const ClientMessage &msg, const unsigned int retries, const unsigned int timeBetweenInMs)
@@ -53,16 +135,22 @@ bool LeaderCommunicator::SendToLeaderWithRetries(const ClientMessage &msg, const
   
   if(!isSuccessfullySent)
   {
-    LogMsg(LogPrioError, "ERROR: SendToLeaderWithRetries::SendToLeader failed to send message to leader after %u retries. Errno: 0x%x (%s)",retries,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioError, "ERROR: LeaderCommunicator::SendToLeaderWithRetries failed to send message to leader after %u retries. Errno: 0x%x (%s)",retries,errnoGet(),strerror(errnoGet()));
   }
   
   return isSuccessfullySent;
 }
 
+bool LeaderCommunicator::ReceiveFromLeader(ClientMessage &rcvdMsg)
+{
+  const bool isSuccessfullyRcvd = m_pLeaderRcv->Rcv(rcvdMsg);
+  return isSuccessfullyRcvd;
+}
+
 bool LeaderCommunicator::SendToLeader(const ClientMessage &msg)
 {
   bool isSentSuccessfully = false;
-  isSentSuccessfully = m_pSender->Send(msg);
+  isSentSuccessfully = m_pLeaderSnd->Send(msg);
   if(!isSentSuccessfully)
   {
     LogMsg(LogPrioError, "ERROR: LeaderCommunicator::SendToLeader failed to send message to leader. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));

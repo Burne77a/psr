@@ -9,6 +9,18 @@ class ClientRequestId
     ClientRequestId() :  m_reqSeq{Invalid}, m_clientId{Invalid} {}
     ClientRequestId(const unsigned int reqSeq, const unsigned int clientId) : m_reqSeq{reqSeq}, m_clientId{clientId} {}
     bool IsValid() const {return ((m_reqSeq != Invalid) && (m_clientId != Invalid));}
+    
+    bool operator==(ClientRequestId const& rhs) const
+    {
+      bool isValid = IsValid() && rhs.IsValid();
+      bool isEqual = false;
+      if(isValid)
+      {
+        isEqual = (m_reqSeq == rhs.m_reqSeq) && (m_clientId == rhs.m_clientId);
+      }
+      return isEqual;
+    }
+    
     std::string GetIdAsStr() const {return std::string{std::to_string(m_clientId) + ":" + std::to_string(m_reqSeq)};}
     static constexpr unsigned int LowestValidReqId = Invalid + 1U;
   private: 
