@@ -41,7 +41,7 @@ class ClientMessage : public ISerializable
     const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;
     bool Deserialize() override;
     
-    
+    static const std::string GetMsgTypeAsString(const MsgType type);
     void Print() const;
   private:
     MsgInfo m_msgInfo;

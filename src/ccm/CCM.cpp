@@ -191,9 +191,6 @@ OSAStatusCode CCM::InstanceTaskMethod()
     }
     
     MakeUpcalls();
-    //Read from client serving IP address.
-    //Pass request to LR
-    //
     
     OSATaskSleep(m_periodInMs);
   }while(m_isRunning);

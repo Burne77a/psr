@@ -87,13 +87,20 @@ bool ClientMessage::Deserialize()
   }
   return isSuccessfullyDeserialized;
 }
+
+static const char * const msgTypeStr[3] =  {" Request","ACK","NACK"};
+const std::string ClientMessage::GetMsgTypeAsString(const MsgType type)
+{
+  return std::string(msgTypeStr[(int)type]);
+}
    
 
 void ClientMessage::Print() const
 {
   LogMsg(LogPrioInfo, "--- ClientMessage ---");
   LogMsg(LogPrioInfo, "ServiceId %u, Req: %s ",m_msgInfo.m_serviceId,m_msgInfo.m_reqId.GetIdAsStr().c_str());
-  LogMsg(LogPrioInfo, "Type: %s, Req: %s ",m_msgInfo.m_serviceId,m_msgInfo.m_reqId.GetIdAsStr().c_str());
+  LogMsg(LogPrioInfo, "Type: %s",GetMsgTypeAsString(m_msgInfo.m_type).c_str());
+  LogMsg(LogPrioInfo, "m_pPayload: %s m_pPayloadBuffer: 0x%x m_payloadBufferDataSize: %u vector size: %u",m_pPayload?"Valid":"NULL",m_pPayloadBuffer,m_payloadBufferDataSize,m_serializedDataInclMsgAndPayload.size());
   
   LogMsg(LogPrioInfo, "--- --- ---");
   

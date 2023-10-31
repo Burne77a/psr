@@ -11,7 +11,7 @@ std::unique_ptr<LR> LR::CreateLR(GMM & gmm)
 {
   static const int LOG_REPLICATION_UDP_PORT = 6666;
   std::vector<std::unique_ptr<ISender>> senders;
-  bool isAllCreationOk = Misc::CreateISendersFromMembers(LOG_REPLICATION_UDP_PORT,gmm,senders);
+  bool isAllCreationOk = Misc::CreateISendersFromMembersInludingMySelf(LOG_REPLICATION_UDP_PORT,gmm,senders);
   
   
   std::unique_ptr<IReceiver> pRcv = nullptr;
@@ -205,6 +205,7 @@ void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
     }
     else
     {
+      LogMsg(LogPrioCritical, "ERROR LR::HandlePrepare() Entries missing a sync should be triggered ");
 #warning trigger sync 
     }
   }
@@ -213,10 +214,6 @@ void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
     LogMsg(LogPrioInfo, "LR::HandlePrepare() received Prepare with too low view number - ignoring %u %u ",myViewNo,msgViewNo);
     lrMsg.Print();
   }
-  //Check if this follower is uptodate
-  //If it is, add to log, and send prepare OK
-  //If not, trigger sync.
-  //What to do with the current request?
 }
 
 void LR::HandleCommit(const LogReplicationMsg &lrMsg)

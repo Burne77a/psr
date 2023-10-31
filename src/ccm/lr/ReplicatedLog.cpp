@@ -11,6 +11,11 @@ bool ReplicatedLog::ArePreviousEntriesInLog(const unsigned int opNumber, const u
   std::lock_guard<std::mutex> lock(m_mutex);
   bool arePreviousEntriesInLog = false;
   auto &pEntry = GetLastValidEntry();
+  
+  if(opNumber == 1)
+  {
+    arePreviousEntriesInLog = true;
+  }
  
   if(pEntry)
   {

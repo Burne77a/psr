@@ -10,7 +10,8 @@
 class Misc
 {
   public:
-    static bool CreateISendersFromMembers(const int port, GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders);
+    static bool CreateISendersFromMembersExcludingMySelf(const int port, GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders);
+    static bool CreateISendersFromMembersInludingMySelf(const int port, GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders);
     static void SendToAllMembers(const ISerializable & objToSend, const GMM &gmm, const std::vector<std::unique_ptr<ISender>> &senders);
     static bool SendToIp(const ISerializable & objToSend, std::string_view ipAddr, const std::vector<std::unique_ptr<ISender>> &senders);
 };

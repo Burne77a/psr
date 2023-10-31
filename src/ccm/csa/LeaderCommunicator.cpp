@@ -23,7 +23,7 @@ std::unique_ptr<LeaderCommunicator> LeaderCommunicator::CreateLeaderCommunicator
   }
   
   std::vector<std::unique_ptr<ISender>> clientSenders; 
-  if(!Misc::CreateISendersFromMembers(leaderSndPort, gmm, clientSenders))
+  if(!Misc::CreateISendersFromMembersExcludingMySelf(leaderSndPort, gmm, clientSenders))
   {
     LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create client senders. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;

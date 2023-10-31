@@ -11,7 +11,7 @@ std::unique_ptr<FD> FD::CreateFD(GMM & gmm)
   static const int FAILURE_DETECTION_UDP_PORT = 4444;
   std::vector<std::unique_ptr<ISender>> senders;
   
-  bool isAllCreationOk = Misc::CreateISendersFromMembers(FAILURE_DETECTION_UDP_PORT,gmm,senders);
+  bool isAllCreationOk = Misc::CreateISendersFromMembersExcludingMySelf(FAILURE_DETECTION_UDP_PORT,gmm,senders);
   
   if(!isAllCreationOk)
   {

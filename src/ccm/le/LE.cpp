@@ -11,7 +11,7 @@ std::unique_ptr<LE> LE::CreateLE(GMM & gmm)
 {
   static const int LEADER_ELECTION_UDP_PORT = 5555;
   std::vector<std::unique_ptr<ISender>> senders;
-  bool isAllCreationOk = Misc::CreateISendersFromMembers(LEADER_ELECTION_UDP_PORT,gmm,senders);
+  bool isAllCreationOk = Misc::CreateISendersFromMembersExcludingMySelf(LEADER_ELECTION_UDP_PORT,gmm,senders);
   std::unique_ptr<IReceiver> pRcv = nullptr;
   std::unique_ptr<LE> pLe = nullptr;
     
