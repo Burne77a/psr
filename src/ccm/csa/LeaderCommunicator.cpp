@@ -174,6 +174,25 @@ bool LeaderCommunicator::GetClientRequestsSentToLeader(ClientMessage & msg)
   return isClientReqMsgReceived;
 }
 
+bool LeaderCommunicator::SendToClient(ClientMessage & msg,const GMM & gmm)
+{
+  ClientRequestId reqId = msg.GetReqId();
+  if(!reqId.IsValid())
+  {
+    LogMsg(LogPrioError, "ERROR: CSA::SendReplyToClient failed - cannot send reply with invalid req id");
+    return false;
+  }
+  const unsigned int clientId = reqId.GetId();
+  const std::string clientIp{gmm.GetIp(clientId)};
+  
+  if(Misc::SendToIp(msg, clientIp, m_clientSenders))
+  {
+    LogMsg(LogPrioError, "ERROR: CSA::SendReplyToClient failed");
+    return false;
+  }
+  return true;
+}
+
 
 
 bool LeaderCommunicator::ReceiveFromClient(ClientMessage &msg)

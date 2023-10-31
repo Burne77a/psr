@@ -4,8 +4,10 @@
 #include "csa/ClientMessage.h"
 class ICCM
 {
-  virtual bool ReplicateRequest(const ClientMessage & msg) = 0;
-  virtual bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) = 0; 
+  public:
+    virtual bool ReplicateRequest(const ClientMessage & msg) = 0;
+    virtual bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) = 0; 
+    virtual ClientRequestId CreateUniqueId() = 0;
 };
 
     

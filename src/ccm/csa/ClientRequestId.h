@@ -9,6 +9,7 @@ class ClientRequestId
     ClientRequestId() :  m_reqSeq{Invalid}, m_clientId{Invalid} {}
     ClientRequestId(const unsigned int reqSeq, const unsigned int clientId) : m_reqSeq{reqSeq}, m_clientId{clientId} {}
     bool IsValid() const {return ((m_reqSeq != Invalid) && (m_clientId != Invalid));}
+    unsigned int GetId() const {return m_clientId;}
     
     bool operator==(ClientRequestId const& rhs) const
     {

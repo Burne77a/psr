@@ -18,6 +18,7 @@ class LeaderCommunicator
     bool WaitForCommitAckToRequest(const ClientMessage &req,const unsigned int timeToWaitInMs);
     bool SendToLeaderWithRetries(const ClientMessage &msg, const unsigned int retries, const unsigned int timeBetweenInMs);
     bool GetClientRequestsSentToLeader(ClientMessage & msg);
+    bool SendToClient(ClientMessage & msg, const GMM & gmm);
     
     void FlushMsgToLeader();
     

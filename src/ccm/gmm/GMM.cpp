@@ -199,6 +199,22 @@ std::string GMM::GetLeaderIp()
   return leaderIpAddr;
 }
 
+std::string GMM::GetIp(const int id) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  std::string ipAddr{"None"};
+  if(pMember)
+  {
+    ipAddr = pMember->GetIP();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetIp member not found %d",id);
+  }
+  return ipAddr;
+}
+
 void GMM::ResetLeaderVoteCount()
 {
   std::lock_guard<std::mutex> lock(m_mutex);

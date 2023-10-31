@@ -11,7 +11,6 @@
 class HeartbeatCCM : public ISerializable
 {
   private:
-    
     typedef struct
     {
       std::string m_dstIp;

@@ -11,6 +11,8 @@ static std::shared_ptr<CCM> g_pCcm;
 
 static std::shared_ptr<ICCM> g_pCsaIf;
 
+static std::unique_ptr<TestClient> g_pTstClient;
+
 static bool g_isRunning = false;
 
 OSAStatusCode StartPSRTest(const int id)
@@ -30,6 +32,9 @@ OSAStatusCode StartPSRTest(const int id)
    
    g_isRunning = true;
    
+   g_pTstClient = std::make_unique<TestClient>(*g_pCsaIf);
+   g_pTstClient->RegisterForUpcall();
+   
    do
    {
      OSATaskSleep(1000);
@@ -45,5 +50,5 @@ void Print()
 
 void TriggerClientReq()
 {
-  
+  g_pTstClient->IssueRequest();
 }

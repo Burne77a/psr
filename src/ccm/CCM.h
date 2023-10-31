@@ -18,9 +18,9 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    void Stop();
    int GetMyId(){return m_pGmm->GetMyId();}
    //ICCM
-   virtual bool ReplicateRequest(const ClientMessage & msg) override {return m_pCsa->ReplicateRequest(msg);}
-   virtual bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}
-      
+   bool ReplicateRequest(const ClientMessage & msg) override {return m_pCsa->ReplicateRequest(msg);}
+   bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}
+   ClientRequestId CreateUniqueId() override {return m_pCsa->CreateUniqueId();}
    void ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts);
 
    void Print() const; 
@@ -41,6 +41,10 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    std::unique_ptr<LR> m_pLr;
    std::unique_ptr<CSA> m_pCsa;
    std::shared_ptr<LE::ILeaderRoleChangeCallbacks> m_leaderCb{nullptr};
+   
+   ClientRequestId m_currentReqId{};
+   
+   
    bool m_isRunning{false};
 };
 

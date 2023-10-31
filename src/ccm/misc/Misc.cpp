@@ -39,3 +39,27 @@ void Misc::SendToAllMembers(const ISerializable & objToSend, const GMM &gmm, con
     }
   }
 }
+
+bool Misc::SendToIp(const ISerializable & objToSend, std::string_view ipAddr, const std::vector<std::unique_ptr<ISender>> &senders)
+{
+  bool isSuccessfullySent = false;;
+  bool isIpFound = false;
+  for(auto &pSender : senders)
+  {
+    if(pSender)
+    {
+      if(pSender->GetIpAddr().compare(ipAddr) == 0)
+      {
+        isIpFound = true;
+        isSuccessfullySent = pSender->Send(objToSend);
+        
+      }
+    }
+  }
+  if(!isSuccessfullySent)
+  {
+    LogMsg(LogPrioCritical, "ERROR Misc::SendToIp failed to send to %s  Errno: 0x%x (%s) %s ",ipAddr.data() ,errnoGet(),strerror(errnoGet()), isIpFound ? "IP found" : "IP not found");
+  }
+  return isSuccessfullySent;
+}
+

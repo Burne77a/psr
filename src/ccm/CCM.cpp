@@ -100,8 +100,12 @@ OSAStatusCode CCM::Start()
 
 void CCM::ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts)
 {
-  LogMsg(LogPrioInfo, "CCM::ReqDoneCbFromLr() - request %s done %d",reqId.GetIdAsStr().c_str(),reqSts);
-#warning Send back reply to client
+  LogMsg(LogPrioInfo, "CCM::ReqDoneCbFromLr() - request %s done %d (sending %s)",reqId.GetIdAsStr().c_str(),reqSts, reqSts == RequestStatus::Committed ? "ACK" : "NACK");
+  ClientMessage reply{reqSts == RequestStatus::Committed ? ClientMessage::MsgType::ACK : ClientMessage::MsgType::NACK, reqId};
+  if(!m_pCsa->SendReplyToClient(reply))
+  {
+    LogMsg(LogPrioError, "CCM::ReqDoneCbFromLr() failed to send reply to client");
+  }
 }
 
 void CCM::EnteredLeaderRole() 
@@ -167,8 +171,7 @@ void CCM::HandleIncomingClientRequestToLeader()
       incomingMsg.Print();
     }
   }
-
-  //When committed, send reply
+  //Reply to commitment sent in callback. 
 }
 
 OSAStatusCode CCM::InstanceTaskMethod()

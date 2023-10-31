@@ -20,6 +20,8 @@ class CSA :  public ICCM
     bool GetClientRequestsSentToLeader(ClientMessage & msg);
     void FlushOutMessageToLeader() {m_pLeaderComm->FlushMsgToLeader();}
     
+    bool SendReplyToClient(ClientMessage & msg);
+    
     //ICCM
     bool ReplicateRequest(const ClientMessage & msg) override;
     bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override
@@ -27,8 +29,9 @@ class CSA :  public ICCM
       std::lock_guard<std::mutex> lock(m_mutex); 
       return m_pSrvDispatcher->RegisterService(serviceId, upcallCb);
     }
+    ClientRequestId CreateUniqueId() override;
+    
     void Print() const;
-    ClientRequestId CreateUniqueId();
   private:
     bool SendToLeaderAndWaitForReply(const ClientMessage &msg);
     GMM& m_gmm;

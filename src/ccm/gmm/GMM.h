@@ -25,6 +25,7 @@ class GMM {
     
     int GetLeaderId(void);
     std::string GetLeaderIp();
+    std::string GetIp(const int id) const;
     bool IsLeaderAvailable(void) {return (GetLeaderId() != INVALID_LEADER_ID);}
     void ResetLeaderVoteCount();
     void AddLeaderVote(const int id);
