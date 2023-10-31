@@ -38,6 +38,13 @@ class GMM {
     void SetMyOpNumber(const unsigned int opNumber);
     const unsigned int GetMyOpNumber() const;
     
+    //Prepare and PrepareOK handling
+    void ClearMyPendingPrepare();
+    void SetMyPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber);
+    bool IsAMajorityOfValidPrepareOkRcvd() const;
+    void SetMyPrepareOkRcvdIfMatchPending(const unsigned int viewNumber, const unsigned int opNumber);
+    
+    
     const unsigned int GetLargestViewNumber();
     bool IsVoteCntForMySelfLargerThanMajority();
     
@@ -49,6 +56,7 @@ class GMM {
 
   private:
     const int m_myId;
+    unsigned int GetValidPrepareOkCntNoLock() const;
     bool IsQuorumConnectedNoLock(const int id) const;
     Member* GetMember(const int id) const;
     mutable std::unordered_map<int, Member> m_members;

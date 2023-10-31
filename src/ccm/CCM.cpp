@@ -98,6 +98,12 @@ OSAStatusCode CCM::Start()
 }
 
 
+void CCM::ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts)
+{
+  LogMsg(LogPrioInfo, "CCM::ReqDoneCbFromLr() - request %s done %d",reqId.GetIdAsStr().c_str(),reqSts);
+#warning Send back reply to client
+}
+
 void CCM::EnteredLeaderRole() 
 {
   LogMsg(LogPrioInfo, "CCM::EnteredLeaderRole() - Assigning leader IP address %s to this node.",IP_ADDRESS_OF_LEADER);
@@ -151,10 +157,17 @@ void CCM::HandleIncomingClientRequestToLeader()
   const bool isMsgRcvd = m_pCsa->GetClientRequestsSentToLeader(incomingMsg);
   if(isMsgRcvd)
   {
-#warning pass req..
+    if(m_pLr->ReplicateRequest(incomingMsg,std::bind(&CCM::ReqDoneCbFromLr,this, std::placeholders::_1,std::placeholders::_2)))
+    {
+      LogMsg(LogPrioInfo, "CCM::HandleIncomingClientRequestToLeader requested replication %s",incomingMsg.GetReqId().GetIdAsStr().c_str());
+    }
+    else
+    {
+      LogMsg(LogPrioError, "ERROR CCM::HandleIncomingClientRequestToLeader failed to request replication");
+      incomingMsg.Print();
+    }
   }
-  //Retrieve client requests
-    //Pass to LR.
+
   //When committed, send reply
 }
 

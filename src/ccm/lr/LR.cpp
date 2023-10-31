@@ -66,7 +66,7 @@ LR::~LR()
   
 }
 
-bool LR::ReplicateRequest(ClientMessage &req)
+bool LR::ReplicateRequest(ClientMessage &req,RequestDoneCallbackType reqDoneCb)
 {
   if(m_pOngoingRepMsg != nullptr)
   {
@@ -80,15 +80,20 @@ bool LR::ReplicateRequest(ClientMessage &req)
     if(m_pOngoingRepMsg)
     {
       m_ongoingReqId = req.GetReqId();
+      m_reqDoneCb = reqDoneCb;
     }
     else
     {
       LogMsg(LogPrioCritical, "LR::ReplicateRequest() failed to create new LogReplicationMessage");
+      return false;
     }
   }
-#warning Send requests
-  //Send it to all clients
-  //Set it as pending
+
+  m_gmm.ClearMyPendingPrepare();
+  m_gmm.SetMyPendingPrepare(m_pOngoingRepMsg->GetViewNumber(), m_pOngoingRepMsg->GetOpNumber());
+
+  Misc::SendToAllMembers(*m_pOngoingRepMsg,m_gmm,m_senders);
+  return true;
 }
 
 void LR::HandleActivityAsFollower()
@@ -98,12 +103,13 @@ void LR::HandleActivityAsFollower()
 
 void LR::HandleActivityAsLeader()
 {
-  
+  HandleMsgAsLeader();
 }
 
 void LR::BecameLeaderActivity()
 {
   LogMsg(LogPrioInfo, "LR::BecameLeaderActivity()");
+  m_gmm.ClearMyPendingPrepare();
   //Flush the incoming messages, since the former leader is gone, hence no need to process what is in the queue. 
   RcvFlush();
 }
@@ -111,12 +117,71 @@ void LR::BecameLeaderActivity()
 void LR::NoLongerLeaderActivity()
 {
   LogMsg(LogPrioInfo, "LR::NoLongerLeaderActivity()");
+  m_gmm.ClearMyPendingPrepare();
+  CallReqDoneCallback(RequestStatus::Aborted);
+  m_reqDoneCb = nullptr;
 }
 
 void LR::PerformUpcalls()
 {
   m_pRepLog->PerformUpcalls();
 }
+
+
+void LR::HandlePrepareOk(const LogReplicationMsg &lrMsg)
+{
+  m_gmm.SetMyPrepareOkRcvdIfMatchPending(lrMsg.GetViewNumber(), lrMsg.GetViewNumber());
+  if(m_gmm.IsAMajorityOfValidPrepareOkRcvd())
+  {
+    SendCommitToAll(lrMsg);
+    CallReqDoneCallback(RequestStatus::Committed);
+    m_pOngoingRepMsg = nullptr;
+    m_ongoingReqId = ClientRequestId();
+  }  
+}
+
+void LR::HandleMsgAsLeader()
+{
+  LogReplicationMsg lrMsg{LogReplicationMsg::MsgType::PrepareOK};
+  while(RcvMsg(*m_pReceiver,lrMsg))
+  {
+   if(lrMsg.IsPrepareMsg())
+   {
+     if(lrMsg.GetSrcId() == m_gmm.GetMyId())
+     {
+       HandlePrepare(lrMsg);
+     }
+     else
+     {
+       LogMsg(LogPrioInfo, "LR::HandleMsgAsLeader() received Prepare as leader from different instance from %u (%u:%u). Discarding.",lrMsg.GetSrcId(),lrMsg.GetViewNumber(),lrMsg.GetOpNumber());
+       lrMsg.Print();
+     }
+   }
+   else if(lrMsg.IsPrepareOKMsg())
+   {
+     HandlePrepareOk(lrMsg);
+   }
+   else if(lrMsg.IsCommitMsg())
+   {
+     if(lrMsg.GetSrcId() == m_gmm.GetMyId())
+     {
+       HandleCommit(lrMsg);
+     }
+     else
+     {
+       LogMsg(LogPrioInfo, "LR::HandleMsgAsLeader() received Commit as leader from different instance from %u (%u:%u). Discarding.",lrMsg.GetSrcId(),lrMsg.GetViewNumber(),lrMsg.GetOpNumber());
+       lrMsg.Print();
+     }
+   }
+   else
+   {
+     LogMsg(LogPrioCritical, "LR::HandleMsgAsFollower() - Unknown message type.");
+     lrMsg.Print();
+   }
+  };
+  
+}
+
 
 void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
 {
@@ -195,7 +260,7 @@ void LR::HandleMsgAsFollower()
     }
     else if(lrMsg.IsPrepareOKMsg())
     {
-      LogMsg(LogPrioInfo, "LR::HandlePrepare() received PrepareOK as follower from %u (%u:%u) ",lrMsg.GetSrcId(),lrMsg.GetViewNumber(),lrMsg.GetOpNumber());
+      LogMsg(LogPrioInfo, "LR::HandleMsgAsFollower() received PrepareOK as follower from %u (%u:%u). Discarding.",lrMsg.GetSrcId(),lrMsg.GetViewNumber(),lrMsg.GetOpNumber());
     }
     else if(lrMsg.IsCommitMsg())
     {
@@ -218,6 +283,26 @@ void LR::RcvFlush()
 bool LR::RcvMsg(IReceiver &rcv, LogReplicationMsg &msg)
 {
   return rcv.Rcv(msg);
+}
+
+
+void LR::CallReqDoneCallback(const RequestStatus status)
+{
+  if(m_reqDoneCb)
+  {
+    m_reqDoneCb(m_ongoingReqId,status);
+    
+  }
+  else
+  {
+    LogMsg(LogPrioCritical, "LR::CallReqDoneCallback() - no valid callback found");
+  }
+}
+
+void LR::SendCommitToAll(const LogReplicationMsg & prepareMsgToCommit)
+{
+  const LogReplicationMsg commitMsg{LogReplicationMsg::MsgType::Commit,prepareMsgToCommit.GetOpNumber(),prepareMsgToCommit.GetViewNumber(),static_cast<unsigned int>(m_gmm.GetMyId()), 0};
+  Misc::SendToAllMembers(commitMsg, m_gmm, m_senders); 
 }
 
 void LR::SendPrepareOK(const LogReplicationMsg & prepareMsg)

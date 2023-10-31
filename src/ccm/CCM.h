@@ -20,12 +20,10 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    //ICCM
    virtual bool ReplicateRequest(const ClientMessage & msg) override {return m_pCsa->ReplicateRequest(msg);}
    virtual bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}
-   
-   
-   void Print() const;
-   
-  
-   
+      
+   void ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts);
+
+   void Print() const; 
   private: 
    void MakeUpcalls();
    void HandleIncomingClientRequestToLeader();

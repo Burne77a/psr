@@ -25,3 +25,17 @@ bool Misc::CreateISendersFromMembers(const int port, GMM &gmm, std::vector<std::
     });
   return isAllCreatedOk;
 }   
+
+void Misc::SendToAllMembers(const ISerializable & objToSend, const GMM &gmm, const std::vector<std::unique_ptr<ISender>> &senders)
+{
+  for(auto &pSender : senders)
+  {
+    if(pSender)
+    {
+      if(!pSender->Send(objToSend))
+      {
+        LogMsg(LogPrioCritical, "ERROR Misc::SendToAllMembers failed to send to %s  Errno: 0x%x (%s)",pSender->GetIpAddr().c_str() ,errnoGet(),strerror(errnoGet()));
+      }
+    }
+  }
+}

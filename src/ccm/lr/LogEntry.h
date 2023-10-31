@@ -16,9 +16,9 @@ class LogEntry
     void SetCommitted() {m_isCommited = true;}
     void SetUpCallDone() {m_isUpcallDone = true;}
     bool IsCommited() const {return m_isCommited;}
-    bool IsUpcallDone() const {return m_isUpcallDone;}
-  
-  void Print() const;
+    bool IsUpcallDone() const {return m_isUpcallDone;} 
+    void Print() const;
+    
   private:
     const unsigned int m_opNumber;
     const unsigned int m_viewNumber;

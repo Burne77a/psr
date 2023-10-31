@@ -90,6 +90,17 @@ bool Member::HasHeartbeatExceeded(const std::chrono::milliseconds& duration) con
   return elapsed > duration;
 }
 
+void Member::SetPrepareOkRcvdIfMatchPending(const unsigned int viewNumber, const unsigned int opNumber)
+{
+  if((viewNumber != INVALID_REQ_ID) && (opNumber != INVALID_REQ_ID))
+  {
+    if((viewNumber == m_pendingPrepeareViewNumber) && (opNumber == m_pedingPrepareOpNumber))
+    {
+      m_isValidPrepareOkRcvd = true;
+    }
+  }
+}
+
 void Member::Print() const
 {
   std::string bitsAsStr("");
@@ -106,6 +117,7 @@ void Member::Print() const
   }
   LogMsg(LogPrioInfo,"Member %d name %s ip %s ",m_id,m_name.c_str(),m_ip.c_str());
   LogMsg(LogPrioInfo,"Connections %s",bitsAsStr.c_str());
+  LogMsg(LogPrioInfo,"PendingPrepareId View: %u op: %u Valid PrepareOK rcvd: %s", m_pendingPrepeareViewNumber,m_pedingPrepareOpNumber, m_isValidPrepareOkRcvd? "Yes": "No");
   if(m_leaderId == INVALID_LEADER_ID)
   {
     LogMsg(LogPrioInfo,"No leader. Vote count: %d",m_leaderVoteCnt);
@@ -121,7 +133,7 @@ void Member::Print() const
       LogMsg(LogPrioInfo,"Leader ID %d",m_leaderId);
     }
   }
-  LogMsg(LogPrioInfo,"View number %u",m_viewNumber);
+  LogMsg(LogPrioInfo,"View number %u OpNumber %u",m_viewNumber,m_operationNumber);
 }
 
 
