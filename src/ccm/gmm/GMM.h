@@ -40,10 +40,10 @@ class GMM {
     const unsigned int GetMyOpNumber() const;
     
     //Prepare and PrepareOK handling
-    void ClearMyPendingPrepare();
-    void SetMyPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber);
+    void ClearPendingPrepare();
+    void SetPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber);
     bool IsAMajorityOfValidPrepareOkRcvd() const;
-    void SetMyPrepareOkRcvdIfMatchPending(const unsigned int viewNumber, const unsigned int opNumber);
+    void SetPrepareOkRcvdIfMatchPending(const int id, const unsigned int viewNumber, const unsigned int opNumber);
     
     
     const unsigned int GetLargestViewNumber();

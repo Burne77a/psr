@@ -89,8 +89,8 @@ bool LR::ReplicateRequest(ClientMessage &req,RequestDoneCallbackType reqDoneCb)
     }
   }
 
-  m_gmm.ClearMyPendingPrepare();
-  m_gmm.SetMyPendingPrepare(m_pOngoingRepMsg->GetViewNumber(), m_pOngoingRepMsg->GetOpNumber());
+  m_gmm.ClearPendingPrepare();
+  m_gmm.SetPendingPrepare(m_pOngoingRepMsg->GetViewNumber(), m_pOngoingRepMsg->GetOpNumber());
 
   Misc::SendToAllMembers(*m_pOngoingRepMsg,m_gmm,m_senders);
   return true;
@@ -109,7 +109,7 @@ void LR::HandleActivityAsLeader()
 void LR::BecameLeaderActivity()
 {
   LogMsg(LogPrioInfo, "LR::BecameLeaderActivity()");
-  m_gmm.ClearMyPendingPrepare();
+  m_gmm.ClearPendingPrepare();
   //Flush the incoming messages, since the former leader is gone, hence no need to process what is in the queue. 
   RcvFlush();
 }
@@ -117,7 +117,7 @@ void LR::BecameLeaderActivity()
 void LR::NoLongerLeaderActivity()
 {
   LogMsg(LogPrioInfo, "LR::NoLongerLeaderActivity()");
-  m_gmm.ClearMyPendingPrepare();
+  m_gmm.ClearPendingPrepare();
   CallReqDoneCallback(RequestStatus::Aborted);
   m_reqDoneCb = nullptr;
 }
@@ -130,7 +130,7 @@ void LR::PerformUpcalls()
 
 void LR::HandlePrepareOk(const LogReplicationMsg &lrMsg)
 {
-  m_gmm.SetMyPrepareOkRcvdIfMatchPending(lrMsg.GetViewNumber(), lrMsg.GetViewNumber());
+  m_gmm.SetPrepareOkRcvdIfMatchPending(static_cast<int>(lrMsg.GetSrcId()),lrMsg.GetViewNumber(), lrMsg.GetOpNumber());
   if(m_gmm.IsAMajorityOfValidPrepareOkRcvd())
   {
     SendCommitToAll(lrMsg);

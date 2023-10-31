@@ -362,31 +362,21 @@ const unsigned int GMM::GetMyOpNumber() const
 }
 
 
-void GMM::ClearMyPendingPrepare()
+void GMM::ClearPendingPrepare()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  auto pMyMember = GetMember(m_myId);
-  if(pMyMember)
+  for (auto& pair : m_members) 
   {
-    pMyMember->ClearPendingPrepare();
-  }
-  else
-  {
-    LogMsg(LogPrioCritical,"ERROR: GMM::ClearMyPendingPrepare member not found %d",m_myId);
+    pair.second.ClearPendingPrepare();
   }
 }
 
-void GMM::SetMyPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber)
+void GMM::SetPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  auto pMyMember = GetMember(m_myId);
-  if(pMyMember)
+  for (auto& pair : m_members) 
   {
-    pMyMember->SetPendingPrepare(viewNumber, opNumber);
-  }
-  else
-  {
-    LogMsg(LogPrioCritical,"ERROR: GMM::SetMyPendingPrepare member not found %d",m_myId);
+    pair.second.SetPendingPrepare(viewNumber, opNumber);
   }
 }
 
@@ -400,17 +390,17 @@ bool GMM::IsAMajorityOfValidPrepareOkRcvd() const
   return (validPrepareOkCnt >= required);
 }
 
-void GMM::SetMyPrepareOkRcvdIfMatchPending(const unsigned int viewNumber, const unsigned int opNumber)
+void GMM::SetPrepareOkRcvdIfMatchPending(const int id, const unsigned int viewNumber, const unsigned int opNumber)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  auto pMyMember = GetMember(m_myId);
+  auto pMyMember = GetMember(id);
   if(pMyMember)
   {
-    pMyMember->SetPendingPrepare(viewNumber, opNumber);
+    pMyMember->SetPrepareOkRcvdIfMatchPending(viewNumber, opNumber);
   }
   else
   {
-    LogMsg(LogPrioCritical,"ERROR: GMM::SetMyPendingPrepare member not found %d",m_myId);
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetPrepareOkRcvdIfMatchPending member not found %d",m_myId);
   }
 }
 
