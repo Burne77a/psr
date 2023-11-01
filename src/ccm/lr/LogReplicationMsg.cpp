@@ -39,6 +39,7 @@ void LogReplicationMsg::SetPayload(const ISerializable &payload)
   if(pData != nullptr && size > 0)
   {
     m_payload.assign(pData, pData + size);
+    m_theMsgData.payloadSize = size; 
   }
 }
 
@@ -75,11 +76,11 @@ const uint8_t * LogReplicationMsg::GetSerializableDataBuffer(uint32_t &size) con
 bool LogReplicationMsg::Deserialize()
 {
   LogReplicationMsgData * pMetaData = (LogReplicationMsgData *)m_serializedDataInclMsgAndPayload.data();
-  if(pMetaData != nullptr && m_serializedDataInclMsgAndPayload.size() >= sizeof(m_theMsgData))
+  if(pMetaData != nullptr && m_serializedDataInclMsgAndPayload.capacity() >= sizeof(m_theMsgData))
   {
   
     m_theMsgData = *pMetaData;
-    const uint32_t payloadSize = m_serializedDataInclMsgAndPayload.size() - sizeof(m_theMsgData);
+    const uint32_t payloadSize = m_theMsgData.payloadSize; 
     if(payloadSize > 0)
     {
       const uint8_t *pPayloadStart = m_serializedDataInclMsgAndPayload.data() + sizeof(m_theMsgData);

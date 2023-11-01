@@ -163,6 +163,8 @@ void CCM::HandleIncomingClientRequestToLeader()
   const bool isMsgRcvd = m_pCsa->GetClientRequestsSentToLeader(incomingMsg);
   if(isMsgRcvd)
   {
+    LogMsg(LogPrioInfo, "CCM::HandleIncomingClientRequestToLeader Request from client");
+    incomingMsg.Print();
     if(m_pLr->ReplicateRequest(incomingMsg,std::bind(&CCM::ReqDoneCbFromLr,this, std::placeholders::_1,std::placeholders::_2)))
     {
       LogMsg(LogPrioInfo, "CCM::HandleIncomingClientRequestToLeader requested replication %s",incomingMsg.GetReqId().GetIdAsStr().c_str());

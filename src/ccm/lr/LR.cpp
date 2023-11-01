@@ -11,7 +11,7 @@ std::unique_ptr<LR> LR::CreateLR(GMM & gmm,UpcallReplicatedLogCallbackType upcal
 {
   static const int LOG_REPLICATION_UDP_PORT = 6666;
   std::vector<std::unique_ptr<ISender>> senders;
-  bool isAllCreationOk = Misc::CreateISendersFromMembersInludingMySelf(LOG_REPLICATION_UDP_PORT,gmm,senders);
+  bool isAllCreationOk = Misc::CreateISendersFromMembersIncludingMySelf(LOG_REPLICATION_UDP_PORT,gmm,senders);
   
   
   std::unique_ptr<IReceiver> pRcv = nullptr;
@@ -136,6 +136,7 @@ void LR::HandlePrepareOk(const LogReplicationMsg &lrMsg)
     SendCommitToAll(lrMsg);
     CallReqDoneCallback(RequestStatus::Committed);
     m_pOngoingRepMsg = nullptr;
+    m_reqDoneCb = nullptr;
     m_ongoingReqId = ClientRequestId();
   }  
 }

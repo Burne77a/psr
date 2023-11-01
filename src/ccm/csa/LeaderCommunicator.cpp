@@ -23,7 +23,7 @@ std::unique_ptr<LeaderCommunicator> LeaderCommunicator::CreateLeaderCommunicator
   }
   
   std::vector<std::unique_ptr<ISender>> clientSenders; 
-  if(!Misc::CreateISendersFromMembersExcludingMySelf(leaderSndPort, gmm, clientSenders))
+  if(!Misc::CreateISendersFromMembersIncludingMySelf(leaderSndPort, gmm, clientSenders))
   {
     LogMsg(LogPrioCritical, "ERROR: LeaderCommunicator::CreateLeaderCommunicator failed to create client senders. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
@@ -57,8 +57,7 @@ LeaderCommunicator::LeaderCommunicator(std::unique_ptr<ISender>& pLeaderSnd, std
 
 bool LeaderCommunicator::WaitForCommitAckToRequest(const ClientMessage &req,const unsigned int timeToWaitInMs)
 {
-  static constexpr unsigned int TimeToWaitInMs = 100U;
-  static const std::chrono::milliseconds TimeToWaitInMsDuration (TimeToWaitInMs * 3);
+  static const std::chrono::milliseconds TimeToWaitInMsDuration (timeToWaitInMs * 3);
   bool isCorrectReplyReceived = false;
   bool isWaitOver = false;
   auto startOfWait = std::chrono::system_clock::now();
@@ -77,7 +76,7 @@ bool LeaderCommunicator::WaitForCommitAckToRequest(const ClientMessage &req,cons
       isWaitOver = (elapsed > TimeToWaitInMsDuration);
       if(!isWaitOver)
       {
-        OSATaskSleep(TimeToWaitInMs);
+        OSATaskSleep(10);
       }
     }
   }while(!isCorrectReplyReceived && !isWaitOver);
@@ -185,7 +184,7 @@ bool LeaderCommunicator::SendToClient(ClientMessage & msg,const GMM & gmm)
   const unsigned int clientId = reqId.GetId();
   const std::string clientIp{gmm.GetIp(clientId)};
   
-  if(Misc::SendToIp(msg, clientIp, m_clientSenders))
+  if(!Misc::SendToIp(msg, clientIp, m_clientSenders))
   {
     LogMsg(LogPrioError, "ERROR: CSA::SendReplyToClient failed");
     return false;

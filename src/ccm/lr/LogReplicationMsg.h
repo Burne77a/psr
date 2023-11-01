@@ -20,6 +20,7 @@ class LogReplicationMsg : public ISerializable
     struct LogReplicationMsgData
     {
       MsgType type{MsgType::Prepare};
+      unsigned int payloadSize{0U};
       unsigned int viewNumber{0U};
       unsigned int operationNumber{0U};
       unsigned int requestId{0U};

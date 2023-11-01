@@ -13,6 +13,7 @@ class TestRequest : public ISerializable
       unsigned int repCounter{0U};
     };
   public:
+    TestRequest(uint8_t * pBuffer, uint32_t size);
     TestRequest();
     ~TestRequest();
     const uint8_t *  Serialize(uint32_t &size) const override;

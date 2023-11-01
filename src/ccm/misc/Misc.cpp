@@ -26,7 +26,7 @@ bool Misc::CreateISendersFromMembersExcludingMySelf(const int port, GMM &gmm, st
   return isAllCreatedOk;
 }   
 
-bool Misc::CreateISendersFromMembersInludingMySelf(const int port, GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders)
+bool Misc::CreateISendersFromMembersIncludingMySelf(const int port, GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders)
 {
   bool isAllCreatedOk = true;
   const int myId = gmm.GetMyId();

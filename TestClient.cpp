@@ -3,6 +3,18 @@
 #include <functional>
 
 
+TestRequest::TestRequest(uint8_t * pBuffer,uint32_t size)
+{
+  if(size == sizeof(m_data) && pBuffer != nullptr)
+  {
+    m_data = *(TheData*)pBuffer;
+  }
+  else
+  {
+    LogMsg(LogPrioError,"TestClient::TestRequest invalid payload or size. 0x%x %u %u ",pBuffer,size,sizeof(m_data));
+  }
+}
+
 TestRequest::TestRequest()
 {
   static unsigned int TestRequestCreationCounter = 0U;
@@ -69,15 +81,15 @@ void TestClient::UpcallMethod(const ClientMessage& commitedMsg)
   unsigned int payloadSize = 0U;
   LogMsg(LogPrioInfo,"TestClient::UpcallMethod");
   
-  void *pPayloadData = commitedMsg.GetDeserializedPayload(payloadSize);
+  uint8_t *pPayloadData = commitedMsg.GetDeserializedPayload(payloadSize);
   
-  if(pPayloadData != nullptr && payloadSize == sizeof(TestRequest))
+  if(pPayloadData != nullptr && payloadSize > 0)
   {
-    TestRequest* pTr = (TestRequest*)pPayloadData; 
-    pTr->Print();
+    TestRequest tReqReply(pPayloadData,payloadSize);
+    tReqReply.Print();
   }
   else
   {
-    LogMsg(LogPrioError,"TestClient::UpcallMethod invalid payload or size. 0x%x %u %u ",pPayloadData,payloadSize,sizeof(TestRequest));
+    LogMsg(LogPrioError,"TestClient::UpcallMethod invalid payload or size. 0x%x %u ",pPayloadData,payloadSize);
   } 
 }

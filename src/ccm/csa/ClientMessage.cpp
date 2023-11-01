@@ -62,6 +62,7 @@ ClientMessage::ClientMessage(std::shared_ptr<ISerializable> pPayload, const unsi
   m_msgInfo.m_type = MsgType::Request;
   m_msgInfo.m_reqId = reqId;
   m_msgInfo.m_serviceId = serviceId;
+  (void)m_pPayload->GetSerializableDataBuffer(m_msgInfo.m_payloadSize); //To update payload size
 }
 
 uint8_t * ClientMessage::GetDeserializedPayload(uint32_t& size) const 
@@ -125,7 +126,7 @@ bool ClientMessage::Deserialize()
 {
   bool isSuccessfullyDeserialized = false;
   MsgInfo * pMetaData = (MsgInfo *)m_serializedDataInclMsgAndPayload.data();
-  if((pMetaData != nullptr) && (m_serializedDataInclMsgAndPayload.size() >= sizeof(m_msgInfo)))
+  if((pMetaData != nullptr) && (m_serializedDataInclMsgAndPayload.capacity() >= sizeof(m_msgInfo)))
   {
     m_msgInfo = *pMetaData;
     const unsigned int payloadSize = m_msgInfo.m_payloadSize;
@@ -154,7 +155,7 @@ void ClientMessage::Print() const
 {
   LogMsg(LogPrioInfo, "--- ClientMessage ---");
   LogMsg(LogPrioInfo, "ServiceId %u, Req: %s ",m_msgInfo.m_serviceId,m_msgInfo.m_reqId.GetIdAsStr().c_str());
-  LogMsg(LogPrioInfo, "Type: %s",GetMsgTypeAsString(m_msgInfo.m_type).c_str());
+  LogMsg(LogPrioInfo, "Type: %s Payload size: %u",GetMsgTypeAsString(m_msgInfo.m_type).c_str(),m_msgInfo.m_payloadSize);
   LogMsg(LogPrioInfo, "m_pPayload: %s m_pPayloadBuffer: 0x%x m_payloadBufferDataSize: %u vector size: %u",m_pPayload?"Valid":"NULL",m_pPayloadBuffer,m_payloadBufferDataSize,m_serializedDataInclMsgAndPayload.size());
   
   LogMsg(LogPrioInfo, "--- --- ---");
