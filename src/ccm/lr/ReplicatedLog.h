@@ -5,10 +5,12 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+
+using UpcallReplicatedLogCallbackType = std::function<void(std::shared_ptr<ClientMessage>)>;
 class ReplicatedLog
 {
    public:
-    ReplicatedLog();
+    ReplicatedLog(UpcallReplicatedLogCallbackType upcallCb);
     ~ReplicatedLog() = default;    
     bool ArePreviousEntriesInLog(const unsigned int opNumber, const unsigned int viewNumber);
     bool ArePreviousEntriesInLog(const LogReplicationMsg &msg){return ArePreviousEntriesInLog(msg.GetOpNumber(),msg.GetViewNumber());}
@@ -24,6 +26,7 @@ class ReplicatedLog
     std::unique_ptr<LogEntry> & GetLastValidEntry();
     std::vector<std::unique_ptr<LogEntry>> m_logEntries{};
     mutable std::mutex m_mutex;
+    UpcallReplicatedLogCallbackType m_upcallCb{};
 };
 
 #endif //CCM_LR_REPLICATEDLOG_H

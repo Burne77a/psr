@@ -206,7 +206,7 @@ OSAStatusCode NwAid::Rcv(const int socket, ISerializable & objToPopulte)
   
   
   const int recvSize = recv(socket, (char*)pBuffer, size, 0);
-  if(recvSize == size)
+  if(recvSize <= size)
   {
     if(objToPopulte.Deserialize())
     {    

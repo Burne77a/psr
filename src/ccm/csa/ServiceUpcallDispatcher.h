@@ -11,6 +11,7 @@ class ServiceUpcallDispatcher
     ServiceUpcallDispatcher();
     ~ServiceUpcallDispatcher() = default;
     bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb);
+    void MakeUpcall(std::shared_ptr<ClientMessage> pCmsg);
     void Print() const;
   private:
     std::unordered_map<int, UpcallCallbackType> m_upcallCbs;

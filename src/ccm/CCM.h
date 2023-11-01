@@ -17,6 +17,8 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    OSAStatusCode Start();
    void Stop();
    int GetMyId(){return m_pGmm->GetMyId();}
+   
+   
    //ICCM
    bool ReplicateRequest(const ClientMessage & msg) override {return m_pCsa->ReplicateRequest(msg);}
    bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}

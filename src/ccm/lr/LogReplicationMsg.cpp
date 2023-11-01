@@ -42,30 +42,17 @@ void LogReplicationMsg::SetPayload(const ISerializable &payload)
   }
 }
 
-void LogReplicationMsg::GetPayload(ISerializable &payload)
+std::shared_ptr<ClientMessage> LogReplicationMsg::GetClientMessagePayload() const
 {
-  uint32_t dstSize = 0U;
-  const uint8_t * pDst =  payload.GetSerializableDataBuffer(dstSize);
-  if(pDst!=nullptr && dstSize > 0)
-  {
-    if(dstSize < m_payload.size())
-    {
-      LogMsg(LogPrioError,"LogReplicationMsg::GetPayload too small dst buffer 0x%x, %u %u ",pDst, dstSize,m_payload.size());
-    }
-    else
-    {
-      std::memcpy((void*)pDst,m_payload.data(),m_payload.size());
-      if(!payload.Deserialize())
-      {
-        LogMsg(LogPrioError,"LogReplicationMsg::GetPayload failed to deseralize after copy, 0x%x, %u",pDst, dstSize);
-      }
-    }
-  }
-  else
-  {
-    LogMsg(LogPrioError,"LogReplicationMsg::GetPayload invalid dst buffer 0x%x, %u",pDst, dstSize);
-  }
+  return ClientMessage::CreateClientMessage(*this);
 }
+
+uint8_t * LogReplicationMsg::GetPayloadData(uint32_t& size) const
+{
+  size = m_payload.size();
+  return m_payload.data();
+}
+
 
 const uint8_t *  LogReplicationMsg::Serialize(uint32_t &size) const
 {
@@ -80,7 +67,9 @@ const uint8_t *  LogReplicationMsg::Serialize(uint32_t &size) const
 
 const uint8_t * LogReplicationMsg::GetSerializableDataBuffer(uint32_t &size) const
 {
-  return Serialize(size);
+  m_serializedDataInclMsgAndPayload.reserve(MAX_PAYLOAD_SIZE + sizeof(m_theMsgData));
+  size = m_serializedDataInclMsgAndPayload.capacity();
+  return m_serializedDataInclMsgAndPayload.data();
 }
 
 bool LogReplicationMsg::Deserialize()

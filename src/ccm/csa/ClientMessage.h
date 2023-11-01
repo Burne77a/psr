@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
-
+class LogReplicationMsg;
 class ClientMessage : public ISerializable
 {
    public:
@@ -21,8 +21,10 @@ class ClientMessage : public ISerializable
       unsigned int m_serviceId{0U};
       ClientRequestId m_reqId{};
       MsgType m_type{MsgType::NACK};
+      unsigned int m_payloadSize{0U};
     };
   public:
+    static std::shared_ptr<ClientMessage> CreateClientMessage(const LogReplicationMsg &msg);
     ClientMessage();
     ClientMessage(const MsgType typeOfMsg, const ClientRequestId reqId);
     ClientMessage(std::shared_ptr<ISerializable> pPayload, const unsigned int serviceId, const ClientRequestId reqId);
@@ -44,11 +46,12 @@ class ClientMessage : public ISerializable
     static const std::string GetMsgTypeAsString(const MsgType type);
     void Print() const;
   private:
-    MsgInfo m_msgInfo;
+    mutable MsgInfo m_msgInfo;
     std::shared_ptr<ISerializable> m_pPayload{nullptr};
     mutable std::vector<uint8_t> m_serializedDataInclMsgAndPayload;
     uint8_t * m_pPayloadBuffer{nullptr};
     uint32_t m_payloadBufferDataSize{0U};
+    const uint32_t MAX_PAYLOAD_SIZE = 1024;
 
     
 };

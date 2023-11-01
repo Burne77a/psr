@@ -1,7 +1,7 @@
 #include "ReplicatedLog.h"
 #include "Logger.h"
 
-ReplicatedLog::ReplicatedLog()
+ReplicatedLog::ReplicatedLog(UpcallReplicatedLogCallbackType upcallCb) : m_upcallCb{upcallCb}
 {
  
 } 
@@ -112,7 +112,15 @@ void ReplicatedLog::PerformUpcalls()
       {
         if(!pEntry->IsUpcallDone())
         {
-          LogMsg(LogPrioInfo,"ReplicatedLog::PerformUpcalls() - Upcall performed for entry (ONLY STUBB FOR NOW)");
+          if(m_upcallCb)
+          {
+            m_upcallCb(pEntry->GetClientMsg());
+            LogMsg(LogPrioInfo,"ReplicatedLog::PerformUpcalls() - Upcall performed. OpNumber %u",pEntry->GetOpNumber());
+          }
+          else
+          {
+            LogMsg(LogPrioWarning,"ReplicatedLog::PerformUpcalls() - No upcall callback found. OpNumber %u",pEntry->GetOpNumber());
+          }
           pEntry->SetUpCallDone();
         }
       }
@@ -194,7 +202,7 @@ std::unique_ptr<LogEntry> & ReplicatedLog::GetLastValidEntry()
 {
   static std::unique_ptr<LogEntry> noValidEntry{nullptr};
   const int numberOfEntries = m_logEntries.size();
-  for(int i = numberOfEntries; i > 0; i-- )
+  for(int i = numberOfEntries - 1; i >= 0; i-- )
   {
     auto &pEntry = m_logEntries[i];
     if(pEntry)

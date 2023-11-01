@@ -21,7 +21,7 @@ using RequestDoneCallbackType = std::function<void(const ClientRequestId&,const 
 class LR
 {
   public:
-    static std::unique_ptr<LR> CreateLR(GMM & gmm);
+    static std::unique_ptr<LR> CreateLR(GMM & gmm,UpcallReplicatedLogCallbackType upcallCb);
     LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver, std::unique_ptr<ReplicatedLog> &pRepLog);
     ~LR();
     bool ReplicateRequest(ClientMessage &req,RequestDoneCallbackType reqDoneCb);

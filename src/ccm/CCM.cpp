@@ -32,19 +32,21 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     return nullptr;
   }
   
-  std::unique_ptr<LR> pLr = LR::CreateLR(*pGmm);
-  if(!pLr)
-  {
-    LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create LR. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return nullptr;
-  }
-  
   std::unique_ptr<CSA> pCsa = CSA::CreateCSA(IP_ADDRESS_OF_LEADER,*pGmm);
   if(!pCsa)
   {
     LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create CSA. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
+  
+  std::unique_ptr<LR> pLr = LR::CreateLR(*pGmm,std::bind(&CSA::MakeUpcall,&*pCsa, std::placeholders::_1));
+  if(!pLr)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create LR. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+
   
   std::shared_ptr<CCM> pCmm = std::make_shared<CCM>(pGmm,pFd,pLe,pLr,pCsa);
   

@@ -50,8 +50,9 @@ class LogReplicationMsg : public ISerializable
     bool IsPrepareMsg() const {return (m_theMsgData.type == MsgType::Prepare);}
     bool IsCommitMsg() const {return (m_theMsgData.type == MsgType::Commit);}
     
-    void SetPayload(const ISerializable &payload);
-    void GetPayload(ISerializable &payload);
+   
+    std::shared_ptr<ClientMessage> GetClientMessagePayload() const;
+    uint8_t * GetPayloadData(uint32_t& size) const;
    
     //ISerializable
     virtual const uint8_t *  Serialize(uint32_t &size) const override;
@@ -60,9 +61,11 @@ class LogReplicationMsg : public ISerializable
     
     void Print() const;
   private:
+    void SetPayload(const ISerializable &payload);
     LogReplicationMsgData m_theMsgData;
    mutable std::vector<uint8_t> m_payload;
    mutable std::vector<uint8_t> m_serializedDataInclMsgAndPayload;
+   const unsigned int MAX_PAYLOAD_SIZE = 1024;
 };
 
 #endif //CCM_LR_MESSAGE_H

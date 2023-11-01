@@ -14,6 +14,28 @@ bool ServiceUpcallDispatcher::RegisterService(const unsigned int serviceId,Upcal
   return true;
 }
 
+void ServiceUpcallDispatcher::MakeUpcall(std::shared_ptr<ClientMessage> pCmsg)
+{
+  if(pCmsg)
+  {
+    const unsigned int serviceId = pCmsg->GetServiceId();
+    UpcallCallbackType upcallCb = m_upcallCbs[serviceId];
+    if(upcallCb)
+    {
+      upcallCb(*pCmsg);
+    }
+    else
+    {
+      LogMsg(LogPrioError, "ServiceUpcallDispatcher::MakeUpcall - invalid UpcallCallbackType pointer, cannot make upcall %u is service registred?", serviceId);
+    }
+    
+  }
+  else
+  {
+    LogMsg(LogPrioError, "ServiceUpcallDispatcher::MakeUpcall - invalid ClientMessage pointer, cannot make upcall");
+  }
+}
+
 void ServiceUpcallDispatcher::Print() const
 {
   LogMsg(LogPrioInfo, "--- ServiceUpcallDispatcher ---");

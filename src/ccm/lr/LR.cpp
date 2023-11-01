@@ -7,7 +7,7 @@
 #include "NwAid.h"
 #include "../misc/Misc.h"
 #include <errnoLib.h>
-std::unique_ptr<LR> LR::CreateLR(GMM & gmm)
+std::unique_ptr<LR> LR::CreateLR(GMM & gmm,UpcallReplicatedLogCallbackType upcallCb)
 {
   static const int LOG_REPLICATION_UDP_PORT = 6666;
   std::vector<std::unique_ptr<ISender>> senders;
@@ -34,14 +34,14 @@ std::unique_ptr<LR> LR::CreateLR(GMM & gmm)
   
   if(isAllCreationOk)
   {
-    pReplicatedLog = std::make_unique<ReplicatedLog>();
+    pReplicatedLog = std::make_unique<ReplicatedLog>(upcallCb);
     
     if(pReplicatedLog)
     {
       pLr = std::make_unique<LR>(gmm,senders,pRcv,pReplicatedLog);
       if(!pLr)
       {
-        LogMsg(LogPrioCritical, "ERROR LR::CreateLR failed to create LR.");
+        LogMsg(LogPrioCritical, "ERROR: LR::CreateLR failed to create LR.");
       }
       else
       {

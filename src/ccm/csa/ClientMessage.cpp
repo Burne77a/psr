@@ -1,5 +1,50 @@
 #include "ClientMessage.h"
 #include "Logger.h"
+#include "../lr/LogReplicationMsg.h"
+#include <errnoLib.h>
+
+std::shared_ptr<ClientMessage> ClientMessage::CreateClientMessage(const LogReplicationMsg &msg)
+{
+  std::shared_ptr<ClientMessage> pCm{nullptr};
+  
+  uint32_t lrPayloadSizeRaw = 0U;
+  uint8_t * const pLrPayloadRaw = msg.GetPayloadData(lrPayloadSizeRaw);
+  const uint32_t bufferBasedClientMsgPayloadSize = lrPayloadSizeRaw - sizeof(MsgInfo);
+  
+  if((pLrPayloadRaw != nullptr) && (lrPayloadSizeRaw >= sizeof(MsgInfo)))
+  {
+    pCm = std::make_shared<ClientMessage>();
+    if(pCm)
+    {
+      uint32_t sizeOfBufToDeSerTo = 0U;
+      const uint8_t *pBufToDeSerTo = pCm->GetSerializableDataBuffer(sizeOfBufToDeSerTo);
+      if((pBufToDeSerTo != nullptr) && (lrPayloadSizeRaw <= sizeOfBufToDeSerTo))
+      {
+        std::memcpy((void*)pBufToDeSerTo,(void*)pLrPayloadRaw,lrPayloadSizeRaw);
+        if(!pCm->Deserialize())
+        {
+          LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage failed to deserialize Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+          pCm = nullptr;
+        }
+      }
+      else
+      {
+        pCm = nullptr;
+        LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage invalid buffers to deserialize to 0x% %u &u Errno: 0x%x (%s)",pBufToDeSerTo,lrPayloadSizeRaw,sizeOfBufToDeSerTo ,errnoGet(),strerror(errnoGet()));
+      }
+    }
+    else
+    {
+      LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage failed to create pointer Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    }
+  }
+  else
+  {
+    LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pLrPayloadRaw,lrPayloadSizeRaw,sizeof(MsgInfo),errnoGet(),strerror(errnoGet()));
+  }
+  return pCm;
+}
+
 
 ClientMessage::ClientMessage() 
 {
@@ -43,7 +88,16 @@ uint8_t *  ClientMessage::Serialize(uint32_t &size) const
     const uint8_t *pPayloadBufferStart = m_pPayload->Serialize(payloadSize);
     if(pPayloadBufferStart != nullptr && payloadSize > 0)
     {
-      m_serializedDataInclMsgAndPayload.insert(m_serializedDataInclMsgAndPayload.end(), pPayloadBufferStart, pPayloadBufferStart + payloadSize);
+      if(payloadSize <= MAX_PAYLOAD_SIZE)
+      {
+        m_serializedDataInclMsgAndPayload.insert(m_serializedDataInclMsgAndPayload.end(), pPayloadBufferStart, pPayloadBufferStart + payloadSize);
+        m_msgInfo.m_payloadSize = payloadSize;
+      }
+      else
+      {
+        LogMsg(LogPrioError, "ERROR: ClientMessage::Serialize %u, Req: %s to large payload size 0x%x %u",m_msgInfo.m_serviceId,m_msgInfo.m_reqId.GetIdAsStr().c_str(),pPayloadBufferStart,payloadSize);
+      }
+
     }
     else
     {
@@ -53,6 +107,7 @@ uint8_t *  ClientMessage::Serialize(uint32_t &size) const
   else if((m_pPayloadBuffer != nullptr) && (m_payloadBufferDataSize > 0))
   {
     m_serializedDataInclMsgAndPayload.insert(m_serializedDataInclMsgAndPayload.end(), m_pPayloadBuffer, m_pPayloadBuffer + m_payloadBufferDataSize);
+    m_msgInfo.m_payloadSize =  m_payloadBufferDataSize;
   }
   
   size = m_serializedDataInclMsgAndPayload.size();
@@ -61,7 +116,9 @@ uint8_t *  ClientMessage::Serialize(uint32_t &size) const
 
 const uint8_t * ClientMessage::GetSerializableDataBuffer(uint32_t &size) const 
 {
-  return Serialize(size);
+  m_serializedDataInclMsgAndPayload.reserve(MAX_PAYLOAD_SIZE + sizeof(m_msgInfo));
+  size = m_serializedDataInclMsgAndPayload.capacity();
+  return m_serializedDataInclMsgAndPayload.data();
 }
    
 bool ClientMessage::Deserialize()
@@ -70,10 +127,8 @@ bool ClientMessage::Deserialize()
   MsgInfo * pMetaData = (MsgInfo *)m_serializedDataInclMsgAndPayload.data();
   if((pMetaData != nullptr) && (m_serializedDataInclMsgAndPayload.size() >= sizeof(m_msgInfo)))
   {
-    const unsigned int payloadSize = m_serializedDataInclMsgAndPayload.size()- sizeof(m_msgInfo);
-    
     m_msgInfo = *pMetaData;
-    
+    const unsigned int payloadSize = m_msgInfo.m_payloadSize;
     if(payloadSize > 0)
     {
       m_pPayloadBuffer = m_serializedDataInclMsgAndPayload.data() + sizeof(m_msgInfo);

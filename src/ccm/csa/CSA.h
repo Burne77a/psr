@@ -22,6 +22,8 @@ class CSA :  public ICCM
     
     bool SendReplyToClient(ClientMessage & msg);
     
+    void MakeUpcall(std::shared_ptr<ClientMessage> pCmsg) {m_pSrvDispatcher->MakeUpcall(pCmsg);}
+    
     //ICCM
     bool ReplicateRequest(const ClientMessage & msg) override;
     bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override
