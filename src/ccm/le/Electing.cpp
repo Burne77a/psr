@@ -52,6 +52,7 @@ void Electing::HandleVote(const LeaderElectionMsg &msg, GMM &gmm)
       LogMsg(LogPrioInfo, "Electing::HandleVote received valid vote destined to another member %u from %u (view %u) ",voteAddressedToId,voteFromId,msgViewNumber);
     }
     gmm.AddLeaderVote(voteAddressedToId);
+    gmm.SetGossipedOpNumber(voteAddressedToId, msg.GetOpNumber());
   }
   else
   {
@@ -180,6 +181,7 @@ void Electing::SendVote(unsigned int voteOnId,GMM &gmm)
   voteMsg.SetViewNumber(gmm.GetMyViewNumber());
   voteMsg.SetSenderId(gmm.GetMyId());
   voteMsg.SetVoteDstId(voteOnId);
+  voteMsg.SetOpNumber(gmm.GetMyOpNumber());
   LogMsg(LogPrioInfo, "Electing::SendVote Voting on %u view %u",voteMsg.GetIdOfVoteDst(),voteMsg.GetViewNumber());
   for(auto & pSender : m_senders )
   {

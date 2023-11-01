@@ -32,6 +32,6 @@ const std::string LeaderElectionMsg::GetMsgTypeAsString(const MsgType type)
 
 void LeaderElectionMsg::Print() const
 {
-  LogMsg(LogPrioInfo,"LeaderElectionMsg type: %d (%s) ViewNo: %u (%u) Sender: %u Vote: %u",m_theMsgData.type,GetMsgTypeAsString(m_theMsgData.type).c_str(),
-      m_viewNumberWhenRcvd,m_theMsgData.viewNumber, m_theMsgData.senderId,m_theMsgData.idOfVoteReceiver);
+  LogMsg(LogPrioInfo,"LeaderElectionMsg type: %d (%s) ViewNo:OpNumber: %u:%u (%u) Sender: %u Vote: %u",m_theMsgData.type,GetMsgTypeAsString(m_theMsgData.type).c_str(),
+      m_theMsgData.viewNumber,m_theMsgData.opNumber,m_viewNumberWhenRcvd, m_theMsgData.senderId,m_theMsgData.idOfVoteReceiver);
 }

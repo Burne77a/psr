@@ -435,6 +435,62 @@ bool GMM::IsVoteCntForMySelfLargerThanMajority()
   return isAMajorityReached;
 }
 
+unsigned int GMM::GetLargestOpNumberGossipedAndMySelf()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int opNumber = GetLargestGossipedOpNumberNoLock();
+  auto pMember = GetMember(m_myId);
+  if(pMember)
+  {
+    opNumber = std::max(opNumber,pMember->GetOpNumber()); 
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetLargestOpNumberGossipedAndMySelf member not found %d",m_myId);
+  }
+  return opNumber;
+}
+
+int GMM::GetIdOfAliveMemberWithOpNumberEqual(const unsigned int opNumber)
+{
+  static const std::chrono::milliseconds AliveDuration(1000);
+  std::lock_guard<std::mutex> lock(m_mutex);
+  int id = -1;
+  for (auto& pair : m_members) 
+  {
+    if(pair.second.GetID() == m_myId)
+    {
+      if(opNumber == pair.second.GetGossipOpNumber())
+      {
+        id = pair.second.GetID();
+        break;
+      }
+    }
+    else if(!pair.second.HasHeartbeatExceeded(AliveDuration))
+    {
+      if(opNumber == pair.second.GetGossipOpNumber())
+      {
+        id = pair.second.GetID();
+        break;
+      }
+    }
+  }
+  return id;
+}
+
+void GMM::SetGossipedOpNumber(const int id, const unsigned int opNumber)
+{  
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  if(pMember)
+  {
+    pMember->SetGossipOpNumber(opNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetGossipedOpNumber member not found %d",m_myId);
+  }
+}
 
 void GMM::ForEachMember(const std::function<void(const int, Member&)>& func) 
 {
@@ -470,6 +526,20 @@ Member* GMM::GetMember(const int id) const
     return &m_members.at(id);
   }
   return nullptr;
+}
+
+unsigned int GMM::GetLargestGossipedOpNumberNoLock() const
+{
+  unsigned int opNumberToReturn = 0U;
+
+  for (auto& pair : m_members) 
+  {
+    if(pair.second.GetGossipOpNumber() > opNumberToReturn)
+    {
+      opNumberToReturn = pair.second.GetGossipOpNumber();
+    }
+  }
+  return opNumberToReturn;
 }
 
 unsigned int GMM::GetValidPrepareOkCntNoLock() const

@@ -98,6 +98,7 @@ bool LR::ReplicateRequest(ClientMessage &req,RequestDoneCallbackType reqDoneCb)
 
 void LR::HandleActivityAsFollower()
 {
+  m_gmm.SetMyOpNumber(m_pRepLog->GetLatestEntryOpNumber());
   HandleMsgAsFollower();
 }
 

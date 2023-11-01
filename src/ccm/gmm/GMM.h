@@ -45,9 +45,14 @@ class GMM {
     bool IsAMajorityOfValidPrepareOkRcvd() const;
     void SetPrepareOkRcvdIfMatchPending(const int id, const unsigned int viewNumber, const unsigned int opNumber);
     
-    
+    //View number
     const unsigned int GetLargestViewNumber();
     bool IsVoteCntForMySelfLargerThanMajority();
+    
+    //Finding largest op number
+    unsigned int GetLargestOpNumberGossipedAndMySelf();
+    void SetGossipedOpNumber(const int id, const unsigned int opNumber);
+    int GetIdOfAliveMemberWithOpNumberEqual(const unsigned int opNumber);
     
     void ForEachMember(const std::function<void(const int, Member&)>& func);
     void ForMyMember(const std::function<void(const int, Member&)>& func);
@@ -57,6 +62,7 @@ class GMM {
 
   private:
     const int m_myId;
+    unsigned int GetLargestGossipedOpNumberNoLock() const;
     unsigned int GetValidPrepareOkCntNoLock() const;
     bool IsQuorumConnectedNoLock(const int id) const;
     Member* GetMember(const int id) const;

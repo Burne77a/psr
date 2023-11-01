@@ -38,6 +38,11 @@ class Member {
     bool IsValidPrepareOkRcvd() const {return m_isValidPrepareOkRcvd;}
     void SetPrepareOkRcvdIfMatchPending(const unsigned int viewNumber, const unsigned int opNumber);
     
+    //Gossip op. number
+    void SetGossipOpNumber(const unsigned int gossipOpNumber) {m_gossipOpNumber = gossipOpNumber;} 
+    unsigned int GetGossipOpNumber() const {return m_gossipOpNumber;}
+    
+    
     
     //Member related
     int GetID() const;
@@ -59,6 +64,7 @@ private:
     unsigned int m_viewNumber{0U};
     unsigned int m_leaderVoteCnt{0U};
     unsigned int m_operationNumber{0U};
+    unsigned int m_gossipOpNumber{0U};
     
     unsigned int m_pendingPrepeareViewNumber{INVALID_REQ_ID};
     unsigned int m_pedingPrepareOpNumber{INVALID_REQ_ID};

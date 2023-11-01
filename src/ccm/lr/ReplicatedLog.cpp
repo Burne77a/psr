@@ -104,6 +104,7 @@ bool ReplicatedLog::CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCor
 
 void ReplicatedLog::PerformUpcalls()
 {
+  std::lock_guard<std::mutex> lock(m_mutex);
   for(auto &pEntry : m_logEntries)
   {
     if(pEntry)
@@ -127,6 +128,19 @@ void ReplicatedLog::PerformUpcalls()
     }
   }
 }
+
+unsigned int ReplicatedLog::GetLatestEntryOpNumber()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int opNumberToReturn = 0U;
+  auto & pExistingEntry = GetLastValidEntry();
+  if(pExistingEntry)
+  {
+    opNumberToReturn = pExistingEntry->GetOpNumber();
+  }
+  return opNumberToReturn;
+}
+
 
 bool ReplicatedLog::AddOrOverwriteDependingOnView(const LogReplicationMsg &msg)
 {
