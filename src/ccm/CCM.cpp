@@ -160,6 +160,11 @@ void CCM::HandleIncomingClientRequestToLeader()
     //If we are about to process a replication, let is finish before starting next one.
     return;
   }
+  if(!IsUpdatedWithLatestEntries())
+  {
+    //The leader is not upto date with the latest entries. 
+    return;
+  }
   const bool isMsgRcvd = m_pCsa->GetClientRequestsSentToLeader(incomingMsg);
   if(isMsgRcvd)
   {
@@ -176,6 +181,11 @@ void CCM::HandleIncomingClientRequestToLeader()
     }
   }
   //Reply to commitment sent in callback. 
+}
+
+bool CCM::IsUpdatedWithLatestEntries()
+{
+  return m_pLr->HasLatestEntries();
 }
 
 OSAStatusCode CCM::InstanceTaskMethod()

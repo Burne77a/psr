@@ -2,6 +2,7 @@
 #define CCM_LR_REPLICATEDLOG_H
 #include "LogEntry.h"
 #include "LogReplicationMsg.h"
+#include "SyncMsg.h"
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -20,6 +21,8 @@ class ReplicatedLog
     bool CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCorespondingEntryFor);
     void PerformUpcalls();
     unsigned int GetLatestEntryOpNumber();
+    bool GetLogEntriesAsSyncMsgVector(const int myId, std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulate);
+    void PopulateFromVector(std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulateFrom);
     void Print() const;
   private:
     bool AddOrOverwriteDependingOnView(const LogReplicationMsg &msg);

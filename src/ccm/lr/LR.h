@@ -2,6 +2,7 @@
 #define CCM_LR_H
 #include "LogReplicationMsg.h"
 #include "ReplicatedLog.h"
+#include "SyncManager.h"
 #include "../gmm/GMM.h"
 #include "TaskAbstraction.h"
 #include "ISender.h"
@@ -22,7 +23,7 @@ class LR
 {
   public:
     static std::unique_ptr<LR> CreateLR(GMM & gmm,UpcallReplicatedLogCallbackType upcallCb);
-    LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver, std::unique_ptr<ReplicatedLog> &pRepLog);
+    LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver, std::unique_ptr<ReplicatedLog> &pRepLog,  std::unique_ptr<SyncManager>& pSyncMgr);
     ~LR();
     bool ReplicateRequest(ClientMessage &req,RequestDoneCallbackType reqDoneCb);
     void HandleActivityAsFollower();
@@ -31,6 +32,8 @@ class LR
     void NoLongerLeaderActivity();
     void PerformUpcalls();
     bool IsLogReplicationPending() const {return m_ongoingReqId.IsValid();}
+    bool HasLatestEntries();
+    void TriggerSync() {m_pSyncMgr->TriggerSync();}
     void Print() const;
   private:
     
@@ -45,14 +48,19 @@ class LR
     void RcvFlush();
     bool RcvMsg(IReceiver &rcv, LogReplicationMsg &msg);
     
+   
+    
     void CallReqDoneCallback(const RequestStatus status);
     void SendCommitToAll(const LogReplicationMsg & prepareMsgToCommit);
     void SendPrepareOK(const LogReplicationMsg & prepareMsg);
     bool SendToLeader(const LogReplicationMsg & msgToSend);
+    
+    
     GMM & m_gmm;
     std::vector<std::unique_ptr<ISender>> m_senders; 
     std::unique_ptr<IReceiver> m_pReceiver;
     std::unique_ptr<ReplicatedLog> m_pRepLog;
+    std::unique_ptr<SyncManager> m_pSyncMgr;
     ClientRequestId m_ongoingReqId{};
     int m_requestingClientId{0U};
     std::unique_ptr<LogReplicationMsg> m_pOngoingRepMsg{};

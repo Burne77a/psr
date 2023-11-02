@@ -142,6 +142,42 @@ unsigned int ReplicatedLog::GetLatestEntryOpNumber()
 }
 
 
+bool ReplicatedLog::GetLogEntriesAsSyncMsgVector(const int myId, std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulate)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  bool isSuccessfullyPopulated = true;
+  const unsigned int entries = m_logEntries.size();
+  unsigned int currentEntry = 0;
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      std::shared_ptr<SyncMsg> pSyncMsg = SyncMsg::CreateSyncMsgFromLogEntry(myId,entries,*pEntry,currentEntry);
+      if(pSyncMsg)
+      {
+        vectorToPopulate.push_back(pSyncMsg);
+        currentEntry++;
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ERROR: ReplicatedLog::GetLogEntriesAsSyncMsgVector() Failed to create SyncMsg from entry");
+        isSuccessfullyPopulated = false;
+      }
+    }
+  }
+  return isSuccessfullyPopulated;
+}
+
+void ReplicatedLog::PopulateFromVector(std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulateFrom)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  m_logEntries.clear();
+  for(auto &pSyncMsg : vectorToPopulateFrom)
+  {
+    m_logEntries.push_back(LogEntry::CreateEntry(*pSyncMsg));
+  }
+}
+
 bool ReplicatedLog::AddOrOverwriteDependingOnView(const LogReplicationMsg &msg)
 {
   bool isHandledOK = false;

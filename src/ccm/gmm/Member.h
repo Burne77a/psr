@@ -6,6 +6,7 @@
 #include <chrono>
 
 const size_t MAX_MEMBERS = 64; 
+const int INVALID_ID = -1;
 const int INVALID_LEADER_ID = 0U;
 const unsigned int INVALID_REQ_ID = 0U;
 

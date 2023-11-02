@@ -455,7 +455,7 @@ int GMM::GetIdOfAliveMemberWithOpNumberEqual(const unsigned int opNumber)
 {
   static const std::chrono::milliseconds AliveDuration(1000);
   std::lock_guard<std::mutex> lock(m_mutex);
-  int id = -1;
+  int id = INVALID_ID;
   for (auto& pair : m_members) 
   {
     if(pair.second.GetID() == m_myId)

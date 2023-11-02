@@ -29,6 +29,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
   private: 
    void MakeUpcalls();
    void HandleIncomingClientRequestToLeader();
+   bool IsUpdatedWithLatestEntries();
    
    //ILeaderRoleChangeCallbacks
    void EnteredLeaderRole() override; 

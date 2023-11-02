@@ -3,24 +3,20 @@
 #include "../lr/LogReplicationMsg.h"
 #include <errnoLib.h>
 
-std::shared_ptr<ClientMessage> ClientMessage::CreateClientMessage(const LogReplicationMsg &msg)
+
+std::shared_ptr<ClientMessage> ClientMessage::CreateClientMessage(const uint8_t *pClientData, const uint32_t clientDataSize)
 {
   std::shared_ptr<ClientMessage> pCm{nullptr};
-  
-  uint32_t lrPayloadSizeRaw = 0U;
-  uint8_t * const pLrPayloadRaw = msg.GetPayloadData(lrPayloadSizeRaw);
-  const uint32_t bufferBasedClientMsgPayloadSize = lrPayloadSizeRaw - sizeof(MsgInfo);
-  
-  if((pLrPayloadRaw != nullptr) && (lrPayloadSizeRaw >= sizeof(MsgInfo)))
+  if((pClientData != nullptr) && (clientDataSize >= sizeof(MsgInfo)))
   {
     pCm = std::make_shared<ClientMessage>();
     if(pCm)
     {
       uint32_t sizeOfBufToDeSerTo = 0U;
       const uint8_t *pBufToDeSerTo = pCm->GetSerializableDataBuffer(sizeOfBufToDeSerTo);
-      if((pBufToDeSerTo != nullptr) && (lrPayloadSizeRaw <= sizeOfBufToDeSerTo))
+      if((pBufToDeSerTo != nullptr) && (clientDataSize <= sizeOfBufToDeSerTo))
       {
-        std::memcpy((void*)pBufToDeSerTo,(void*)pLrPayloadRaw,lrPayloadSizeRaw);
+        std::memcpy((void*)pBufToDeSerTo,(void*)pClientData,clientDataSize);
         if(!pCm->Deserialize())
         {
           LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage failed to deserialize Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -30,7 +26,7 @@ std::shared_ptr<ClientMessage> ClientMessage::CreateClientMessage(const LogRepli
       else
       {
         pCm = nullptr;
-        LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage invalid buffers to deserialize to 0x% %u &u Errno: 0x%x (%s)",pBufToDeSerTo,lrPayloadSizeRaw,sizeOfBufToDeSerTo ,errnoGet(),strerror(errnoGet()));
+        LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage invalid buffers to deserialize to 0x% %u &u Errno: 0x%x (%s)",pBufToDeSerTo,clientDataSize,sizeOfBufToDeSerTo ,errnoGet(),strerror(errnoGet()));
       }
     }
     else
@@ -40,8 +36,19 @@ std::shared_ptr<ClientMessage> ClientMessage::CreateClientMessage(const LogRepli
   }
   else
   {
-    LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pLrPayloadRaw,lrPayloadSizeRaw,sizeof(MsgInfo),errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioError, "ERROR: ClientMessage::CreateClientMessage No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pClientData,clientDataSize,sizeof(MsgInfo),errnoGet(),strerror(errnoGet()));
   }
+  return pCm; 
+}
+
+std::shared_ptr<ClientMessage> ClientMessage::CreateClientMessage(const LogReplicationMsg &msg)
+{
+  std::shared_ptr<ClientMessage> pCm{nullptr};
+  
+  uint32_t lrPayloadSizeRaw = 0U;
+  uint8_t * const pLrPayloadRaw = msg.GetPayloadData(lrPayloadSizeRaw);
+  pCm = CreateClientMessage(pLrPayloadRaw,lrPayloadSizeRaw);
+    
   return pCm;
 }
 

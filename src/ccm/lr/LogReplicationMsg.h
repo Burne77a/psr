@@ -22,9 +22,7 @@ class LogReplicationMsg : public ISerializable
       MsgType type{MsgType::Prepare};
       unsigned int payloadSize{0U};
       unsigned int viewNumber{0U};
-      unsigned int operationNumber{0U};
-      unsigned int requestId{0U};
-      
+      unsigned int operationNumber{0U};     
       unsigned int srcId{0U};
       unsigned int dstId{0U};
     };
@@ -40,7 +38,6 @@ class LogReplicationMsg : public ISerializable
     unsigned int GetSrcId() const {return m_theMsgData.srcId;}
     unsigned int GetDstId() const {return m_theMsgData.dstId;}
     unsigned int GetOpNumber() const {return m_theMsgData.operationNumber;}
-    unsigned int GetReqId() const {return m_theMsgData.requestId;}
     
     void SetViewNumber(const unsigned int viewNumber){m_theMsgData.viewNumber = viewNumber;}
     void SetSrcId(const unsigned int srcId){m_theMsgData.srcId = srcId;}
@@ -56,17 +53,17 @@ class LogReplicationMsg : public ISerializable
     uint8_t * GetPayloadData(uint32_t& size) const;
    
     //ISerializable
-    virtual const uint8_t *  Serialize(uint32_t &size) const override;
-    virtual const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;
-    virtual bool Deserialize() override ;
-    
+    const uint8_t *  Serialize(uint32_t &size) const override;
+    const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;
+    bool Deserialize() override ;
     void Print() const;
+    
   private:
     void SetPayload(const ISerializable &payload);
     LogReplicationMsgData m_theMsgData;
-   mutable std::vector<uint8_t> m_payload;
-   mutable std::vector<uint8_t> m_serializedDataInclMsgAndPayload;
-   const unsigned int MAX_PAYLOAD_SIZE = 1024;
+    mutable std::vector<uint8_t> m_payload;
+    mutable std::vector<uint8_t> m_serializedDataInclMsgAndPayload;
+    const unsigned int MAX_PAYLOAD_SIZE = 1024;
 };
 
 #endif //CCM_LR_MESSAGE_H
