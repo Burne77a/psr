@@ -87,10 +87,19 @@ OSAStatusCode CCM::Start()
     return fdStartSts;
   }
   
+  const OSAStatusCode lrStartSts = m_pLr->Start();
+  if(lrStartSts != OSA_OK)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start LR task. %d Errno: 0x%x (%s)",fdStartSts,errnoGet(),strerror(errnoGet()));
+    m_pFd->Stop();
+    return lrStartSts;
+  }
+  
   const OSAStatusCode ccmStartSts = StartCCMTask();
   if(ccmStartSts != OSA_OK)
   {
     LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start CCM task. %d Errno: 0x%x (%s)",ccmStartSts,errnoGet(),strerror(errnoGet()));
+    m_pLr->Stop();
     m_pFd->Stop();
     return ccmStartSts;
   }

@@ -208,7 +208,7 @@ void SyncManager::WaitForAndProcessIncomingLogEntries()
         else if(isCompleted)
         {
           LogMsg(LogPrioInfo, "SyncManager::WaitForAndProcessIncomingLogEntries() - completed");
-          
+          m_replicatedLog.PopulateFromVector(rcvdSyncMessages);
           isDoneOrAborted = true;
         }
         
@@ -253,7 +253,7 @@ void SyncManager::HandleSyncReqToUpdateThisLog()
   if(m_isSyncTriggered)
   {
     m_isSyncTriggered = false;
-    
+    IssueRequestToSyncToInstanceWithLargestOp();
   }
 }
 
@@ -263,10 +263,7 @@ OSAStatusCode SyncManager::SyncTaskMethod()
   do
   {
     HandleIncomingSyncRequestFromOthers();
-    //Check if incoming sync request. That is request to send this instance of the LR to another node
-      //Handle those
-    //Check if this node has been requested to sync its log 
-      //Handle that request
+    HandleSyncReqToUpdateThisLog();
     OSATaskSleep(m_periodInMs);
   }while(m_isRunning);
   return OSA_OK;

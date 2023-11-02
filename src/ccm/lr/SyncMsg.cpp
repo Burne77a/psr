@@ -40,6 +40,9 @@ SyncMsg::SyncMsg(const MsgType type, const int idOfRequester)
   m_data.type = type;
   m_data.requesterId = idOfRequester;
   m_data.payloadSize = 0;
+  const uint8_t * pStartOfMeta = (uint8_t*)(&m_data);
+  const uint32_t sizeOfMeta = sizeof(m_data);
+  m_serializedDataInclPayload.assign(pStartOfMeta, pStartOfMeta + sizeOfMeta);
 }
 
 SyncMsg::SyncMsg()
