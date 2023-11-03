@@ -133,7 +133,7 @@ void Member::Print() const
       LogMsg(LogPrioInfo,"Leader ID %d",m_leaderId);
     }
   }
-  LogMsg(LogPrioInfo,"View number %u OpNumber %u Gossip OpNumber: ",m_viewNumber,m_operationNumber,m_gossipOpNumber);
+  LogMsg(LogPrioInfo,"View number %u OpNumber %u Committed OpNumber: %u",m_viewNumber,m_operationNumber,m_committedOpNumber);
 }
 
 

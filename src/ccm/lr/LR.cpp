@@ -115,6 +115,8 @@ void LR::HandleActivityAsFollower()
 {
   m_gmm.SetMyOpNumber(m_pRepLog->GetLatestEntryOpNumber());
   HandleMsgAsFollower();
+  CheckAndHandleUncommitted();
+  m_gmm.SetMyCommittedOpNumber(m_pRepLog->GetHighestCommittedOpNumber());
 }
 
 void LR::HandleActivityAsLeader()
@@ -138,9 +140,9 @@ void LR::NoLongerLeaderActivity()
   m_reqDoneCb = nullptr;
 }
 
-void LR::PerformUpcalls()
+void LR::PerformUpcalls(const bool isForce)
 {
-  m_pRepLog->PerformUpcalls();
+  m_pRepLog->PerformUpcalls(isForce);
 }
 
 
@@ -150,6 +152,7 @@ bool LR::HasLatestEntries()
   unsigned int myHighestOpNumber = m_pRepLog->GetLatestEntryOpNumber();
   return (myHighestOpNumber>=highestOpNumberSeen);
 }
+
 
 
 
@@ -269,6 +272,12 @@ void LR::HandleCommit(const LogReplicationMsg &lrMsg)
     LogMsg(LogPrioError, "LR::HandleCommit() received Commit with too low view number - ignoring %u %u ",myViewNo,msgViewNo);
     lrMsg.Print();
   }
+}
+
+void LR::CheckAndHandleUncommitted()
+{
+  unsigned int highestCommittedOpNumber = m_gmm.GetHighestCommittedOpNumber();
+  m_pRepLog->CommittAllEarlierEntries(highestCommittedOpNumber);
 }
 
 

@@ -152,6 +152,7 @@ void LogEntry::PopulateMeFrom(const SyncMsg &msg)
       {
         LogMsg(LogPrioError, "ERROR: LogEntry::PopulateMeFrom failed to deserialize Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
       }
+      m_entryData.isUpcallDone = false;
     }
     else
     {

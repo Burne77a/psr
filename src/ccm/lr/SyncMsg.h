@@ -26,6 +26,7 @@ class SyncMsg : public ISerializable
     static std::shared_ptr<SyncMsg> CreateSyncMsgFromLogEntry(const int requesterId,const unsigned int numberOfEntries, const ISerializable &entry, const unsigned int currentEntryIndex);
     SyncMsg(const int requsterId,const unsigned int numberOfEntries, const ISerializable &entry, const unsigned int currentEntryIndex);
     SyncMsg(const MsgType type, const int idOfRequester);
+    SyncMsg(const SyncMsg &src);
     SyncMsg();
     ~SyncMsg();
     bool IsRequest() const {return m_data.type == MsgType::RequestLog;}

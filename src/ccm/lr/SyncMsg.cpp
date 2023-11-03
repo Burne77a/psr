@@ -44,6 +44,12 @@ SyncMsg::SyncMsg(const MsgType type, const int idOfRequester)
   const uint32_t sizeOfMeta = sizeof(m_data);
   m_serializedDataInclPayload.assign(pStartOfMeta, pStartOfMeta + sizeOfMeta);
 }
+SyncMsg::SyncMsg(const SyncMsg &src) : m_data{src.m_data}, m_serializedDataInclPayload{src.m_serializedDataInclPayload}
+{
+  //TODO: Ugly workaround. Make better later.
+  m_serializedDataInclPayload.reserve(MAX_PAYLOAD_SIZE + sizeof(m_data));
+  std::memcpy(m_serializedDataInclPayload.data(),src.m_serializedDataInclPayload.data(),src.m_data.payloadSize + sizeof(m_data));
+}
 
 SyncMsg::SyncMsg()
 {
@@ -106,5 +112,8 @@ void SyncMsg::Print() const
   LogMsg(LogPrioInfo,"SyncMsg: type: %d (%s) RequseterId: %d payloadSize: %u entries %u:%u",m_data.type, 
       GetMsgTypeAsString(m_data.type).c_str(),m_data.requesterId,m_data.payloadSize,
       m_data.totalNumberOfEntries, m_data.currentEntryIndex);
+  
+  LogMsg(LogPrioInfo,"SyncMsg (debug):  size: %u data 0x%x payloadPtr 0x%x",
+      m_serializedDataInclPayload.size(),m_serializedDataInclPayload.data(),(m_serializedDataInclPayload.data() + sizeof(m_data)));
 }
 

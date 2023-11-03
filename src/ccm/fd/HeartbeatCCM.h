@@ -24,6 +24,8 @@ class HeartbeatCCM : public ISerializable
      uint64_t m_connectionPerceptionBits;
      int32_t m_leaderId;
      uint32_t m_viewNo;
+     uint32_t m_opNo;
+     uint32_t m_opNoCommitted;
     }HeartbeatData;
     
   public:
@@ -36,6 +38,10 @@ class HeartbeatCCM : public ISerializable
     void SetSenderId(const int id) {m_dataToExchange.m_senderId = id;}
     void SetLeaderId(const int leaderId){m_dataToExchange.m_leaderId = leaderId;}
     void SetViewNumber(const unsigned int viewNumber){m_dataToExchange.m_viewNo = viewNumber;}
+    void SetOpNumber(const unsigned int opNumber) {m_dataToExchange.m_opNo = opNumber;}
+    void SetOpNumberCommitted(const unsigned int opNumberCommitted) {m_dataToExchange.m_opNoCommitted = opNumberCommitted;}
+    unsigned int GetOpNumberCommitted() const {return m_dataToExchange.m_opNoCommitted;}
+    unsigned int GetOpNumber() const {return m_dataToExchange.m_opNo;}
     int GetSenderId() const {return m_dataToExchange.m_senderId;}
     int GetLeaderId() const {return m_dataToExchange.m_leaderId;}
     unsigned int GetViewNumber() const {return m_dataToExchange.m_viewNo;}

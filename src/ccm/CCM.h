@@ -24,7 +24,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}
    ClientRequestId CreateUniqueId() override {return m_pCsa->CreateUniqueId();}
    void ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts);
-
+   void ForceUpcalls(){m_pLr->PerformUpcalls(true);}
    void Print() const; 
   private: 
    void MakeUpcalls();

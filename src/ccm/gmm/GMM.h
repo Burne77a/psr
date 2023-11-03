@@ -39,6 +39,12 @@ class GMM {
     void SetMyOpNumber(const unsigned int opNumber);
     const unsigned int GetMyOpNumber() const;
     
+    void SetCommittedOpNumber(const int id, const unsigned int commitedOpNumber);
+    const unsigned int GetCommittedOpNumber(const int id) const;
+    void SetMyCommittedOpNumber(const unsigned int commitedOpNumber);
+    const unsigned int GetMyCommittedOpNumber() const;
+    const unsigned int GetHighestCommittedOpNumber() const;
+    
     //Prepare and PrepareOK handling
     void ClearPendingPrepare();
     void SetPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber);
@@ -51,7 +57,6 @@ class GMM {
     
     //Finding largest op number
     unsigned int GetLargestOpNumberGossipedAndMySelf();
-    void SetGossipedOpNumber(const int id, const unsigned int opNumber);
     int GetIdOfAliveMemberWithOpNumberEqual(const unsigned int opNumber);
     
     void ForEachMember(const std::function<void(const int, Member&)>& func);

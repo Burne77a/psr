@@ -52,7 +52,7 @@ void Electing::HandleVote(const LeaderElectionMsg &msg, GMM &gmm)
       LogMsg(LogPrioInfo, "Electing::HandleVote received valid vote destined to another member %u from %u (view %u) ",voteAddressedToId,voteFromId,msgViewNumber);
     }
     gmm.AddLeaderVote(voteAddressedToId);
-    gmm.SetGossipedOpNumber(voteAddressedToId, msg.GetOpNumber());
+    gmm.SetOpNumber(voteFromId, msg.GetOpNumber());
   }
   else
   {

@@ -32,18 +32,15 @@ class Member {
     unsigned int GetViewNumber() const {return m_viewNumber;}
     unsigned int GetOpNumber() const {return m_operationNumber;}
     void SetOperationNumber(const unsigned int opNumber) {m_operationNumber = opNumber;}
+    unsigned int GetCommittedOpNumber() const {return m_committedOpNumber;}
+    void SetCommittedOperationNumber(const unsigned int committedOpNumber) {m_committedOpNumber = committedOpNumber;}
     
     //Pending request
     void ClearPendingPrepare() {m_pendingPrepeareViewNumber = INVALID_REQ_ID; m_pedingPrepareOpNumber = INVALID_REQ_ID; m_isValidPrepareOkRcvd = false;}
     void SetPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber) { m_pendingPrepeareViewNumber = viewNumber; m_pedingPrepareOpNumber = opNumber; m_isValidPrepareOkRcvd = false;}
     bool IsValidPrepareOkRcvd() const {return m_isValidPrepareOkRcvd;}
     void SetPrepareOkRcvdIfMatchPending(const unsigned int viewNumber, const unsigned int opNumber);
-    
-    //Gossip op. number
-    void SetGossipOpNumber(const unsigned int gossipOpNumber) {m_gossipOpNumber = gossipOpNumber;} 
-    unsigned int GetGossipOpNumber() const {return m_gossipOpNumber;}
-    
-    
+      
     
     //Member related
     int GetID() const;
@@ -65,7 +62,7 @@ private:
     unsigned int m_viewNumber{0U};
     unsigned int m_leaderVoteCnt{0U};
     unsigned int m_operationNumber{0U};
-    unsigned int m_gossipOpNumber{0U};
+    unsigned int m_committedOpNumber{0U};
     
     unsigned int m_pendingPrepeareViewNumber{INVALID_REQ_ID};
     unsigned int m_pedingPrepareOpNumber{INVALID_REQ_ID};

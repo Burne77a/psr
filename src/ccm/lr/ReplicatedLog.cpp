@@ -102,7 +102,7 @@ bool ReplicatedLog::CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCor
   return isSuccessfullyCommitted;
 }
 
-void ReplicatedLog::PerformUpcalls()
+void ReplicatedLog::PerformUpcalls(const bool isForce)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   for(auto &pEntry : m_logEntries)
@@ -111,7 +111,7 @@ void ReplicatedLog::PerformUpcalls()
     {
       if(pEntry->IsCommited())
       {
-        if(!pEntry->IsUpcallDone())
+        if(!pEntry->IsUpcallDone() || isForce)
         {
           if(m_upcallCb)
           {
@@ -171,11 +171,66 @@ bool ReplicatedLog::GetLogEntriesAsSyncMsgVector(const int myId, std::vector<std
 void ReplicatedLog::PopulateFromVector(std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulateFrom)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  m_logEntries.clear();
-  for(auto &pSyncMsg : vectorToPopulateFrom)
+  for(unsigned int i = 0; i < vectorToPopulateFrom.size(); i++)
   {
-    m_logEntries.push_back(LogEntry::CreateEntry(*pSyncMsg));
+    auto pSyncMsg = vectorToPopulateFrom[i];
+    if(pSyncMsg)
+    {
+      auto pNewEntry = LogEntry::CreateEntry(*pSyncMsg);
+      if(pNewEntry)
+      {
+        auto & pExistingEntry = GetEntryWithOpNumber(pNewEntry->GetOpNumber());
+        if(!pExistingEntry)
+        {
+          m_logEntries.push_back(std::move(pNewEntry));
+        }
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ERROR: ReplicatedLog::PopulateFromVector()failed to create LogEntry from sync %u",i);
+      }
+    }
+    else
+    {
+      LogMsg(LogPrioCritical,"ERROR: ReplicatedLog::PopulateFromVector() invalid entry in vector %u",i);
+    }
+    
   }
+}
+
+void ReplicatedLog::CommittAllEarlierEntries(const unsigned int opNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      if(pEntry->GetOpNumber() <= opNumber)
+      {
+        pEntry->SetCommitted();
+      }
+    }
+  }
+}
+
+unsigned int ReplicatedLog::GetHighestCommittedOpNumber()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int highestCommittedOpNumber = 0U;
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      if(pEntry->GetOpNumber() > highestCommittedOpNumber)
+      {
+        if(pEntry->IsCommited())
+        {
+          highestCommittedOpNumber = pEntry->GetOpNumber();
+        }
+      }
+    }
+  }
+  return highestCommittedOpNumber;
 }
 
 bool ReplicatedLog::AddOrOverwriteDependingOnView(const LogReplicationMsg &msg)

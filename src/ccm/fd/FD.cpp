@@ -111,6 +111,8 @@ void FD::Populate(HeartbeatCCM &heartbeat)
   heartbeat.SetSrcIp(myIp);
   heartbeat.SetLeaderId(leaderId);
   heartbeat.SetViewNumber(m_gmm.GetMyViewNumber());
+  heartbeat.SetOpNumber(m_gmm.GetMyOpNumber());
+  heartbeat.SetOpNumberCommitted(m_gmm.GetMyCommittedOpNumber());
 }
 
 void FD::Send(HeartbeatCCM &heartbeat)
@@ -139,9 +141,19 @@ void FD::HandleIncommingHeartbeat()
 void FD::UpdateMySelfWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat)
 {
   const int hbSenderId = rcvdHeartbeat.GetSenderId();
-  m_gmm.ForMyMember([hbSenderId](int id, Member & myself)
+  
+  m_gmm.ForMyMember([this,&rcvdHeartbeat](int id, Member & myself)
    {
-     myself.AddConnection(hbSenderId);
+     myself.AddConnection(rcvdHeartbeat.GetSenderId());
+     if(m_gmm.GetLeaderId() == rcvdHeartbeat.GetSenderId())
+     {
+       if(myself.GetViewNumber() < rcvdHeartbeat.GetViewNumber())
+       {
+         LogMsg(LogPrioInfo, "FD::UpdateMySelfWithReceivedHeartbeatData - updating view number %u %u",
+             myself.GetViewNumber(), rcvdHeartbeat.GetViewNumber());
+         myself.SetViewNumber(rcvdHeartbeat.GetViewNumber());
+       }
+     }
    });
 }
 
@@ -154,6 +166,8 @@ void FD::UpdateMemberWithReceivedHeartbeatData(const HeartbeatCCM &rcvdHeartbeat
     senderMember.SetConnectionPerception(rcvdHeartbeat.GetConnectionPerception());
     senderMember.UpdateHeartbeat(rcvdHeartbeat.GetLeaderId());
     senderMember.SetViewNumber(rcvdHeartbeat.GetViewNumber());
+    senderMember.SetOperationNumber(rcvdHeartbeat.GetOpNumber());
+    senderMember.SetCommittedOperationNumber(rcvdHeartbeat.GetOpNumberCommitted());
   });
 }
 

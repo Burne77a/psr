@@ -19,10 +19,12 @@ class ReplicatedLog
     bool IsEntryAlreadyExisting(const LogReplicationMsg &msg) {return IsEntryAlreadyExisting(msg.GetOpNumber(),msg.GetViewNumber());}
     bool AddEntryToLogIfNotAlreadyIn(const LogReplicationMsg &msgToMakeEntryFrom);
     bool CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCorespondingEntryFor);
-    void PerformUpcalls();
+    void PerformUpcalls(const bool isForce);
     unsigned int GetLatestEntryOpNumber();
     bool GetLogEntriesAsSyncMsgVector(const int myId, std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulate);
     void PopulateFromVector(std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulateFrom);
+    void CommittAllEarlierEntries(const unsigned int opNumber);
+    unsigned int GetHighestCommittedOpNumber();
     void Print() const;
   private:
     bool AddOrOverwriteDependingOnView(const LogReplicationMsg &msg);

@@ -158,7 +158,7 @@ OSAStatusCode CCM::StartCCMTask()
 
 void CCM::MakeUpcalls()
 {
-  m_pLr->PerformUpcalls();
+  m_pLr->PerformUpcalls(false);
 }
 
 void CCM::HandleIncomingClientRequestToLeader()

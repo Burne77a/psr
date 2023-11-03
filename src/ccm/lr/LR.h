@@ -30,7 +30,7 @@ class LR
     void HandleActivityAsLeader();
     void BecameLeaderActivity();
     void NoLongerLeaderActivity();
-    void PerformUpcalls();
+    void PerformUpcalls(const bool isForce);
     bool IsLogReplicationPending() const {return m_ongoingReqId.IsValid();}
     bool HasLatestEntries();
     void TriggerSync() {m_pSyncMgr->TriggerSync();}
@@ -47,6 +47,7 @@ class LR
     void HandlePrepare(const LogReplicationMsg &lrMsg);
     void HandleCommit(const LogReplicationMsg &lrMsg);
     void HandleMsgAsFollower();
+    void CheckAndHandleUncommitted();
     void RcvFlush();
     bool RcvMsg(IReceiver &rcv, LogReplicationMsg &msg);
     

@@ -52,3 +52,8 @@ void TriggerClientReq()
 {
   g_pTstClient->IssueRequest();
 }
+
+void ForceUpcalls()
+{
+  g_pCcm->ForceUpcalls();
+}
