@@ -39,15 +39,25 @@ class GMM {
     void SetMyOpNumber(const unsigned int opNumber);
     const unsigned int GetMyOpNumber() const;
     
+    void SetCommittedOpNumber(const int id, const unsigned int commitedOpNumber);
+    const unsigned int GetCommittedOpNumber(const int id) const;
+    void SetMyCommittedOpNumber(const unsigned int commitedOpNumber);
+    const unsigned int GetMyCommittedOpNumber() const;
+    const unsigned int GetHighestCommittedOpNumber() const;
+    
     //Prepare and PrepareOK handling
     void ClearPendingPrepare();
     void SetPendingPrepare(const unsigned int viewNumber, const unsigned int opNumber);
     bool IsAMajorityOfValidPrepareOkRcvd() const;
     void SetPrepareOkRcvdIfMatchPending(const int id, const unsigned int viewNumber, const unsigned int opNumber);
     
-    
+    //View number
     const unsigned int GetLargestViewNumber();
     bool IsVoteCntForMySelfLargerThanMajority();
+    
+    //Finding largest op number
+    unsigned int GetLargestOpNumberGossipedAndMySelf();
+    int GetIdOfAliveMemberWithOpNumberEqual(const unsigned int opNumber);
     
     void ForEachMember(const std::function<void(const int, Member&)>& func);
     void ForMyMember(const std::function<void(const int, Member&)>& func);
@@ -57,6 +67,7 @@ class GMM {
 
   private:
     const int m_myId;
+    unsigned int GetLargestGossipedOpNumberNoLock() const;
     unsigned int GetValidPrepareOkCntNoLock() const;
     bool IsQuorumConnectedNoLock(const int id) const;
     Member* GetMember(const int id) const;

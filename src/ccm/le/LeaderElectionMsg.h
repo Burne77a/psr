@@ -17,6 +17,7 @@ class LeaderElectionMsg : public ISerializable
     {
       MsgType type{MsgType::ElectionStart};
       unsigned int viewNumber{0U};
+      unsigned int opNumber{0U};
       unsigned int senderId{0U};
       unsigned int idOfVoteReceiver{0U};
     };
@@ -28,10 +29,12 @@ class LeaderElectionMsg : public ISerializable
     unsigned int GetViewNumber() const {return m_theMsgData.viewNumber;} 
     unsigned int GetSenderId() const {return m_theMsgData.senderId;}
     unsigned int GetIdOfVoteDst() const {return m_theMsgData.idOfVoteReceiver;}
+    unsigned int GetOpNumber() const {return m_theMsgData.opNumber;}
     
     void SetViewNumber(const unsigned int viewNumber){m_theMsgData.viewNumber = viewNumber;}
     void SetSenderId(const unsigned int senderId){m_theMsgData.senderId = senderId;}
     void SetVoteDstId(const unsigned int voteDstId){m_theMsgData.idOfVoteReceiver = voteDstId;}
+    void SetOpNumber(const unsigned int opNumber){m_theMsgData.opNumber = opNumber;}
     
     
     

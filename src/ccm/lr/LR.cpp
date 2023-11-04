@@ -3,6 +3,7 @@
 //Client requests are handled by the CSA layer. one, when acting as leader, to receive client requests. 
 #include "LR.h"
 #include "ReplicatedLog.h"
+#include "SyncManager.h"
 #include "Logger.h"
 #include "NwAid.h"
 #include "../misc/Misc.h"
@@ -17,6 +18,7 @@ std::unique_ptr<LR> LR::CreateLR(GMM & gmm,UpcallReplicatedLogCallbackType upcal
   std::unique_ptr<IReceiver> pRcv = nullptr;
   std::unique_ptr<LR> pLr = nullptr;
   std::unique_ptr<ReplicatedLog> pReplicatedLog = nullptr;
+  std::unique_ptr<SyncManager> pSyncMgr = nullptr;
     
   if(!isAllCreationOk)
   {
@@ -38,22 +40,35 @@ std::unique_ptr<LR> LR::CreateLR(GMM & gmm,UpcallReplicatedLogCallbackType upcal
     
     if(pReplicatedLog)
     {
-      pLr = std::make_unique<LR>(gmm,senders,pRcv,pReplicatedLog);
-      if(!pLr)
+      
+      pSyncMgr = SyncManager::CreateSyncManager(gmm,*pReplicatedLog);
+      if(pSyncMgr)
       {
-        LogMsg(LogPrioCritical, "ERROR: LR::CreateLR failed to create LR.");
+        pLr = std::make_unique<LR>(gmm,senders,pRcv,pReplicatedLog,pSyncMgr);
+        if(!pLr)
+        {
+          LogMsg(LogPrioCritical, "ERROR: LR::CreateLR failed to create LR.");
+        }
+        else
+        {
+          LogMsg(LogPrioInfo, "LR::CreateLR Successfully created a LR instance.");
+        }
       }
       else
       {
-        LogMsg(LogPrioInfo, "LR::CreateLR Successfully created a LR instance.");
+        LogMsg(LogPrioCritical, "ERROR LR::CreateLR failed to create SyncManager. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
       }
+    }
+    else
+    {
+      LogMsg(LogPrioCritical, "ERROR LR::CreateLR failed to create ReplicatedLog. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     }
   }
   return pLr;
 }
 
-LR::LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver,std::unique_ptr<ReplicatedLog> &pRepLog) : 
-    m_gmm{gmm},m_pReceiver{std::move(pReceiver)}, m_pRepLog{std::move(pRepLog)}
+LR::LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr<IReceiver> &pReceiver,std::unique_ptr<ReplicatedLog> &pRepLog,std::unique_ptr<SyncManager>& pSyncMgr) : 
+    m_gmm{gmm},m_pReceiver{std::move(pReceiver)}, m_pRepLog{std::move(pRepLog)}, m_pSyncMgr{std::move(pSyncMgr)} 
 {
   for(auto & pSender : senders)
   {
@@ -98,7 +113,11 @@ bool LR::ReplicateRequest(ClientMessage &req,RequestDoneCallbackType reqDoneCb)
 
 void LR::HandleActivityAsFollower()
 {
+  m_gmm.SetMyOpNumber(m_pRepLog->GetLatestEntryOpNumber());
   HandleMsgAsFollower();
+  CheckAndHandleUncommitted();
+  m_gmm.SetMyCommittedOpNumber(m_pRepLog->GetHighestCommittedOpNumber());
+  CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded();
 }
 
 void LR::HandleActivityAsLeader()
@@ -122,10 +141,30 @@ void LR::NoLongerLeaderActivity()
   m_reqDoneCb = nullptr;
 }
 
-void LR::PerformUpcalls()
+void LR::PerformUpcalls(const bool isForce)
 {
-  m_pRepLog->PerformUpcalls();
+  m_pRepLog->PerformUpcalls(isForce);
 }
+
+
+bool LR::HasLatestEntries()
+{
+  unsigned int highestOpNumberSeen =  m_gmm.GetLargestOpNumberGossipedAndMySelf();
+  unsigned int myHighestOpNumber = m_pRepLog->GetLatestEntryOpNumber();
+  return (myHighestOpNumber>=highestOpNumberSeen);
+}
+
+void LR::CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded()
+{
+  const unsigned int higestOpNumber = m_gmm.GetLargestOpNumberGossipedAndMySelf();
+  const unsigned int myOpNumber = m_gmm.GetMyCommittedOpNumber();
+  if(higestOpNumber > myOpNumber)
+  {
+    TriggerSync();
+  }
+}
+
+
 
 
 void LR::HandlePrepareOk(const LogReplicationMsg &lrMsg)
@@ -206,8 +245,8 @@ void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
     }
     else
     {
-      LogMsg(LogPrioCritical, "ERROR LR::HandlePrepare() Entries missing a sync should be triggered ");
-#warning trigger sync 
+      LogMsg(LogPrioCritical, "LR::HandlePrepare() Entries missing a sync should be triggered ");
+      TriggerSync();
     }
   }
   else
@@ -236,7 +275,7 @@ void LR::HandleCommit(const LogReplicationMsg &lrMsg)
     else
     {
       LogMsg(LogPrioInfo, "LR::HandleCommit() received Commit for missing entry, triggering sync ");
-      #warning trigger sync 
+      TriggerSync();
     }
   }
   else
@@ -244,6 +283,12 @@ void LR::HandleCommit(const LogReplicationMsg &lrMsg)
     LogMsg(LogPrioError, "LR::HandleCommit() received Commit with too low view number - ignoring %u %u ",myViewNo,msgViewNo);
     lrMsg.Print();
   }
+}
+
+void LR::CheckAndHandleUncommitted()
+{
+  unsigned int highestCommittedOpNumber = m_gmm.GetHighestCommittedOpNumber();
+  m_pRepLog->CommittAllEarlierEntries(highestCommittedOpNumber);
 }
 
 
@@ -282,6 +327,7 @@ bool LR::RcvMsg(IReceiver &rcv, LogReplicationMsg &msg)
 {
   return rcv.Rcv(msg);
 }
+
 
 
 void LR::CallReqDoneCallback(const RequestStatus status)

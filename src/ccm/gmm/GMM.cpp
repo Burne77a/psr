@@ -361,6 +361,79 @@ const unsigned int GMM::GetMyOpNumber() const
   return opNumberToReturn;
 }
 
+void GMM::SetCommittedOpNumber(const int id, const unsigned int commitedOpNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  if(pMember)
+  {
+    pMember->SetCommittedOperationNumber(commitedOpNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetCommittedOpNumber member not found %d",id);
+  }
+  
+}
+const unsigned int GMM::GetCommittedOpNumber(const int id) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMember = GetMember(id);
+  unsigned int committedOpNumberToReturn = 0U;
+  if(pMember)
+  {
+    committedOpNumberToReturn = pMember->GetCommittedOpNumber();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetCommittedOpNumber member not found %d",id);
+  }
+  return committedOpNumberToReturn;
+}
+void GMM::SetMyCommittedOpNumber(const unsigned int commitedOpNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto pMyMember = GetMember(m_myId);
+  if(pMyMember)
+  {
+    pMyMember->SetCommittedOperationNumber(commitedOpNumber);
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::SetMyCommittedOpNumber member not found %d",m_myId);
+  }
+  
+}
+const unsigned int GMM::GetMyCommittedOpNumber() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int committedOpNumberToReturn = 0U;
+  auto pMyMember = GetMember(m_myId);
+  if(pMyMember)
+  {
+    committedOpNumberToReturn = pMyMember->GetCommittedOpNumber();
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetMyCommittedOpNumber member not found %d",m_myId);
+  }
+  return committedOpNumberToReturn;
+  
+}
+
+const unsigned int GMM::GetHighestCommittedOpNumber() const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int committedOpNumberToReturn = 0U;
+  for (auto& pair : m_members) 
+  {
+    if(pair.second.GetCommittedOpNumber() > committedOpNumberToReturn)
+    {
+      committedOpNumberToReturn = pair.second.GetCommittedOpNumber();
+    }
+  }
+  return committedOpNumberToReturn;
+}
 
 void GMM::ClearPendingPrepare()
 {
@@ -435,6 +508,49 @@ bool GMM::IsVoteCntForMySelfLargerThanMajority()
   return isAMajorityReached;
 }
 
+unsigned int GMM::GetLargestOpNumberGossipedAndMySelf()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int opNumber = GetLargestGossipedOpNumberNoLock();
+  auto pMember = GetMember(m_myId);
+  if(pMember)
+  {
+    opNumber = std::max(opNumber,pMember->GetOpNumber()); 
+  }
+  else
+  {
+    LogMsg(LogPrioCritical,"ERROR: GMM::GetLargestOpNumberGossipedAndMySelf member not found %d",m_myId);
+  }
+  return opNumber;
+}
+
+int GMM::GetIdOfAliveMemberWithOpNumberEqual(const unsigned int opNumber)
+{
+  static const std::chrono::milliseconds AliveDuration(1000);
+  std::lock_guard<std::mutex> lock(m_mutex);
+  int id = INVALID_ID;
+  for (auto& pair : m_members) 
+  {
+    if(pair.second.GetID() == m_myId)
+    {
+      if(opNumber == pair.second.GetOpNumber())
+      {
+        id = pair.second.GetID();
+        break;
+      }
+    }
+    else if(!pair.second.HasHeartbeatExceeded(AliveDuration))
+    {
+      if(opNumber == pair.second.GetOpNumber())
+      {
+        id = pair.second.GetID();
+        break;
+      }
+    }
+  }
+  return id;
+}
+
 
 void GMM::ForEachMember(const std::function<void(const int, Member&)>& func) 
 {
@@ -470,6 +586,20 @@ Member* GMM::GetMember(const int id) const
     return &m_members.at(id);
   }
   return nullptr;
+}
+
+unsigned int GMM::GetLargestGossipedOpNumberNoLock() const
+{
+  unsigned int opNumberToReturn = 0U;
+
+  for (auto& pair : m_members) 
+  {
+    if(pair.second.GetOpNumber() > opNumberToReturn)
+    {
+      opNumberToReturn = pair.second.GetOpNumber();
+    }
+  }
+  return opNumberToReturn;
 }
 
 unsigned int GMM::GetValidPrepareOkCntNoLock() const

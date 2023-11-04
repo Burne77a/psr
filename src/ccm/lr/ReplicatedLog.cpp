@@ -41,6 +41,31 @@ bool ReplicatedLog::IsEntryAlreadyExisting(const unsigned int opNumber, const un
   return isEntryAlreadyExisting;
 }
 
+bool ReplicatedLog::ArePreviousEntriesCommitted(const unsigned int opNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  bool allPreviousAreCommitted = true;
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      if(pEntry->GetOpNumber() >= opNumber)
+      {
+        break;
+      }
+      else
+      {
+        if(!pEntry->IsCommited())
+        {
+          allPreviousAreCommitted = false;
+          break;
+        }
+      }
+    }
+  }
+  return allPreviousAreCommitted;
+}
+
 bool ReplicatedLog::AddEntryToLogIfNotAlreadyIn(const LogReplicationMsg &msgToMakeEntryFrom)
 {
   bool isSuccessfullyHandled = false;
@@ -79,18 +104,26 @@ bool ReplicatedLog::CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCor
   bool isSuccessfullyCommitted = false; 
   if(IsEntryAlreadyExisting(msgToCommitCorespondingEntryFor))
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto & pEntry = GetEntryWithOpNumber(msgToCommitCorespondingEntryFor.GetOpNumber());
-    if(pEntry)
+    if(ArePreviousEntriesCommitted(msgToCommitCorespondingEntryFor.GetOpNumber()))
     {
-      pEntry->SetCommitted();
-      isSuccessfullyCommitted = true;
-      LogMsg(LogPrioInfo,"ReplicatedLog::CommitEntryIfPresent() - entry committed");
-      pEntry->Print();
+      std::lock_guard<std::mutex> lock(m_mutex);
+      auto & pEntry = GetEntryWithOpNumber(msgToCommitCorespondingEntryFor.GetOpNumber());
+      if(pEntry)
+      {
+        pEntry->SetCommitted();
+        isSuccessfullyCommitted = true;
+        LogMsg(LogPrioInfo,"ReplicatedLog::CommitEntryIfPresent() - entry committed");
+        pEntry->Print();
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ReplicatedLog::CommitEntryIfPresent() - failed to find entry");
+        msgToCommitCorespondingEntryFor.Print();
+      }
     }
     else
     {
-      LogMsg(LogPrioCritical,"ReplicatedLog::CommitEntryIfPresent() - failed to find entry");
+      LogMsg(LogPrioWarning,"ReplicatedLog::CommitEntryIfPresent() - all previous entries are not committed %u",msgToCommitCorespondingEntryFor.GetOpNumber());
       msgToCommitCorespondingEntryFor.Print();
     }
   }
@@ -102,15 +135,16 @@ bool ReplicatedLog::CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCor
   return isSuccessfullyCommitted;
 }
 
-void ReplicatedLog::PerformUpcalls()
+void ReplicatedLog::PerformUpcalls(const bool isForce)
 {
+  std::lock_guard<std::mutex> lock(m_mutex);
   for(auto &pEntry : m_logEntries)
   {
     if(pEntry)
     {
       if(pEntry->IsCommited())
       {
-        if(!pEntry->IsUpcallDone())
+        if(!pEntry->IsUpcallDone() || isForce)
         {
           if(m_upcallCb)
           {
@@ -126,6 +160,110 @@ void ReplicatedLog::PerformUpcalls()
       }
     }
   }
+}
+
+unsigned int ReplicatedLog::GetLatestEntryOpNumber()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int opNumberToReturn = 0U;
+  auto & pExistingEntry = GetLastValidEntry();
+  if(pExistingEntry)
+  {
+    opNumberToReturn = pExistingEntry->GetOpNumber();
+  }
+  return opNumberToReturn;
+}
+
+
+bool ReplicatedLog::GetLogEntriesAsSyncMsgVector(const int myId, std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulate)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  bool isSuccessfullyPopulated = true;
+  const unsigned int entries = m_logEntries.size();
+  unsigned int currentEntry = 0;
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      std::shared_ptr<SyncMsg> pSyncMsg = SyncMsg::CreateSyncMsgFromLogEntry(myId,entries,*pEntry,currentEntry);
+      if(pSyncMsg)
+      {
+        vectorToPopulate.push_back(pSyncMsg);
+        currentEntry++;
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ERROR: ReplicatedLog::GetLogEntriesAsSyncMsgVector() Failed to create SyncMsg from entry");
+        isSuccessfullyPopulated = false;
+      }
+    }
+  }
+  return isSuccessfullyPopulated;
+}
+
+void ReplicatedLog::PopulateFromVector(std::vector<std::shared_ptr<SyncMsg>> &vectorToPopulateFrom)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for(unsigned int i = 0; i < vectorToPopulateFrom.size(); i++)
+  {
+    auto pSyncMsg = vectorToPopulateFrom[i];
+    if(pSyncMsg)
+    {
+      auto pNewEntry = LogEntry::CreateEntry(*pSyncMsg);
+      if(pNewEntry)
+      {
+        auto & pExistingEntry = GetEntryWithOpNumber(pNewEntry->GetOpNumber());
+        if(!pExistingEntry)
+        {
+          m_logEntries.push_back(std::move(pNewEntry));
+        }
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ERROR: ReplicatedLog::PopulateFromVector()failed to create LogEntry from sync %u",i);
+      }
+    }
+    else
+    {
+      LogMsg(LogPrioCritical,"ERROR: ReplicatedLog::PopulateFromVector() invalid entry in vector %u",i);
+    }
+    
+  }
+}
+
+void ReplicatedLog::CommittAllEarlierEntries(const unsigned int opNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      if(pEntry->GetOpNumber() <= opNumber)
+      {
+        pEntry->SetCommitted();
+      }
+    }
+  }
+}
+
+unsigned int ReplicatedLog::GetHighestCommittedOpNumber()
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  unsigned int highestCommittedOpNumber = 0U;
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      if(pEntry->GetOpNumber() > highestCommittedOpNumber)
+      {
+        if(pEntry->IsCommited())
+        {
+          highestCommittedOpNumber = pEntry->GetOpNumber();
+        }
+      }
+    }
+  }
+  return highestCommittedOpNumber;
 }
 
 bool ReplicatedLog::AddOrOverwriteDependingOnView(const LogReplicationMsg &msg)

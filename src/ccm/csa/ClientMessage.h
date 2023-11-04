@@ -24,6 +24,7 @@ class ClientMessage : public ISerializable
       unsigned int m_payloadSize{0U};
     };
   public:
+    static std::shared_ptr<ClientMessage> CreateClientMessage(const uint8_t *pClientData, const uint32_t clientDataSize);
     static std::shared_ptr<ClientMessage> CreateClientMessage(const LogReplicationMsg &msg);
     ClientMessage();
     ClientMessage(const MsgType typeOfMsg, const ClientRequestId reqId);

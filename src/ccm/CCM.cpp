@@ -87,10 +87,19 @@ OSAStatusCode CCM::Start()
     return fdStartSts;
   }
   
+  const OSAStatusCode lrStartSts = m_pLr->Start();
+  if(lrStartSts != OSA_OK)
+  {
+    LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start LR task. %d Errno: 0x%x (%s)",fdStartSts,errnoGet(),strerror(errnoGet()));
+    m_pFd->Stop();
+    return lrStartSts;
+  }
+  
   const OSAStatusCode ccmStartSts = StartCCMTask();
   if(ccmStartSts != OSA_OK)
   {
     LogMsg(LogPrioCritical, "ERROR CCM::Start failed to start CCM task. %d Errno: 0x%x (%s)",ccmStartSts,errnoGet(),strerror(errnoGet()));
+    m_pLr->Stop();
     m_pFd->Stop();
     return ccmStartSts;
   }
@@ -149,7 +158,7 @@ OSAStatusCode CCM::StartCCMTask()
 
 void CCM::MakeUpcalls()
 {
-  m_pLr->PerformUpcalls();
+  m_pLr->PerformUpcalls(false);
 }
 
 void CCM::HandleIncomingClientRequestToLeader()
@@ -158,6 +167,11 @@ void CCM::HandleIncomingClientRequestToLeader()
   if(m_pLr->IsLogReplicationPending())
   {
     //If we are about to process a replication, let is finish before starting next one.
+    return;
+  }
+  if(!IsUpdatedWithLatestEntries())
+  {
+    //The leader is not upto date with the latest entries. 
     return;
   }
   const bool isMsgRcvd = m_pCsa->GetClientRequestsSentToLeader(incomingMsg);
@@ -176,6 +190,11 @@ void CCM::HandleIncomingClientRequestToLeader()
     }
   }
   //Reply to commitment sent in callback. 
+}
+
+bool CCM::IsUpdatedWithLatestEntries()
+{
+  return m_pLr->HasLatestEntries();
 }
 
 OSAStatusCode CCM::InstanceTaskMethod()
