@@ -33,6 +33,7 @@ class LR
     void PerformUpcalls(const bool isForce);
     bool IsLogReplicationPending() const {return m_ongoingReqId.IsValid();}
     bool HasLatestEntries();
+    void CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded();
     void TriggerSync() {m_pSyncMgr->TriggerSync();}
     OSAStatusCode Start() {return m_pSyncMgr->Start();}
     void Stop() {m_pSyncMgr->Stop();}

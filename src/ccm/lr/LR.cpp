@@ -117,6 +117,7 @@ void LR::HandleActivityAsFollower()
   HandleMsgAsFollower();
   CheckAndHandleUncommitted();
   m_gmm.SetMyCommittedOpNumber(m_pRepLog->GetHighestCommittedOpNumber());
+  CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded();
 }
 
 void LR::HandleActivityAsLeader()
@@ -151,6 +152,16 @@ bool LR::HasLatestEntries()
   unsigned int highestOpNumberSeen =  m_gmm.GetLargestOpNumberGossipedAndMySelf();
   unsigned int myHighestOpNumber = m_pRepLog->GetLatestEntryOpNumber();
   return (myHighestOpNumber>=highestOpNumberSeen);
+}
+
+void LR::CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded()
+{
+  const unsigned int higestOpNumber = m_gmm.GetLargestOpNumberGossipedAndMySelf();
+  const unsigned int myOpNumber = m_gmm.GetMyCommittedOpNumber();
+  if(higestOpNumber > myOpNumber)
+  {
+    TriggerSync();
+  }
 }
 
 
@@ -234,7 +245,7 @@ void LR::HandlePrepare(const LogReplicationMsg &lrMsg)
     }
     else
     {
-      LogMsg(LogPrioCritical, "ERROR LR::HandlePrepare() Entries missing a sync should be triggered ");
+      LogMsg(LogPrioCritical, "LR::HandlePrepare() Entries missing a sync should be triggered ");
       TriggerSync();
     }
   }
@@ -264,7 +275,7 @@ void LR::HandleCommit(const LogReplicationMsg &lrMsg)
     else
     {
       LogMsg(LogPrioInfo, "LR::HandleCommit() received Commit for missing entry, triggering sync ");
-     TriggerSync();
+      TriggerSync();
     }
   }
   else

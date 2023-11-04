@@ -41,6 +41,31 @@ bool ReplicatedLog::IsEntryAlreadyExisting(const unsigned int opNumber, const un
   return isEntryAlreadyExisting;
 }
 
+bool ReplicatedLog::ArePreviousEntriesCommitted(const unsigned int opNumber)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  bool allPreviousAreCommitted = true;
+  for(auto &pEntry : m_logEntries)
+  {
+    if(pEntry)
+    {
+      if(pEntry->GetOpNumber() >= opNumber)
+      {
+        break;
+      }
+      else
+      {
+        if(!pEntry->IsCommited())
+        {
+          allPreviousAreCommitted = false;
+          break;
+        }
+      }
+    }
+  }
+  return allPreviousAreCommitted;
+}
+
 bool ReplicatedLog::AddEntryToLogIfNotAlreadyIn(const LogReplicationMsg &msgToMakeEntryFrom)
 {
   bool isSuccessfullyHandled = false;
@@ -79,18 +104,26 @@ bool ReplicatedLog::CommitEntryIfPresent(const LogReplicationMsg &msgToCommitCor
   bool isSuccessfullyCommitted = false; 
   if(IsEntryAlreadyExisting(msgToCommitCorespondingEntryFor))
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto & pEntry = GetEntryWithOpNumber(msgToCommitCorespondingEntryFor.GetOpNumber());
-    if(pEntry)
+    if(ArePreviousEntriesCommitted(msgToCommitCorespondingEntryFor.GetOpNumber()))
     {
-      pEntry->SetCommitted();
-      isSuccessfullyCommitted = true;
-      LogMsg(LogPrioInfo,"ReplicatedLog::CommitEntryIfPresent() - entry committed");
-      pEntry->Print();
+      std::lock_guard<std::mutex> lock(m_mutex);
+      auto & pEntry = GetEntryWithOpNumber(msgToCommitCorespondingEntryFor.GetOpNumber());
+      if(pEntry)
+      {
+        pEntry->SetCommitted();
+        isSuccessfullyCommitted = true;
+        LogMsg(LogPrioInfo,"ReplicatedLog::CommitEntryIfPresent() - entry committed");
+        pEntry->Print();
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ReplicatedLog::CommitEntryIfPresent() - failed to find entry");
+        msgToCommitCorespondingEntryFor.Print();
+      }
     }
     else
     {
-      LogMsg(LogPrioCritical,"ReplicatedLog::CommitEntryIfPresent() - failed to find entry");
+      LogMsg(LogPrioWarning,"ReplicatedLog::CommitEntryIfPresent() - all previous entries are not committed %u",msgToCommitCorespondingEntryFor.GetOpNumber());
       msgToCommitCorespondingEntryFor.Print();
     }
   }
