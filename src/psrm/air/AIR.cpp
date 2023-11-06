@@ -75,7 +75,7 @@ bool AIR::DeRegisterApplication(const unsigned int appId)
    return false;
   }
   
-  if(PostRequestToCCM(pAi,AppInfoMsg::MsgType::AddRequest))
+  if(PostRequestToCCM(pAi,AppInfoMsg::MsgType::RemoveRequest))
   {
     LogMsg(LogPrioInfo, "AIR::DeRegisterApplication request successfully replicated. %u  ",appId);
     isDeregistrationReqSuccessfullyReplicated = true;

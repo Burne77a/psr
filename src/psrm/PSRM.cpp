@@ -33,10 +33,9 @@ OSAStatusCode PSRM::Start()
   if(!m_pAir->RegisterWithCCM())
   {
     LogMsg(LogPrioError, "ERROR PSRM::Start Failed to register with CCM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
   }
-
-  return OSA_ERROR;
-  
+ 
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)PSRM::ClassTaskMethod,(OSAInstancePtr)this);
   
   if(taskId == OSA_ERROR)

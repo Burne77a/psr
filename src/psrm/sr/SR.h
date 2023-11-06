@@ -1,0 +1,31 @@
+#ifndef AIR_MAIN_H
+#define AIR_MAIN_H
+#include "StorageReg.h"
+#include "StorageInfoMsg.h"
+#include "../../ccm/ICCM.h"
+#include <memory>
+#include <string>
+class SR
+{
+  public:
+    static const unsigned int SERVICE_ID = 11;
+    static std::unique_ptr<SR> CreateSR(std::shared_ptr<ICCM>& pIccm);
+    SR(std::shared_ptr<ICCM>& pIccm,std::unique_ptr<StorageReg>& pStorageReg);
+    ~SR() = default;
+    bool RegisterWithCCM();
+    bool RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth);
+    bool DeRegisterStorage(const unsigned int storageId);
+    void Print() const;
+  private:
+    bool PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const StorageInfoMsg::MsgType type);
+    void HandleRemoveReq(StorageInfoMsg & msg);
+    void HandleAddReq(StorageInfoMsg & msg);
+    void HandleUpcallMessage(StorageInfoMsg & msg);
+    void UpcallMethod(const ClientMessage& commitedMsg);
+    
+    std::shared_ptr<ICCM> m_pIccm{nullptr};
+    std::unique_ptr<AppReg> m_pStorageReg{nullptr};
+    
+};
+
+#endif //AIR_MAIN_H

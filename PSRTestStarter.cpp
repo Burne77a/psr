@@ -88,7 +88,6 @@ void AddApp(unsigned int id)
 
 void DelApp(unsigned int id)
 {
-
   if(!g_pPsrm->DeRegisterApplication(id))
   {
     LogMsg(LogPrioCritical, "ERROR: Failed to DE-register application");

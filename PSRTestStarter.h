@@ -10,6 +10,10 @@ extern "C" {
 OSAStatusCode StartPSRTest(const int id);
 
 void Print();
+void AddApp(unsigned int id);
+void DelApp(unsigned int id);
+void TriggerClientReq();
+void ForceUpcalls();
 
 #ifdef __cplusplus
 }
