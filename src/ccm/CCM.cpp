@@ -227,10 +227,12 @@ OSAStatusCode CCM::ClassTaskMethod(void * const pInstance)
 
 void CCM::Print() const
 {
+  LogMsg(LogPrioInfo,"--- >CCM< ---");
   m_pGmm->Print();
   m_pLe->Print();
   m_pLr->Print();
   m_pCsa->Print();
+  LogMsg(LogPrioInfo,"--- <CCM> ---");
 }
 
 

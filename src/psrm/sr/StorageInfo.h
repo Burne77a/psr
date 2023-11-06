@@ -1,5 +1,5 @@
-#ifndef AIR_APPINFO_H
-#define AIR_APPINFO_H
+#ifndef AIR_STORAGEINFO_H
+#define AIR_STORAGEINFO_H
 #include "ISerializable.h"
 #include <memory>
 #include <string>
@@ -18,21 +18,21 @@ class StorageInfo : public ISerializable
     };
   public: 
     static std::shared_ptr<StorageInfo> CreateFromRawPtr(const uint8_t * pBuffer, const uint32_t size);
-    StorageInfo(const unsigned int appId, const unsigned int primaryNodeId, const unsigned int periodInMs, const unsigned int bytesToSyncEachPeriod);
-    StorageInfo(const unsigned int appId);
+    StorageInfo(const unsigned int storageId, std::string_view ipAddr, const unsigned int sizeInBytes, const unsigned int bandwidth);
+    StorageInfo(const unsigned int storageId);
     StorageInfo();
     ~StorageInfo() = default;
      unsigned int GetId() const {return m_data.storageId;}
-     unsigned int GetIpAddr const {return std::string{m_data.ipAddr};}
-     unsigned int GetPeriodInMs() const {return m_data.periodInMs;}
-     unsigned int GetBytesToSyncEachPeriod() const {return m_data.bytesToSyncEachPeriod;}
+     std::string GetIpAddr() const {return std::string{m_data.ipAddr};}
+     unsigned int GetSizeInBytes() const {return m_data.sizeInBytes;}
+     unsigned int GetBandwidth() const {return m_data.bandwidth;}
     //ISerializable
      const uint8_t *  Serialize(uint32_t &size) const override;
      const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;
      bool Deserialize() override;
-   void Print() const; 
+     void Print() const; 
   private:
-     AppInfoData m_data;
+     StorageInfoData m_data;
 };
 
-#endif //AIR_APPINFOENTRY_H
+#endif //AIR_STORAGEINFO_H

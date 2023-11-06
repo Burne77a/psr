@@ -105,9 +105,9 @@ bool CSA::SendToLeaderAndWaitForReply(const ClientMessage &msg)
 
 void CSA::Print() const
 {
-  LogMsg(LogPrioInfo, "--- CSA ---");
+  LogMsg(LogPrioInfo, "--- >CSA< ---");
   m_pSrvDispatcher->Print();
-  LogMsg(LogPrioInfo, "--- --- ---");
+  LogMsg(LogPrioInfo, "--- <CSA> ---");
 }
 
 

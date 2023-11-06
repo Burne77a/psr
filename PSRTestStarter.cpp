@@ -98,6 +98,32 @@ void DelApp(unsigned int id)
   }
 }
 
+void AddStorage(unsigned int id)
+{
+  static const unsigned int size = 100U;
+  static const unsigned int bandwidth = 200U;
+  static const std::string ipAddr{"192.168.201.291"};
+  if(!g_pPsrm->RegisterStorage(id, ipAddr, size, bandwidth))
+  {
+   LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
+  }
+  else
+  {
+   LogMsg(LogPrioInfo, "Successfully registered storage");
+  }
+}
+void DelStorage(unsigned int id)
+{
+  if(!g_pPsrm->DeRegisterStorage(id))
+  {
+    LogMsg(LogPrioCritical, "ERROR: Failed to DE-register storage");
+  }
+  else
+  {
+    LogMsg(LogPrioInfo, "Successfully DE-registered storage");
+  }
+}
+
 void TriggerClientReq()
 {
   g_pTstClient->IssueRequest();

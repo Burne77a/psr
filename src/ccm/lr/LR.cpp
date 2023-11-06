@@ -392,11 +392,11 @@ bool LR::SendToLeader(const LogReplicationMsg & msgToSend)
 
 void LR::Print() const
 {
-  LogMsg(LogPrioInfo, "--- LR ---");
+  LogMsg(LogPrioInfo, "--- >LR< ---");
   LogMsg(LogPrioInfo, "Ongoing req: %s from client: %d", m_ongoingReqId.GetIdAsStr().c_str(),m_requestingClientId);
   m_pRepLog->Print();
   
-  LogMsg(LogPrioInfo, "--- --- ---");
+  LogMsg(LogPrioInfo, "--- <LR> ---");
 }
 
 

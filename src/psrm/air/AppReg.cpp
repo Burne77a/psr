@@ -42,11 +42,11 @@ void AppReg::RemoveEntry(unsigned int appId)
 
 void AppReg::Print() const
 {
-  LogMsg(LogPrioInfo,"--- AppReg ---");
+  LogMsg(LogPrioInfo,"--- >AppReg< ---");
   LogMsg(LogPrioInfo,"Number of entries: %d", m_appInfoEntries.size());
   for(auto &pEntry : m_appInfoEntries)
   {
     pEntry.second.Print();
   }
-  LogMsg(LogPrioInfo,"--- ----- ---");
+  LogMsg(LogPrioInfo,"--- <AppReg> ---");
 }

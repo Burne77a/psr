@@ -1,5 +1,5 @@
-#ifndef AIR_MAIN_H
-#define AIR_MAIN_H
+#ifndef SR_MAIN_H
+#define SR_MAIN_H
 #include "StorageReg.h"
 #include "StorageInfoMsg.h"
 #include "../../ccm/ICCM.h"
@@ -24,8 +24,8 @@ class SR
     void UpcallMethod(const ClientMessage& commitedMsg);
     
     std::shared_ptr<ICCM> m_pIccm{nullptr};
-    std::unique_ptr<AppReg> m_pStorageReg{nullptr};
+    std::unique_ptr<StorageReg> m_pStorageReg{nullptr};
     
 };
 
-#endif //AIR_MAIN_H
+#endif //SR_MAIN_H

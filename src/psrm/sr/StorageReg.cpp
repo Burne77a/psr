@@ -1,52 +1,52 @@
-#include "AppReg.h"
+#include "StorageReg.h"
 #include "Logger.h"
 #include <errnoLib.h> 
 
-AppReg::AppReg()
+StorageReg::StorageReg()
 {
   
 }
 
-bool AppReg::AddEntry(AppInfo &entryToAdd)
+bool StorageReg::AddEntry(StorageInfo &entryToAdd)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   bool isSuccessfullyAdded = false;
-  auto existingEntry = m_appInfoEntries.find(entryToAdd.GetId());
-  if( existingEntry != m_appInfoEntries.end())
+  auto existingEntry = m_storageInfoEntries.find(entryToAdd.GetId());
+  if( existingEntry != m_storageInfoEntries.end())
   {
-    LogMsg(LogPrioCritical,"ERROR: AppReg::AddEntry with id %u already exist",entryToAdd.GetId());
+    LogMsg(LogPrioCritical,"ERROR: StorageReg::AddEntry with id %u already exist",entryToAdd.GetId());
     existingEntry->second.Print();
   }
   else
   {
-    m_appInfoEntries.insert(std::make_pair(entryToAdd.GetId(), entryToAdd));
+    m_storageInfoEntries.insert(std::make_pair(entryToAdd.GetId(), entryToAdd));
     isSuccessfullyAdded = true;
   }
   return isSuccessfullyAdded;
 }
 
-void AppReg::RemoveEntry(unsigned int appId)
+void StorageReg::RemoveEntry(unsigned int storageId)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  auto existingEntry = m_appInfoEntries.find(appId);
-  if( existingEntry != m_appInfoEntries.end())
+  auto existingEntry = m_storageInfoEntries.find(storageId);
+  if( existingEntry != m_storageInfoEntries.end())
   {
-    LogMsg(LogPrioInfo,"AppReg::RemoveEntry with id %u is removed",appId);
-    m_appInfoEntries.erase(existingEntry);
+    LogMsg(LogPrioInfo,"StorageReg::RemoveEntry with id %u is removed",storageId);
+    m_storageInfoEntries.erase(existingEntry);
   }
   else
   {
-    LogMsg(LogPrioWarning,"WARNING: AppReg::RemoveEntry with id %u is not found",appId);
+    LogMsg(LogPrioWarning,"WARNING: StorageReg::RemoveEntry with id %u is not found",storageId);
   }
 }
 
-void AppReg::Print() const
+void StorageReg::Print() const
 {
-  LogMsg(LogPrioInfo,"--- AppReg ---");
-  LogMsg(LogPrioInfo,"Number of entries: %d", m_appInfoEntries.size());
-  for(auto &pEntry : m_appInfoEntries)
+  LogMsg(LogPrioInfo,"--- >StorageReg< ---");
+  LogMsg(LogPrioInfo,"Number of entries: %d", m_storageInfoEntries.size());
+  for(auto &pEntry : m_storageInfoEntries)
   {
     pEntry.second.Print();
   }
-  LogMsg(LogPrioInfo,"--- ----- ---");
+  LogMsg(LogPrioInfo,"--- <StorageReg> ---");
 }

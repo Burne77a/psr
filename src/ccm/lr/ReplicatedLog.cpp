@@ -353,11 +353,11 @@ std::unique_ptr<LogEntry> & ReplicatedLog::GetLastValidEntry()
 
 void ReplicatedLog::Print() const
 {
-  LogMsg(LogPrioInfo,"--- ReplicatedLog ---");
+  LogMsg(LogPrioInfo,"--- >ReplicatedLog< ---");
   LogMsg(LogPrioInfo,"Number of entries: %d", m_logEntries.size());
   for(auto &pEntries : m_logEntries)
   {
     pEntries->Print();
   }
-  LogMsg(LogPrioInfo,"--- ----- ---");
+  LogMsg(LogPrioInfo,"--- <ReplicatedLog> ---");
 }

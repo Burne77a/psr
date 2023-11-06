@@ -1,21 +1,21 @@
-#ifndef AIR_APPREG_H
-#define AIR_APPREG_H
-#include "AppInfo.h"
+#ifndef AIR_STORAGEREG_H
+#define AIR_STORAGEREG_H
+#include "StorageInfo.h"
 #include <memory>
 #include <unordered_map>
 #include <mutex>
-class AppReg
+class StorageReg
 {
   public:
-    AppReg();
-    ~AppReg() = default;
-    bool AddEntry(AppInfo &entryToAdd);
-    void RemoveEntry(unsigned int appId);
+    StorageReg();
+    ~StorageReg() = default;
+    bool AddEntry(StorageInfo &entryToAdd);
+    void RemoveEntry(unsigned int storageId);
     void Print() const;
   private:
-    std::unordered_map<unsigned int, AppInfo> m_appInfoEntries{};
+    std::unordered_map<unsigned int, StorageInfo> m_storageInfoEntries{};
     mutable std::mutex m_mutex;
 };
 
 
-#endif //AIR_APPREG_H
+#endif //AIR_STORAGEREG_H

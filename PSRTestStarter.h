@@ -12,6 +12,10 @@ OSAStatusCode StartPSRTest(const int id);
 void Print();
 void AddApp(unsigned int id);
 void DelApp(unsigned int id);
+
+void AddStorage(unsigned int id);
+void DelStorage(unsigned int id);
+
 void TriggerClientReq();
 void ForceUpcalls();
 

@@ -19,7 +19,7 @@ std::unique_ptr<SR> SR::CreateSR(std::shared_ptr<ICCM>& pIccm)
     LogMsg(LogPrioCritical, "ERROR: SR::CreateSR failed to create SR. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
   }
   
-  return pAir;
+  return pSr;
 }
 
 SR::SR(std::shared_ptr<ICCM>& pIccm,std::unique_ptr<StorageReg>& pStorageReg) : m_pIccm{pIccm},m_pStorageReg{std::move(pStorageReg)}
@@ -45,16 +45,16 @@ bool SR::RegisterWithCCM()
 bool SR::RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
 {
   bool isRegistrationReqSuccessfullyReplicated = false;
-  std::shared_ptr<ISerializable> pStorageInfo = std::make_shared<StorageInfo>(appId,ipAddr,spaceInBytes,bandwidth);
+  std::shared_ptr<ISerializable> pStorageInfo = std::make_shared<StorageInfo>(storageId,ipAddr,spaceInBytes,bandwidth);
   if(!pStorageInfo)
   {
     LogMsg(LogPrioCritical, "ERROR: SR::RegisterApplication failed to create StorageInfo. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return false;
   }
   
-  if(PostRequestToCCM(pStorageInfo,StorageInfo::MsgType::AddRequest))
+  if(PostRequestToCCM(pStorageInfo,StorageInfoMsg::MsgType::AddRequest))
   {
-    LogMsg(LogPrioInfo, "SR::RegisterApplication request successfully replicated. %u %s %u %u ",storageId, ipAddr.data,spaceInBytes,bandwidth);
+    LogMsg(LogPrioInfo, "SR::RegisterApplication request successfully replicated. %u %s %u %u ",storageId, ipAddr.data(),spaceInBytes,bandwidth);
     isRegistrationReqSuccessfullyReplicated = true;
   }
   else
@@ -68,14 +68,14 @@ bool SR::RegisterStorage(const unsigned int storageId, const std::string_view ip
 bool SR::DeRegisterStorage(const unsigned int storageId)
 {
   bool isDeregistrationReqSuccessfullyReplicated = false;
-  std::shared_ptr<ISerializable> pSi = std::make_shared<AppInfo>(StorageInfo);
+  std::shared_ptr<ISerializable> pSi = std::make_shared<StorageInfo>(storageId);
   if(!pSi)
   {
-   LogMsg(LogPrioCritical, "ERROR: SR::DeRegisterStorage failed to create AppInfo. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+   LogMsg(LogPrioCritical, "ERROR: SR::DeRegisterStorage failed to create StorageInfo. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
    return false;
   }
   
-  if(PostRequestToCCM(pAi,StorageInfoMsg::MsgType::RemoveRequest))
+  if(PostRequestToCCM(pSi,StorageInfoMsg::MsgType::RemoveRequest))
   {
     LogMsg(LogPrioInfo, "SR::DeRegisterStorage request successfully replicated. %u  ",storageId);
     isDeregistrationReqSuccessfullyReplicated = true;
@@ -111,14 +111,14 @@ bool SR::PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const 
 
 void SR::HandleRemoveReq(StorageInfoMsg & msg)
 {
-  std::shared_ptr<AppInfo> pAi = msg.GetAppInfoPayload();
-  if(pAi)
+  std::shared_ptr<StorageInfo> pSi = msg.GetStorageInfoPayload();
+  if(pSi)
   {
-    m_pAppReg->RemoveEntry(pAi->GetId()); 
+    m_pStorageReg->RemoveEntry(pSi->GetId()); 
   }
   else
   {
-    LogMsg(LogPrioCritical, "ERROR: AIR::HandleRemoveReq to create AppInfo entry from msg Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: AIR::HandleRemoveReq to create StorageInfo entry from msg Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     msg.Print();
   }
 }
@@ -126,10 +126,10 @@ void SR::HandleRemoveReq(StorageInfoMsg & msg)
 
 void SR::HandleAddReq(StorageInfoMsg & msg)
 {
-  std::shared_ptr<AppInfo> pSi = msg.GetAppInfoPayload();
+  std::shared_ptr<StorageInfo> pSi = msg.GetStorageInfoPayload();
   if(pSi)
   {
-    if(m_pAppReg->AddEntry(*pSi))
+    if(m_pStorageReg->AddEntry(*pSi))
     {
       LogMsg(LogPrioInfo,"SR::HandleAddReq successfully added storage info");
       pSi->Print();
@@ -183,5 +183,5 @@ void SR::Print() const
 {
   LogMsg(LogPrioInfo,"--- >SR< ---");
   m_pStorageReg->Print();
-  LogMsg(LogPrioInfo,"--- >SR< ---");
+  LogMsg(LogPrioInfo,"--- <SR> ---");
 }

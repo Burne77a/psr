@@ -35,7 +35,7 @@ std::shared_ptr<AppInfo> AppInfo::CreateFromRawPtr(const uint8_t * pBuffer, cons
   }
   else
   {
-    LogMsg(LogPrioError, "ERROR: AppInfo::CreateFromRawPtr No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pBuffer,size,sizeof(AppInfo),errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioError, "ERROR: AppInfo::CreateFromRawPtr No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pBuffer,size,sizeof(AppInfoData),errnoGet(),strerror(errnoGet()));
   }
   return pAi; 
 }

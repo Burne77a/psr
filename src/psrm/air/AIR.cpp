@@ -181,7 +181,7 @@ void AIR::UpcallMethod(const ClientMessage& commitedMsg)
   
 void AIR::Print() const
 {
-  LogMsg(LogPrioInfo,"--- AIR ---");
+  LogMsg(LogPrioInfo,"--- >AIR< ---");
   m_pAppReg->Print();
-  LogMsg(LogPrioInfo,"--- --- ---");
+  LogMsg(LogPrioInfo,"--- <AIR> ---");
 }

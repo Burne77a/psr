@@ -10,7 +10,7 @@ AppInfoMsg::AppInfoMsg(const uint8_t * pBuffer, const uint32_t size)
   }
   else
   {
-    LogMsg(LogPrioError,"AppInfoMsg::TestRequest invalid payload or size. 0x%x %u %u ",pBuffer,size,sizeof(m_data));
+    LogMsg(LogPrioError,"ERROR: AppInfoMsg::AppInfoMsg invalid payload or size. 0x%x %u %u ",pBuffer,size,sizeof(m_data));
   }
 }
 

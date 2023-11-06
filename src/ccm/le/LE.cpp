@@ -151,11 +151,11 @@ bool LE::RcvMsg(IReceiver &rcv, LeaderElectionMsg &msg)
 
 void LE::Print()
 {
-  LogMsg(LogPrioInfo, "--- LE ---");
+  LogMsg(LogPrioInfo, "--- >LE< ---");
   
   m_currentState->Print();
   
-  LogMsg(LogPrioInfo, "----------");
+  LogMsg(LogPrioInfo, "--- <LE> ---");
 }
 
 

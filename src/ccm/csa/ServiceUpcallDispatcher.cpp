@@ -38,12 +38,12 @@ void ServiceUpcallDispatcher::MakeUpcall(std::shared_ptr<ClientMessage> pCmsg)
 
 void ServiceUpcallDispatcher::Print() const
 {
-  LogMsg(LogPrioInfo, "--- ServiceUpcallDispatcher ---");
+  LogMsg(LogPrioInfo, "--- >ServiceUpcallDispatcher< ---");
   
   for(auto & [key,cb] : m_upcallCbs)
   {
     LogMsg(LogPrioInfo, "Service ID %d has registered callback",key);
   }
   
-  LogMsg(LogPrioInfo, "--- --- ---");
+  LogMsg(LogPrioInfo, "--- <ServiceUpcallDispatcher> ---");
 }

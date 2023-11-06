@@ -12,7 +12,15 @@ std::unique_ptr<PSRM> PSRM::CreatePSRM(std::shared_ptr<ICCM>& pIccm)
     return nullptr;
   }
   
-  std::unique_ptr<PSRM> pPsrm = std::make_unique<PSRM>(pAir,pIccm);
+  std::unique_ptr<SR> pSr = SR::CreateSR(pIccm);
+  if(!pSr)
+  {
+    LogMsg(LogPrioCritical, "ERROR: PSRM::CreatePSRM failed to create SR. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  
+  std::unique_ptr<PSRM> pPsrm = std::make_unique<PSRM>(pAir,pSr,pIccm);
   if(!pPsrm)
   {
     LogMsg(LogPrioCritical, "ERROR: PSRM::CreatePSRM failed to create PSRM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -20,7 +28,8 @@ std::unique_ptr<PSRM> PSRM::CreatePSRM(std::shared_ptr<ICCM>& pIccm)
   return pPsrm;
 }
 
-PSRM::PSRM(std::unique_ptr<AIR>& pAir, std::shared_ptr<ICCM>& pIccm) : m_pAir{std::move(pAir)},m_pIccm{pIccm}
+PSRM::PSRM(std::unique_ptr<AIR>& pAir,std::unique_ptr<SR>& pSr, std::shared_ptr<ICCM>& pIccm) : 
+    m_pAir{std::move(pAir)},m_pSr{std::move(pSr)},m_pIccm{pIccm}
 {
   
 }
@@ -32,9 +41,16 @@ OSAStatusCode PSRM::Start()
   
   if(!m_pAir->RegisterWithCCM())
   {
-    LogMsg(LogPrioError, "ERROR PSRM::Start Failed to register with CCM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioError, "ERROR PSRM::Start Failed to register AIR with CCM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return OSA_ERROR;
   }
+  
+  if(!m_pSr->RegisterWithCCM())
+  {
+    LogMsg(LogPrioError, "ERROR PSRM::Start Failed to register SR with CCM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
+  
  
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)PSRM::ClassTaskMethod,(OSAInstancePtr)this);
   
@@ -74,5 +90,6 @@ void PSRM::Print() const
 {
   LogMsg(LogPrioInfo, "--- >PSRM<---");
   m_pAir->Print();
+  m_pSr->Print();
   LogMsg(LogPrioInfo, "--- <PSRM> ---");
 }

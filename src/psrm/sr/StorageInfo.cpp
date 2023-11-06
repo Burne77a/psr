@@ -1,86 +1,89 @@
-#include "AppInfo.h"
+#include "StorageInfo.h"
 #include "Logger.h"
+#include <algorithm>
 #include <errnoLib.h>
 
 
-std::shared_ptr<AppInfo> AppInfo::CreateFromRawPtr(const uint8_t * pBuffer, const uint32_t size)
+std::shared_ptr<StorageInfo> StorageInfo::CreateFromRawPtr(const uint8_t * pBuffer, const uint32_t size)
 {
-  std::shared_ptr<AppInfo> pAi{nullptr};
-  if((pBuffer != nullptr) && (size >= sizeof(AppInfoData)))
+  std::shared_ptr<StorageInfo> pSi{nullptr};
+  if((pBuffer != nullptr) && (size >= sizeof(StorageInfoData)))
   {
-    pAi = std::make_shared<AppInfo>();
-    if(pAi)
+    pSi = std::make_shared<StorageInfo>();
+    if(pSi)
     {
       uint32_t sizeOfBufToDeSerTo = 0U;
-      const uint8_t *pBufToDeSerTo = pAi->GetSerializableDataBuffer(sizeOfBufToDeSerTo);
+      const uint8_t *pBufToDeSerTo = pSi->GetSerializableDataBuffer(sizeOfBufToDeSerTo);
       if((pBufToDeSerTo != nullptr) && (size <= sizeOfBufToDeSerTo))
       {
         std::memcpy((void*)pBufToDeSerTo,(void*)pBuffer,size);
-        if(!pAi->Deserialize())
+        if(!pSi->Deserialize())
         {
-          LogMsg(LogPrioError, "ERROR: AppInfo::CreateFromRawPtr failed to deserialize Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-          pAi = nullptr;
+          LogMsg(LogPrioError, "ERROR: StorageInfo::CreateFromRawPtr failed to deserialize Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+          pSi = nullptr;
         }
       }
       else
       {
-        pAi = nullptr;
-        LogMsg(LogPrioError, "ERROR: AppInfo::CreateFromRawPtr invalid buffers to deserialize to 0x% %u &u Errno: 0x%x (%s)",pBufToDeSerTo,size,sizeOfBufToDeSerTo ,errnoGet(),strerror(errnoGet()));
+        pSi = nullptr;
+        LogMsg(LogPrioError, "ERROR: StorageInfo::CreateFromRawPtr invalid buffers to deserialize to 0x% %u &u Errno: 0x%x (%s)",pBufToDeSerTo,size,sizeOfBufToDeSerTo ,errnoGet(),strerror(errnoGet()));
       }
     }
     else
     {
-      LogMsg(LogPrioError, "ERROR: AppInfo::CreateFromRawPtr failed to create pointer Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+      LogMsg(LogPrioError, "ERROR: StorageInfo::CreateFromRawPtr failed to create pointer Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     }
   }
   else
   {
-    LogMsg(LogPrioError, "ERROR: AppInfo::CreateFromRawPtr No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pBuffer,size,sizeof(AppInfo),errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioError, "ERROR: StorageInfo::CreateFromRawPtr No valid ClientMsg data in LR 0x%x %u %u  Errno: 0x%x (%s)",pBuffer,size,sizeof(StorageInfoData),errnoGet(),strerror(errnoGet()));
   }
-  return pAi; 
+  return pSi; 
 }
 
 
-AppInfo::AppInfo(const unsigned int appId, const unsigned int primaryNodeId, const unsigned int periodInMs, const unsigned int bytesToSyncEachPeriod)
+StorageInfo::StorageInfo(const unsigned int storageId, std::string_view ipAddr, const unsigned int sizeInBytes, const unsigned int bandwidth)
 {
-  m_data.appId = appId;
-  m_data.primaryNodeId = primaryNodeId;
-  m_data.periodInMs = periodInMs;
-  m_data.bytesToSyncEachPeriod = bytesToSyncEachPeriod;
-  
+  m_data.storageId = storageId;
+  m_data.sizeInBytes = sizeInBytes;
+  m_data.bandwidth = bandwidth;
+  size_t lengthToCopy = std::min(ipAddr.size(), sizeof(m_data.ipAddr) - 1);
+  std::copy_n(ipAddr.begin(), lengthToCopy, m_data.ipAddr);
+  m_data.ipAddr[lengthToCopy] = '\0';
 }
 
-AppInfo::AppInfo(const unsigned int appId)
+StorageInfo::StorageInfo(const unsigned int storageId)
 {
-  m_data.appId = appId;
+  m_data.ipAddr[0] = '\0';
+  m_data.storageId = storageId;
 }
 
-AppInfo::AppInfo()
+StorageInfo::StorageInfo()
 {
-  
+  m_data.ipAddr[0] = '\0';
 }
 
-const uint8_t *  AppInfo::Serialize(uint32_t &size) const 
+const uint8_t *  StorageInfo::Serialize(uint32_t &size) const 
 {
   size = sizeof(m_data);
   return (uint8_t *)&m_data;
 }
 
-const uint8_t * AppInfo::GetSerializableDataBuffer(uint32_t &size) const
+const uint8_t * StorageInfo::GetSerializableDataBuffer(uint32_t &size) const
 {
   return Serialize(size);
 }
 
-bool AppInfo::Deserialize()
+bool StorageInfo::Deserialize()
 {
   return true;
 }
 
 
 
-void AppInfo::Print() const
+void StorageInfo::Print() const
 {
-  LogMsg(LogPrioInfo,"AppInfo: ID %u Node: %u Period: %u, size: %u",m_data.appId,m_data.primaryNodeId,m_data.periodInMs, m_data.bytesToSyncEachPeriod);
+  LogMsg(LogPrioInfo,"StorageInfo: ID %u ip: %s Size: %u, Bandwidth %u",m_data.storageId,m_data.ipAddr,m_data.sizeInBytes, m_data.bandwidth);
 }
 
 
