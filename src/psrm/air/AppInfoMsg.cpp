@@ -1,8 +1,20 @@
 #include "AppInfoMsg.h"
 #include "Logger.h"
 
+AppInfoMsg::AppInfoMsg(const uint8_t * pBuffer, const uint32_t size)
+{
+  if(size >= sizeof(m_data) && pBuffer != nullptr)
+  {
+    m_data = *(AppInfoMsgData*)pBuffer;
+    m_serializedDataInclMsgAndPayload.assign(pBuffer, pBuffer + size);
+  }
+  else
+  {
+    LogMsg(LogPrioError,"AppInfoMsg::TestRequest invalid payload or size. 0x%x %u %u ",pBuffer,size,sizeof(m_data));
+  }
+}
 
-AppInfoMsg::AppInfoMsg(std::shared_ptr<ISerializable>& pPayload, MsgType type ) : m_pPayload{pPayload}
+AppInfoMsg::AppInfoMsg(const std::shared_ptr<ISerializable>& pPayload, MsgType type ) : m_pPayload{pPayload}
 {
   m_data.type = type;
   m_data.payloadSize = 0U;

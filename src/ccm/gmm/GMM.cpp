@@ -631,7 +631,7 @@ bool GMM::IsQuorumConnectedNoLock(const int id) const
 void GMM::Print() const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
-  LogMsg(LogPrioInfo,"--- GMM members ---");
+  LogMsg(LogPrioInfo,"--- >GMM members< ---");
   
   LogMsg(LogPrioInfo,"My Member: ");
   if (m_members.find(m_myId) != m_members.end()) 
@@ -652,7 +652,7 @@ void GMM::Print() const
       LogMsg(LogPrioInfo,"QC: %s ",IsQuorumConnectedNoLock(pair.second.GetID()) ? "Yes": "No");
     }
   }
-  LogMsg(LogPrioInfo,"-------------");
+  LogMsg(LogPrioInfo,"--- <GMM members> ---");
 }
 
 

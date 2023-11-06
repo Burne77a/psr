@@ -19,8 +19,11 @@ class AppInfoMsg : public ISerializable
       uint32_t payloadSize;
     };
   public:
-    AppInfoMsg(std::shared_ptr<ISerializable>& payload, MsgType type );
+    AppInfoMsg(const uint8_t * pBuffer, const uint32_t size);
+    AppInfoMsg(const std::shared_ptr<ISerializable>& payload, MsgType type );
     ~AppInfoMsg() = default;
+    bool IsAddRequest() const {return m_data.type == MsgType::AddRequest;}
+    bool IsRemoveRequest() const {return m_data.type == MsgType::RemoveRequest;}
     std::shared_ptr<AppInfo> GetAppInfoPayload() const;
     //ISerializable
     const uint8_t *  Serialize(uint32_t &size) const override;

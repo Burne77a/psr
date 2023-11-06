@@ -40,6 +40,21 @@ std::shared_ptr<AppInfo> AppInfo::CreateFromRawPtr(const uint8_t * pBuffer, cons
   return pAi; 
 }
 
+
+AppInfo::AppInfo(const unsigned int appId, const unsigned int primaryNodeId, const unsigned int periodInMs, const unsigned int bytesToSyncEachPeriod)
+{
+  m_data.appId = appId;
+  m_data.primaryNodeId = primaryNodeId;
+  m_data.periodInMs = periodInMs;
+  m_data.bytesToSyncEachPeriod = bytesToSyncEachPeriod;
+  
+}
+
+AppInfo::AppInfo(const unsigned int appId)
+{
+  m_data.appId = appId;
+}
+
 AppInfo::AppInfo()
 {
   

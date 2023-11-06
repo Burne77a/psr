@@ -17,8 +17,14 @@ class AppInfo : public ISerializable
     };
   public: 
     static std::shared_ptr<AppInfo> CreateFromRawPtr(const uint8_t * pBuffer, const uint32_t size);
+    AppInfo(const unsigned int appId, const unsigned int primaryNodeId, const unsigned int periodInMs, const unsigned int bytesToSyncEachPeriod);
+    AppInfo(const unsigned int appId);
     AppInfo();
     ~AppInfo() = default;
+     unsigned int GetId() const {return m_data.appId;}
+     unsigned int GetPrimaryNodeId() const {return m_data.primaryNodeId;}
+     unsigned int GetPeriodInMs() const {return m_data.periodInMs;}
+     unsigned int GetBytesToSyncEachPeriod() const {return m_data.bytesToSyncEachPeriod;}
     //ISerializable
      const uint8_t *  Serialize(uint32_t &size) const override;
      const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;

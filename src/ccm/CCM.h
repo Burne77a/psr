@@ -45,9 +45,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    std::unique_ptr<CSA> m_pCsa;
    std::shared_ptr<LE::ILeaderRoleChangeCallbacks> m_leaderCb{nullptr};
    
-   ClientRequestId m_currentReqId{};
-   
-   
+   ClientRequestId m_currentReqId{};   
    bool m_isRunning{false};
 };
 
