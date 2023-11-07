@@ -88,6 +88,26 @@ bool SR::DeRegisterStorage(const unsigned int storageId)
   return isDeregistrationReqSuccessfullyReplicated;
 }
 
+
+void SR::RegisterStorageAddedCb(StorageInfoChangeStorageRemovedCallbackType callback)
+{
+  if(m_storageAddedCb)
+  {
+    LogMsg(LogPrioWarning, "WARNING: SR::RegisterStorageAddedCb overwriting existing callback");
+  }
+  m_storageAddedCb = callback;
+}
+
+void SR::RegisterStorageRemovedCb(StorageInfoChangeStorageRemovedCallbackType callback)
+{
+  if(m_storageRemovedCb)
+  {
+    LogMsg(LogPrioWarning, "WARNING: SR::RegisterStorageRemovedCb overwriting existing callback");
+  }
+  m_storageRemovedCb = callback;
+}
+
+
 bool SR::PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const StorageInfoMsg::MsgType type)
 {
   bool isRequestSuccessfullyPosted = false;
@@ -115,6 +135,11 @@ void SR::HandleRemoveReq(StorageInfoMsg & msg)
   if(pSi)
   {
     m_pStorageReg->RemoveEntry(pSi->GetId()); 
+    LogMsg(LogPrioInfo,"SR::HandleRemoveReq successfully removed storage info");
+    if(m_storageRemovedCb)
+    {
+      m_storageRemovedCb(pSi->GetId());
+    }
   }
   else
   {
@@ -133,6 +158,10 @@ void SR::HandleAddReq(StorageInfoMsg & msg)
     {
       LogMsg(LogPrioInfo,"SR::HandleAddReq successfully added storage info");
       pSi->Print();
+      if(m_storageAddedCb)
+      {
+        m_storageAddedCb(pSi->GetId());
+      }
     }
     else
     {

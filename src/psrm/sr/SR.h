@@ -5,6 +5,10 @@
 #include "../../ccm/ICCM.h"
 #include <memory>
 #include <string>
+
+using StorageInfoChangeStorageAddedCallbackType = std::function<void(const unsigned int storageId)>;
+using StorageInfoChangeStorageRemovedCallbackType = std::function<void(const unsigned int storageId)>;
+
 class SR
 {
   public:
@@ -15,6 +19,10 @@ class SR
     bool RegisterWithCCM();
     bool RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth);
     bool DeRegisterStorage(const unsigned int storageId);
+    void RegisterStorageAddedCb(StorageInfoChangeStorageAddedCallbackType callback);
+    void RegisterStorageRemovedCb(StorageInfoChangeStorageRemovedCallbackType callback);
+    std::optional<StorageInfo> GetStorageInfo(const unsigned int storageId) const {return m_pStorageReg->GetStorageInfo(storageId);}
+    void GetAllStorageIds(std::vector<unsigned int> &storageIds) const {return m_pStorageReg->GetAllStorageIds(storageIds);}
     void Print() const;
   private:
     bool PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const StorageInfoMsg::MsgType type);
@@ -25,6 +33,8 @@ class SR
     
     std::shared_ptr<ICCM> m_pIccm{nullptr};
     std::unique_ptr<StorageReg> m_pStorageReg{nullptr};
+    StorageInfoChangeStorageAddedCallbackType m_storageAddedCb{nullptr};
+    StorageInfoChangeStorageRemovedCallbackType m_storageRemovedCb{nullptr};
     
 };
 

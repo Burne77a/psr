@@ -5,8 +5,6 @@
 #include "../../ccm/ICCM.h"
 #include <memory>
 
-class AIR;
-
 using AppInfoChangeAppAddedCallbackType = std::function<void(const unsigned int appId)>;
 using AppInfoChangeAppRemovedCallbackType = std::function<void(const unsigned int appId)>;
 

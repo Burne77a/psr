@@ -4,6 +4,8 @@
 #include <memory>
 #include <unordered_map>
 #include <mutex>
+#include <optional>
+#include <vector>
 class StorageReg
 {
   public:
@@ -11,6 +13,8 @@ class StorageReg
     ~StorageReg() = default;
     bool AddEntry(StorageInfo &entryToAdd);
     void RemoveEntry(unsigned int storageId);
+    std::optional<StorageInfo> GetStorageInfo(const unsigned int storageId) const;
+    void GetAllStorageIds(std::vector<unsigned int> &storageIds) const;
     void Print() const;
   private:
     std::unordered_map<unsigned int, StorageInfo> m_storageInfoEntries{};

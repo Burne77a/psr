@@ -15,14 +15,20 @@ class ASSP
     
     void Print() const;
   private: 
+    bool PairWithUnUsedIfItExist(const unsigned int appId);
+    bool PairWithUsed(const unsigned int appId);
     void PairAppWithStorageIfPossible(const unsigned int appId);
+    void RemoveAppStoragePair(const unsigned int appId);
     //Called from AIR
     void ApplicationRemoved(const unsigned int appId);
     void ApplicationAdded(const unsigned int appId);
+    //Calle from SR
+    void StorageRemoved(const unsigned int storageId);
+    void StorageAdded(const unsigned int storageId);
     std::shared_ptr<ICCM> m_pIccm{nullptr};
     const AIR &m_air;
     const SR &m_sr;
-    const SSPR &m_sspr;
+    SSPR &m_sspr;
     static const unsigned int STORAGE_USE_CNT_LIMIT = 2U;
     
     

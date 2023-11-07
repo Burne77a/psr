@@ -82,6 +82,19 @@ std::optional<unsigned int> AppStateStoragePairReg::FindLowestUsedStateStorage(u
   return lowestStorageId;
 }
 
+void AppStateStoragePairReg::GetAllAppIdThatUseThisStorageId(const unsigned int storageId, std::vector<unsigned int>& appIds) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex); 
+  appIds.clear();
+  for (const auto& pair : m_appStatePairEntries) 
+  {
+    if (pair.second.GetStorageId() == storageId) 
+    {
+      appIds.push_back(pair.second.GetAppId());
+    }
+  }
+}
+
 void AppStateStoragePairReg::Print() const
 {
   LogMsg(LogPrioInfo,"--- >AppStateStoragePairReg< ---");

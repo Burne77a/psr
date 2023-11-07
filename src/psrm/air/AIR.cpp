@@ -115,6 +115,7 @@ void AIR::HandleRemoveReq(AppInfoMsg & msg)
   if(pAi)
   {
     m_pAppReg->RemoveEntry(pAi->GetId()); 
+    LogMsg(LogPrioInfo,"AIR::HandleRemoveReq successfully removed application info");
     if(m_appRemovedCb)
     {
       m_appRemovedCb(pAi->GetId());
@@ -135,12 +136,12 @@ void AIR::HandleAddReq(AppInfoMsg & msg)
   {
     if(m_pAppReg->AddEntry(*pAi))
     {
+      LogMsg(LogPrioInfo,"AIR::HandleAddReq successfully added application info");
+      pAi->Print();
       if(m_appAddedCb)
       {
         m_appAddedCb(pAi->GetId());
       }
-      LogMsg(LogPrioInfo,"AIR::HandleAddReq successfully added application info");
-      pAi->Print();
     }
     else
     {

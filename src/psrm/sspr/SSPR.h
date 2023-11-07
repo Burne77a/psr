@@ -18,6 +18,7 @@ class SSPR
     bool RegisterWithCCM();
     std::optional<AppStateStoragePair> GetEntry(const unsigned int appId) const {return m_pAppStateReg->GetEntry(appId);}
     std::optional<unsigned int> FindLowestUsedStateStorage(unsigned int &usingAppsCount) const {return m_pAppStateReg->FindLowestUsedStateStorage(usingAppsCount);}
+    void GetAllAppIdThatUseThisStorageId(const unsigned int storageId, std::vector<unsigned int>& appIds) const {return m_pAppStateReg->GetAllAppIdThatUseThisStorageId(storageId,appIds);}
     
     void PostStoragePairForReplication(const AppStateStoragePair &pair);
     void Print() const;
