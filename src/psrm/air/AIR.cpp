@@ -115,6 +115,10 @@ void AIR::HandleRemoveReq(AppInfoMsg & msg)
   if(pAi)
   {
     m_pAppReg->RemoveEntry(pAi->GetId()); 
+    if(m_appRemovedCb)
+    {
+      m_appRemovedCb(pAi->GetId());
+    }
   }
   else
   {
@@ -131,6 +135,10 @@ void AIR::HandleAddReq(AppInfoMsg & msg)
   {
     if(m_pAppReg->AddEntry(*pAi))
     {
+      if(m_appAddedCb)
+      {
+        m_appAddedCb(pAi->GetId());
+      }
       LogMsg(LogPrioInfo,"AIR::HandleAddReq successfully added application info");
       pAi->Print();
     }
@@ -177,6 +185,25 @@ void AIR::UpcallMethod(const ClientMessage& commitedMsg)
     LogMsg(LogPrioCritical, "ERROR: AIR::UpcallMethod failed to create AppInfoMsg. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     commitedMsg.Print();
   }
+}
+
+void AIR::RegisterAppAddedCb(AppInfoChangeAppAddedCallbackType callback)
+{
+  if(m_appAddedCb)
+  {
+    LogMsg(LogPrioWarning, "WARNING: AIR::RegisterAppAddedCb overwriting existing callback");
+  }
+  m_appAddedCb = callback;
+  
+}
+void AIR::RegisterAppRemovedCb(AppInfoChangeAppRemovedCallbackType callback)
+{
+  if(m_appRemovedCb)
+  {
+    LogMsg(LogPrioWarning, "WARNING: AIR::RegisterAppRemovedCb overwriting existing callback");
+  }
+  m_appRemovedCb = callback;
+  
 }
   
 void AIR::Print() const

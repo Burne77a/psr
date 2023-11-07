@@ -31,6 +31,7 @@ class ICCM
     virtual bool ReplicateRequest(const ClientMessage & msg) = 0;
     virtual bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) = 0; 
     virtual ClientRequestId CreateUniqueId() = 0;
+    virtual bool IsFullySyncLeader() = 0;
 };
 
     

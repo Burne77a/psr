@@ -4,6 +4,12 @@
 #include "AppInfoMsg.h"
 #include "../../ccm/ICCM.h"
 #include <memory>
+
+class AIR;
+
+using AppInfoChangeAppAddedCallbackType = std::function<void(const unsigned int appId)>;
+using AppInfoChangeAppRemovedCallbackType = std::function<void(const unsigned int appId)>;
+
 class AIR
 {
   public:
@@ -14,6 +20,8 @@ class AIR
     bool RegisterWithCCM();
     bool RegisterApplication(const unsigned int appId, const unsigned int primaryInfo, const unsigned int bytes, const unsigned int periodInMs);
     bool DeRegisterApplication(const unsigned int appId);
+    void RegisterAppAddedCb(AppInfoChangeAppAddedCallbackType callback);
+    void RegisterAppRemovedCb(AppInfoChangeAppRemovedCallbackType callback);
     void Print() const;
   private:
     bool PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const AppInfoMsg::MsgType type);
@@ -24,6 +32,9 @@ class AIR
     
     std::shared_ptr<ICCM> m_pIccm{nullptr};
     std::unique_ptr<AppReg> m_pAppReg{nullptr};
+    AppInfoChangeAppAddedCallbackType m_appAddedCb{nullptr};
+    AppInfoChangeAppRemovedCallbackType m_appRemovedCb{nullptr};
+    
     
 };
 
