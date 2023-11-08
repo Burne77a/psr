@@ -74,6 +74,7 @@ LR::LR(GMM &gmm, std::vector<std::unique_ptr<ISender>> &senders, std::unique_ptr
   {
     m_senders.push_back(std::move(pSender));
   }
+  m_lastInSync = std::chrono::system_clock::now();
 }
 
 LR::~LR()
@@ -160,7 +161,18 @@ void LR::CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded()
   const unsigned int myOpNumber = m_gmm.GetMyCommittedOpNumber();
   if(higestOpNumber > myOpNumber)
   {
-    TriggerSync();
+    static const std::chrono::milliseconds TimeToWaitInMsDuration (10000);
+    auto now = std::chrono::system_clock::now();
+    auto elapsed = now - m_lastInSync;
+    const bool isTimeToTriggerSync = (elapsed > TimeToWaitInMsDuration);
+    if(isTimeToTriggerSync)
+    {
+      TriggerSync();
+    }
+  }
+  else
+  {
+    m_lastInSync = std::chrono::system_clock::now();
   }
 }
 

@@ -26,7 +26,7 @@ std::unique_ptr<ASSP> ASSP::CreateASSP(std::shared_ptr<ICCM>& pIccm,AIR &air,SR 
 
 ASSP::ASSP(std::shared_ptr<ICCM>& pIccm,const AIR &air, const SR &sr,SSPR &sspr) : m_pIccm{pIccm},m_air{air}, m_sr{sr},m_sspr{sspr}
 {
-  
+  m_lastUnPairCheck = std::chrono::system_clock::now();
 }
 
 void ASSP::CheckForUnPairedAppAndTryToPair()
@@ -35,8 +35,15 @@ void ASSP::CheckForUnPairedAppAndTryToPair()
   m_air.GetAllAppIds(allAppIdsKnown);
   for(auto appId : allAppIdsKnown)
   {
-    PairAppWithStorageIfPossible(appId);
+    if(!m_sspr.GetEntry(appId).has_value())
+    {
+      if(PairAppWithStorageIfPossible(appId))
+      {
+        break;
+      }
+    }
   }
+  m_lastUnPairCheck = std::chrono::system_clock::now();
 }
 
 bool ASSP::PairWithUnUsedIfItExist(const unsigned int appId)
@@ -99,19 +106,20 @@ bool ASSP::PairWithUsed(const unsigned int appId)
   return isMatchMade;
 }
 
-void ASSP::PairAppWithStorageIfPossible(const unsigned int appId)
+bool ASSP::PairAppWithStorageIfPossible(const unsigned int appId)
 {
   if(PairWithUnUsedIfItExist(appId))
   {
-    return;
+    return true;
   }
   
   if(PairWithUsed(appId))
   {
-    return;
+    return true;
   }
   
   LogMsg(LogPrioWarning, "WARNING: ASSP::PairAppWithStorageIfPossible Not able to find storage for app %u",appId);
+  return false;
 }
 
 void ASSP::RemoveAppStoragePair(const unsigned int appId)
@@ -152,7 +160,7 @@ void ASSP::ApplicationAdded(const unsigned int appId)
   
   if(isToTriggerPairing)
   {
-    PairAppWithStorageIfPossible(appId);
+    (void)PairAppWithStorageIfPossible(appId);
   }
 }
 
@@ -171,6 +179,23 @@ void ASSP::StorageRemoved(const unsigned int storageId)
 void ASSP::StorageAdded(const unsigned int storageId)
 {
   CheckForUnPairedAppAndTryToPair();
+}
+
+void ASSP::HandleActivity()
+{
+  
+  if(m_pIccm->IsFullySyncLeader())
+  {
+    static const std::chrono::milliseconds TimeToWaitInMsDuration (2000);
+    auto now = std::chrono::system_clock::now();
+    auto elapsed = now - m_lastUnPairCheck;
+    const bool isTimeToCheck = (elapsed > TimeToWaitInMsDuration);
+    if(isTimeToCheck)
+    {
+      CheckForUnPairedAppAndTryToPair();
+    }
+  }
+    
 }
 
   

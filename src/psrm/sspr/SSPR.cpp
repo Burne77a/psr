@@ -47,7 +47,7 @@ bool SSPR::RegisterWithCCM()
 
 void SSPR::HandleActivity()
 {
-  
+  ProcessIncomingParingRequestIfLeaderFlushOtherwise();
 }
 
 void SSPR::PostStoragePairForReplication(const AppStateStoragePair &pair)
@@ -64,6 +64,7 @@ void SSPR::PostStoragePairForReplication(const AppStateStoragePair &pair)
     pair.Print();
   }
 }
+
 void SSPR::DeRegisterPairing(AppStateStoragePair &pairingToDeReg)
 {
   std::shared_ptr<ISerializable> pPairInfo = std::make_shared<AppStateStoragePair>(pairingToDeReg);
@@ -152,6 +153,8 @@ void SSPR::ProcessIncomingParingRequestIfLeaderFlushOtherwise()
       if(m_pIccm->IsFullySyncLeader())
       {
         HandleIncomingPairingRequest(*pAppStoragePair);
+        //To not overload the leader, only process a message each iteration. 
+        return;
       }
     }
   }while(isMsgRcvd);

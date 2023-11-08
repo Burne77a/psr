@@ -50,7 +50,7 @@ PSRM::PSRM(std::unique_ptr<AIR>& pAir,std::unique_ptr<SR>& pSr,std::unique_ptr<S
 
 OSAStatusCode PSRM::Start()
 {
-  static const int TaskPrio = 30;   
+  static const int TaskPrio = 70;   
   static const std::string TaskName("tPsrm");
   
   if(!m_pAir->RegisterWithCCM())
@@ -65,6 +65,12 @@ OSAStatusCode PSRM::Start()
     return OSA_ERROR;
   }
   
+  if(!m_pSspr->RegisterWithCCM())
+  {
+    LogMsg(LogPrioError, "ERROR PSRM::Start Failed to register SSPR with CCM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
+   
  
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)PSRM::ClassTaskMethod,(OSAInstancePtr)this);
   
@@ -88,8 +94,8 @@ OSAStatusCode PSRM::InstanceTaskMethod()
   m_isRunning = true;
   do
   {
-   
     m_pSspr->HandleActivity();
+    m_pAssp->HandleActivity();
     
     OSATaskSleep(m_periodInMs);
   }while(m_isRunning);

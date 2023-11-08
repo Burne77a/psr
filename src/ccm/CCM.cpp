@@ -122,6 +122,9 @@ void CCM::ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSt
 void CCM::EnteredLeaderRole() 
 {
   LogMsg(LogPrioInfo, "CCM::EnteredLeaderRole() - Assigning leader IP address %s to this node.",IP_ADDRESS_OF_LEADER);
+  
+  m_pCsa->FlushOutMessageToLeader();
+  
   //TODO: Hardcoded interfaces for the floating leader IP address is most likely not the best idea in the long run, but it works for now. 
   NwAid::AddIpOnNwIf(NwAid::EthIfNo::IfTwo, IP_ADDRESS_OF_LEADER);
   NwAid::ArpFlush();

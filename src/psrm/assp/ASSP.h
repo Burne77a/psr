@@ -12,13 +12,13 @@ class ASSP
     static std::unique_ptr<ASSP> CreateASSP(std::shared_ptr<ICCM>& pIccm, AIR &air, SR &sr,SSPR &sspr);
     ASSP(std::shared_ptr<ICCM>& pIccm,const AIR &air, const SR &sr,SSPR &sspr);
     ~ASSP() = default;
-    
+    void HandleActivity();
     void Print() const;
   private: 
     void CheckForUnPairedAppAndTryToPair();
     bool PairWithUnUsedIfItExist(const unsigned int appId);
     bool PairWithUsed(const unsigned int appId);
-    void PairAppWithStorageIfPossible(const unsigned int appId);
+    bool PairAppWithStorageIfPossible(const unsigned int appId);
     void RemoveAppStoragePair(const unsigned int appId);
     //Called from AIR
     void ApplicationRemoved(const unsigned int appId);
@@ -30,6 +30,7 @@ class ASSP
     const AIR &m_air;
     const SR &m_sr;
     SSPR &m_sspr;
+    std::chrono::system_clock::time_point m_lastUnPairCheck;
     static const unsigned int STORAGE_USE_CNT_LIMIT = 2U;
     
     

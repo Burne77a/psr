@@ -10,6 +10,7 @@
 #include "../csa/ClientMessage.h"
 #include "../csa/ClientRequestId.h"
 #include <memory>
+#include <chrono>
 
 enum class RequestStatus
 {
@@ -33,13 +34,13 @@ class LR
     void PerformUpcalls(const bool isForce);
     bool IsLogReplicationPending() const {return m_ongoingReqId.IsValid();}
     bool HasLatestEntries();
-    void CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded();
-    void TriggerSync() {m_pSyncMgr->TriggerSync();}
+    
     OSAStatusCode Start() {return m_pSyncMgr->Start();}
     void Stop() {m_pSyncMgr->Stop();}
     void Print() const;
   private:
-    
+    void TriggerSync() {m_pSyncMgr->TriggerSync();}
+    void CheckIfSyncShouldBeTriggeredAndTriggerIfNeeded();
     //Leader handling
     void HandlePrepareOk(const LogReplicationMsg &lrMsg);
     void HandleMsgAsLeader();
@@ -69,6 +70,7 @@ class LR
     int m_requestingClientId{0U};
     std::unique_ptr<LogReplicationMsg> m_pOngoingRepMsg{};
     RequestDoneCallbackType m_reqDoneCb{nullptr};
+    std::chrono::system_clock::time_point m_lastInSync;
     
     
     
