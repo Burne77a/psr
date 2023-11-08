@@ -2,6 +2,8 @@
 #define PSRM_H
 #include "air/AIR.h"
 #include "sr/SR.h"
+#include "sspr/SSPR.h"
+#include "assp/ASSP.h"
 #include "TaskAbstraction.h"
 #include <memory>
 
@@ -9,7 +11,7 @@ class PSRM
 {
   public:
     static std::unique_ptr<PSRM> CreatePSRM(std::shared_ptr<ICCM>& pIccm );
-    PSRM(std::unique_ptr<AIR>& pAir, std::unique_ptr<SR>& pSr, std::shared_ptr<ICCM>& pIccm);
+    PSRM(std::unique_ptr<AIR>& pAir, std::unique_ptr<SR>& pSr, std::unique_ptr<SSPR>& pSspr,std::unique_ptr<ASSP>& pAssp ,std::shared_ptr<ICCM>& pIccm);
     OSAStatusCode Start();
     void Stop();
     void Print() const;
@@ -38,10 +40,12 @@ class PSRM
     
     std::unique_ptr<AIR> m_pAir{nullptr};
     std::unique_ptr<SR> m_pSr{nullptr};
+    std::unique_ptr<SSPR> m_pSspr{nullptr};
+     std::unique_ptr<ASSP> m_pAssp{nullptr};
     std::shared_ptr<ICCM> m_pIccm{nullptr}; 
    
     bool m_isRunning{false};
-    uint32_t  m_periodInMs{500U};
+    uint32_t  m_periodInMs{200U};
 };
 
 #endif //PSRM_H

@@ -15,6 +15,7 @@ class ASSP
     
     void Print() const;
   private: 
+    void CheckForUnPairedAppAndTryToPair();
     bool PairWithUnUsedIfItExist(const unsigned int appId);
     bool PairWithUsed(const unsigned int appId);
     void PairAppWithStorageIfPossible(const unsigned int appId);

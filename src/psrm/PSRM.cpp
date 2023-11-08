@@ -1,5 +1,6 @@
 #include "PSRM.h"
 #include "air/AIR.h"
+
 #include "Logger.h"
 #include <errnoLib.h>
 
@@ -19,8 +20,21 @@ std::unique_ptr<PSRM> PSRM::CreatePSRM(std::shared_ptr<ICCM>& pIccm)
     return nullptr;
   }
   
+  std::unique_ptr<SSPR> pSspr = SSPR::CreateSSPR(pIccm);
+  if(!pSspr)
+  {
+    LogMsg(LogPrioCritical, "ERROR: PSRM::CreatePSRM failed to create SSPR. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
   
-  std::unique_ptr<PSRM> pPsrm = std::make_unique<PSRM>(pAir,pSr,pIccm);
+  std::unique_ptr<ASSP> pAssp = ASSP::CreateASSP(pIccm, *pAir, *pSr, *pSspr);
+  if(!pAssp)
+  {
+    LogMsg(LogPrioCritical, "ERROR: PSRM::CreatePSRM failed to create ASSP. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return nullptr;
+  }
+  
+  std::unique_ptr<PSRM> pPsrm = std::make_unique<PSRM>(pAir,pSr,pSspr,pAssp,pIccm);
   if(!pPsrm)
   {
     LogMsg(LogPrioCritical, "ERROR: PSRM::CreatePSRM failed to create PSRM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -28,8 +42,8 @@ std::unique_ptr<PSRM> PSRM::CreatePSRM(std::shared_ptr<ICCM>& pIccm)
   return pPsrm;
 }
 
-PSRM::PSRM(std::unique_ptr<AIR>& pAir,std::unique_ptr<SR>& pSr, std::shared_ptr<ICCM>& pIccm) : 
-    m_pAir{std::move(pAir)},m_pSr{std::move(pSr)},m_pIccm{pIccm}
+PSRM::PSRM(std::unique_ptr<AIR>& pAir,std::unique_ptr<SR>& pSr,std::unique_ptr<SSPR>& pSspr,std::unique_ptr<ASSP>& pAssp, std::shared_ptr<ICCM>& pIccm) : 
+    m_pAir{std::move(pAir)},m_pSr{std::move(pSr)},m_pSspr{std::move(pSspr)},m_pAssp{std::move(pAssp)},m_pIccm{pIccm}
 {
   
 }
@@ -75,6 +89,7 @@ OSAStatusCode PSRM::InstanceTaskMethod()
   do
   {
    
+    m_pSspr->HandleActivity();
     
     OSATaskSleep(m_periodInMs);
   }while(m_isRunning);
@@ -91,5 +106,7 @@ void PSRM::Print() const
   LogMsg(LogPrioInfo, "--- >PSRM<---");
   m_pAir->Print();
   m_pSr->Print();
+  m_pSspr->Print();
+  m_pAssp->Print();
   LogMsg(LogPrioInfo, "--- <PSRM> ---");
 }

@@ -11,6 +11,7 @@ class AppReg
     ~AppReg() = default;
     bool AddEntry(AppInfo &entryToAdd);
     void RemoveEntry(unsigned int appId);
+    void GetAllAppIds(std::vector<unsigned int> &appIds) const;
     void Print() const;
   private:
     std::unordered_map<unsigned int, AppInfo> m_appInfoEntries{};

@@ -40,6 +40,17 @@ void AppReg::RemoveEntry(unsigned int appId)
   }
 }
 
+void AppReg::GetAllAppIds(std::vector<unsigned int> &appIds) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  appIds.clear();
+  for(auto &entry : m_appInfoEntries)
+  {
+    appIds.push_back(entry.second.GetId());
+  }
+}
+
+
 void AppReg::Print() const
 {
   LogMsg(LogPrioInfo,"--- >AppReg< ---");

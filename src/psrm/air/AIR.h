@@ -20,6 +20,7 @@ class AIR
     bool DeRegisterApplication(const unsigned int appId);
     void RegisterAppAddedCb(AppInfoChangeAppAddedCallbackType callback);
     void RegisterAppRemovedCb(AppInfoChangeAppRemovedCallbackType callback);
+    void GetAllAppIds(std::vector<unsigned int> &appIds) const{m_pAppReg->GetAllAppIds(appIds);}
     void Print() const;
   private:
     bool PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const AppInfoMsg::MsgType type);

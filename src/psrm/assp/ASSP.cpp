@@ -29,6 +29,16 @@ ASSP::ASSP(std::shared_ptr<ICCM>& pIccm,const AIR &air, const SR &sr,SSPR &sspr)
   
 }
 
+void ASSP::CheckForUnPairedAppAndTryToPair()
+{
+  std::vector<unsigned int> allAppIdsKnown;
+  m_air.GetAllAppIds(allAppIdsKnown);
+  for(auto appId : allAppIdsKnown)
+  {
+    PairAppWithStorageIfPossible(appId);
+  }
+}
+
 bool ASSP::PairWithUnUsedIfItExist(const unsigned int appId)
 {
   bool isSuccessfullyPairedWithUnusedStateStorage = false;
@@ -160,7 +170,7 @@ void ASSP::StorageRemoved(const unsigned int storageId)
 }
 void ASSP::StorageAdded(const unsigned int storageId)
 {
-  
+  CheckForUnPairedAppAndTryToPair();
 }
 
   
