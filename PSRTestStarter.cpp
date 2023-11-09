@@ -2,6 +2,8 @@
 #include "src/ccm/CCM.h"
 #include "src/ccm/ICCM.h"
 #include "src/psrm/PSRM.h"
+#include "src/arf/ARF.h"
+#include "src/apps/TestAppManager.h"
 
 #include "Logger.h"
 #include "TestClient.h"
@@ -16,7 +18,15 @@ static std::unique_ptr<TestClient> g_pTstClient;
 
 static std::unique_ptr<PSRM> g_pPsrm;
 
+static std::unique_ptr<ARF> g_pArf;
+
+static std::unique_ptr<TestAppManager> g_pTstAppMgr;
+
 static bool g_isRunning = false;
+
+static const std::string_view g_backupIpAddr{"192.168.213.103"};
+
+static const int BackupNodeId = 3;
 
 OSAStatusCode StartPSRTest(const int id)
 {
@@ -51,6 +61,27 @@ OSAStatusCode StartPSRTest(const int id)
     LogMsg(LogPrioCritical, "ERROR: StartPSRTest PSRM::Start failed %d. Errno: 0x%x (%s)",psrmStartSts,errnoGet(),strerror(errnoGet()));
     return psrmStartSts;
   }
+  
+  g_pArf = ARF::CreateARF();
+  if(!g_pArf)
+  {
+    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateARF failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
+  
+  
+  g_pTstAppMgr = TestAppManager::CreateTestAppManager(id, *g_pArf,g_backupIpAddr);
+  if(!g_pTstAppMgr)
+  {
+    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
+  
+  g_pTstAppMgr->CreateApps();
+  
+  g_pTstAppMgr->StartApps(id != BackupNodeId);
+  
+  
   
   g_isRunning = true;
   

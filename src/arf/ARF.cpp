@@ -1,6 +1,4 @@
 #include "ARF.h"
-
-
 #include "Logger.h"
 #include <errnoLib.h>
 
