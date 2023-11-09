@@ -23,6 +23,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    bool ReplicateRequest(const ClientMessage & msg) override {return m_pCsa->ReplicateRequest(msg);}
    bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}
    ClientRequestId CreateUniqueId() override {return m_pCsa->CreateUniqueId();}
+   bool IsFullySyncLeader() override {return ((m_pLe->GetCurrentStateValue()==StateBaseLE::StateValue::Leader) && (m_pLr->HasLatestEntries()));}
    void ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts);
    void ForceUpcalls(){m_pLr->PerformUpcalls(true);}
    void Print() const; 
@@ -45,9 +46,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    std::unique_ptr<CSA> m_pCsa;
    std::shared_ptr<LE::ILeaderRoleChangeCallbacks> m_leaderCb{nullptr};
    
-   ClientRequestId m_currentReqId{};
-   
-   
+   ClientRequestId m_currentReqId{};   
    bool m_isRunning{false};
 };
 

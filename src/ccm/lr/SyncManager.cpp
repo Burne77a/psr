@@ -173,11 +173,7 @@ void SyncManager::HandleIncomingSyncMsg(bool &isComplete, std::vector<std::share
     isToAbortDueToFailure = true;
     return;
   }
-  //LogMsg(LogPrioInfo,"Incoming");
-  //incomingMsg.Print();
-  //LogMsg(LogPrioInfo,"Copied");
-  //pSm->Print();
-  
+ 
   rcvdSyncMessages.push_back(pSm);
   
   if(rcvdSyncMessages.size() == incomingMsg.GetTotalNumberOfEntries())
