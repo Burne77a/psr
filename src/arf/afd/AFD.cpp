@@ -7,7 +7,7 @@
 static const int APP_FD_PORT_BASE = 9000;
 
 std::unique_ptr<AFD> AFD::CreateAFD(const unsigned int appId, std::string_view primaryIp, std::string_view backupIp, 
-    const unsigned int hbTmoTimeInMs)
+    const unsigned int hbTmoTimeInMs,PrimaryHbTimeoutCb hbTmoCb)
 {
   const int appFdPort = APP_FD_PORT_BASE + appId;
   
@@ -29,7 +29,7 @@ std::unique_ptr<AFD> AFD::CreateAFD(const unsigned int appId, std::string_view p
   }
   
   
-  pAfd = std::make_unique<AFD>(appId,pSnd,pRcv,hbTmoTimeInMs);
+  pAfd = std::make_unique<AFD>(appId,pSnd,pRcv,hbTmoTimeInMs,hbTmoCb);
   if(!pAfd)
   {
     LogMsg(LogPrioCritical, "ERROR: AFD::CreateAFD failed to create AFD. appId: %u  Errno: 0x%x (%s)",appId,errnoGet(),strerror(errnoGet()));
@@ -38,9 +38,9 @@ std::unique_ptr<AFD> AFD::CreateAFD(const unsigned int appId, std::string_view p
   return pAfd;
 }
 
-AFD::AFD(const unsigned int appId, std::unique_ptr<ISender> &pSender, std::unique_ptr<IReceiver> &pReceiver,const unsigned int hbTmoTimeInMs) 
+AFD::AFD(const unsigned int appId, std::unique_ptr<ISender> &pSender, std::unique_ptr<IReceiver> &pReceiver,const unsigned int hbTmoTimeInMs,PrimaryHbTimeoutCb hbTmoCb) 
 : m_appId{appId}, m_pSender{std::move(pSender)},m_pReceiver{std::move(pReceiver)},
-  m_hbTmoTimeInMs{hbTmoTimeInMs}
+  m_hbTmoTimeInMs{hbTmoTimeInMs},m_hbTmoCb{hbTmoCb}
 {
   
 }
@@ -118,6 +118,10 @@ void AFD::BackupStateHandling()
       LogMsg(LogPrioInfo, "AFD::BackupStateHandling() - Heartbeat timeout - becoming Primary ");
       SetNewState(StateValue::Primary,EventValue::BecomePrimary);
       SetPendingEvent(EventValue::None);
+      if(m_hbTmoCb)
+      {
+        LogMsg(LogPrioInfo, "AFD::BackupStateHandling() - Heartbeat timeout - informing application by calling callback");
+      }
     }
   } 
 }

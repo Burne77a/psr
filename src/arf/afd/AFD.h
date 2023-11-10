@@ -11,7 +11,7 @@
 #include <chrono>
 #include <mutex>
 
-using PrimaryFailureTimeoutCb = std::function<void(const unsigned int appId)>;
+using PrimaryHbTimeoutCb = std::function<void(const unsigned int appId)>;
 
 
 class AFD
@@ -34,8 +34,8 @@ class AFD
     
     
     static std::unique_ptr<AFD> CreateAFD(const unsigned int appId, std::string_view primaryIp, std::string_view backupIp, 
-        unsigned int hbTmoTimeInMs);
-    AFD(const unsigned int appId, std::unique_ptr<ISender> &pSender, std::unique_ptr<IReceiver> &pReceiver,const unsigned int hbTmoTimeInMs);
+        unsigned int hbTmoTimeInMs, PrimaryHbTimeoutCb hbTmoCb);
+    AFD(const unsigned int appId, std::unique_ptr<ISender> &pSender, std::unique_ptr<IReceiver> &pReceiver,const unsigned int hbTmoTimeInMs,PrimaryHbTimeoutCb hbTmoCb);
     ~AFD() = default;
     
     
@@ -82,6 +82,7 @@ class AFD
     StateValue m_currentState{StateValue::Waiting};
     EventValue m_pendingEvent{EventValue::None};
     std::chrono::system_clock::time_point m_lastHbRcvd;
+    const PrimaryHbTimeoutCb m_hbTmoCb;
     mutable std::mutex m_eventMutex;
 };
 

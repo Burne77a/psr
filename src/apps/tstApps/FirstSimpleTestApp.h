@@ -12,6 +12,8 @@ class FirstSimpleTestApp : public IApp
     void Start(const bool asPrimary) override;
     void Print() const override;
   private:
+    //Called by ARF (AFD) when a the backup do no longer observe heartbeats from primary as expected. 
+    void PrimaryHbTimeoutCb(const unsigned int appId);
     void RunStateMachine();
     OSAStatusCode AppTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
@@ -19,6 +21,7 @@ class FirstSimpleTestApp : public IApp
     bool m_isRunning{false};
     const uint32_t  m_periodInMs{10U};
     bool m_isPrimary{false};
+    bool m_nextIsPrimary{false};
     const unsigned int m_appId;
     const std::string m_primaryIpAddr;
     const std::string m_backupIpAddr;

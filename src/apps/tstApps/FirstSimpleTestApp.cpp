@@ -12,6 +12,20 @@ FirstSimpleTestApp::~FirstSimpleTestApp()
  
 }
 
+void FirstSimpleTestApp::PrimaryHbTimeoutCb(const unsigned int appId)
+{
+  if(appId != m_appId)
+  {
+    LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::PrimaryHbTimeoutCb AppId mismatch is: %u expected: %u", m_appId,appId);
+  }
+  else
+  {
+    LogMsg(LogPrioInfo, "AFD::PrimaryHbTimeoutCb ARF says that this app %u should become primary",m_appId);
+    m_nextIsPrimary = true;
+  }
+}
+
+
 void FirstSimpleTestApp::Start(const bool asPrimary) 
 {
   static const int TaskPrio = 40;   
@@ -30,6 +44,11 @@ void FirstSimpleTestApp::Start(const bool asPrimary)
 
 void FirstSimpleTestApp::RunStateMachine()
 {
+  if(m_nextIsPrimary != m_isPrimary)
+  {
+    LogMsg(LogPrioInfo, "AFD::RunStateMachine changed role to %s",m_nextIsPrimary? "Primary" : "Backup");
+  }
+  
   if(m_isPrimary)
   {
     if(!m_arf.Kickwatchdog(m_appId))
@@ -37,15 +56,14 @@ void FirstSimpleTestApp::RunStateMachine()
       LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::RunStateMachine Kickwatchdog failed %u", m_appId);
     }
   }
-  
 }
 
 OSAStatusCode FirstSimpleTestApp::AppTaskMethod()
 {
   const unsigned int HbTimeout = m_periodInMs * 3;
   LogMsg(LogPrioInfo, "AFD::FailureDetectionTaskMethod - AFD for AppId %u running ",m_appId);
-  
-  if(m_arf.RegisterApp(m_appId, m_primaryIpAddr, m_backupIpAddr, m_periodInMs))
+    
+  if(m_arf.RegisterApp(m_appId, m_primaryIpAddr, m_backupIpAddr, m_periodInMs,std::bind(&FirstSimpleTestApp::PrimaryHbTimeoutCb,this, std::placeholders::_1)))
   {
     m_isRunning = true;
   }
@@ -65,6 +83,7 @@ OSAStatusCode FirstSimpleTestApp::AppTaskMethod()
   LogMsg(LogPrioInfo, "WARNING: AFD::FailureDetectionTaskMethod - AFD for AppId %u terminated ",m_appId);
   return OSA_OK;
 }
+
 
 
 OSAStatusCode FirstSimpleTestApp::ClassTaskMethod(void * const pInstance)

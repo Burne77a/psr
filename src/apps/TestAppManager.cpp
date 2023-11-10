@@ -36,7 +36,7 @@ void TestAppManager::StartApps(const bool asPrimary)
 
 void TestAppManager::CreateApps()
 {
-  if(m_nodeId == 1)
+  if(m_nodeId == 1 || m_nodeId == 3)
   {
     const unsigned int appId = 1;
     std::unique_ptr<IApp> pApp = std::make_unique<FirstSimpleTestApp>(appId,"not used",m_backupNodeIpAddr,m_arf, 10);

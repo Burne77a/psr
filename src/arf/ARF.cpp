@@ -18,7 +18,7 @@ ARF::ARF()
   
 }
 
-bool ARF::RegisterApp(const unsigned int appId, std::string_view primaryIp, std::string_view backupIp,const unsigned int hbTmoTimeInMs)
+bool ARF::RegisterApp(const unsigned int appId, std::string_view primaryIp, std::string_view backupIp,const unsigned int hbTmoTimeInMs,PrimaryHbTimeoutCb hbTmoCb)
 {
   if(m_appFailuredetectors.find(appId) != m_appFailuredetectors.end())
   {
@@ -26,7 +26,7 @@ bool ARF::RegisterApp(const unsigned int appId, std::string_view primaryIp, std:
     return false;
   }
   
-  std::unique_ptr<AFD> pAfd = AFD::CreateAFD(appId, primaryIp, backupIp, hbTmoTimeInMs);
+  std::unique_ptr<AFD> pAfd = AFD::CreateAFD(appId, primaryIp, backupIp, hbTmoTimeInMs,hbTmoCb);
   if(!pAfd)
   {
     LogMsg(LogPrioCritical, "ERROR: ARF::RegisterApp failed to create AFD for Id %u Errno: 0x%x (%s)",appId,errnoGet(),strerror(errnoGet()));
@@ -77,6 +77,11 @@ bool ARF::Kickwatchdog(const unsigned int appId)
   
   entry->second->Kickwatchdog();
   return true;
+}
+
+void ARF::PrimaryFailureTimeoutCb(const unsigned int appId)
+{
+  
 }
 
 void ARF::Print() const
