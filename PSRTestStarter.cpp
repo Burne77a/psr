@@ -24,7 +24,7 @@ static std::unique_ptr<TestAppManager> g_pTstAppMgr;
 
 static bool g_isRunning = false;
 
-static const std::string_view g_backupIpAddr{"192.168.213.103"};
+static const std::string_view g_backupIpAddr{"192.168.43.103"};
 
 static const int BackupNodeId = 3;
 
@@ -100,6 +100,8 @@ void Print()
 {
   g_pCcm->Print();
   g_pPsrm->Print();
+  g_pArf->Print();
+  g_pTstAppMgr->Print();
 }
 
 void AddApp(unsigned int id)

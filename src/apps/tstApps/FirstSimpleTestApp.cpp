@@ -33,7 +33,7 @@ void FirstSimpleTestApp::Start(const bool asPrimary)
   const std::string TaskName{TaskNameBase+std::to_string(m_appId)};
   
   m_isPrimary = asPrimary;
-  
+  m_nextIsPrimary = asPrimary;
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)FirstSimpleTestApp::ClassTaskMethod,(OSAInstancePtr)this);
   
   if(taskId == OSA_ERROR)
@@ -47,6 +47,7 @@ void FirstSimpleTestApp::RunStateMachine()
   if(m_nextIsPrimary != m_isPrimary)
   {
     LogMsg(LogPrioInfo, "AFD::RunStateMachine changed role to %s",m_nextIsPrimary? "Primary" : "Backup");
+    m_isPrimary = m_nextIsPrimary;
   }
   
   if(m_isPrimary)
@@ -61,7 +62,7 @@ void FirstSimpleTestApp::RunStateMachine()
 OSAStatusCode FirstSimpleTestApp::AppTaskMethod()
 {
   const unsigned int HbTimeout = m_periodInMs * 3;
-  LogMsg(LogPrioInfo, "AFD::FailureDetectionTaskMethod - AFD for AppId %u running ",m_appId);
+  LogMsg(LogPrioInfo, "FirstSimpleTestApp::AppTaskMethod - AFD for AppId %u running ",m_appId);
     
   if(m_arf.RegisterApp(m_appId, m_primaryIpAddr, m_backupIpAddr, m_periodInMs,std::bind(&FirstSimpleTestApp::PrimaryHbTimeoutCb,this, std::placeholders::_1)))
   {
