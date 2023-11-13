@@ -7,7 +7,8 @@
 class FirstSimpleTestApp : public IApp
 {
   public:
-    FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr, std::string_view backupIpAddr, ARF& arf, unsigned int periodInMs);
+    FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr, std::string_view backupIpAddr, ARF& arf, unsigned int periodInMs,
+        unsigned int nodeId);
     ~FirstSimpleTestApp();
     void Start(const bool asPrimary) override;
     void Print() const override;
@@ -25,6 +26,7 @@ class FirstSimpleTestApp : public IApp
     const unsigned int m_appId;
     const std::string m_primaryIpAddr;
     const std::string m_backupIpAddr;
+    const unsigned int m_nodeId;
 };
 
 #endif //APPS_FIRSTSIMPLETESTAPP_H

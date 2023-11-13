@@ -3,7 +3,7 @@
 #include "NwAid.h"
 #include <errnoLib.h>
 
-static constexpr std::string_view IP_ADDRESS_OF_LEADER{"192.168.43.10"};
+static constexpr std::string_view IP_ADDRESS_OF_LEADER{"192.168.44.10"};
 
 std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
 {
@@ -146,7 +146,7 @@ void CCM::LeftLeaderRole()
 
 OSAStatusCode CCM::StartCCMTask()
 {
-  static const int TaskPrio = 30;   
+  static const int TaskPrio = 80;   
   static const std::string TaskName("tCcm");
   
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)CCM::ClassTaskMethod,(OSAInstancePtr)this);

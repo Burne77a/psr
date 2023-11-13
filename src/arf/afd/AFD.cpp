@@ -137,18 +137,22 @@ void AFD::RunStateMachine()
   {
     case StateValue::Waiting:
     {
+      WaitingStateHandling();
       break;
     }
     case StateValue::BackupWaiting:
     {
+      BackupWaitingStateHandling();
       break;
     }
     case StateValue::Backup:
     {
+      BackupStateHandling();
       break;
     }
     case StateValue::Primary:
     {
+      PrimaryStateHandling();
       break;
     }
     default:

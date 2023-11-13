@@ -1,8 +1,8 @@
 #include "FirstSimpleTestApp.h"
 #include "Logger.h"
 #include <errnoLib.h>
-FirstSimpleTestApp::FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr, std::string_view backupIpAddr, ARF& arf,unsigned int periodInMs) : 
-m_primaryIpAddr{primaryIpAddr},m_backupIpAddr{backupIpAddr},m_appId{appId}, m_arf{arf}, m_periodInMs{periodInMs}
+FirstSimpleTestApp::FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr, std::string_view backupIpAddr, ARF& arf,unsigned int periodInMs,unsigned int nodeId) : 
+m_primaryIpAddr{primaryIpAddr},m_backupIpAddr{backupIpAddr},m_appId{appId}, m_arf{arf}, m_periodInMs{periodInMs}, m_nodeId{nodeId}
 {
  
 }
@@ -64,9 +64,31 @@ OSAStatusCode FirstSimpleTestApp::AppTaskMethod()
   const unsigned int HbTimeout = m_periodInMs * 3;
   LogMsg(LogPrioInfo, "FirstSimpleTestApp::AppTaskMethod - AFD for AppId %u running ",m_appId);
     
-  if(m_arf.RegisterApp(m_appId, m_primaryIpAddr, m_backupIpAddr, m_periodInMs,std::bind(&FirstSimpleTestApp::PrimaryHbTimeoutCb,this, std::placeholders::_1)))
+  if(m_arf.RegisterAppForFD(m_appId, m_primaryIpAddr, m_backupIpAddr, HbTimeout,std::bind(&FirstSimpleTestApp::PrimaryHbTimeoutCb,this, std::placeholders::_1)))
   {
     m_isRunning = true;
+    if(m_isPrimary)
+    {
+      if(!m_arf.RegisterAppForStateStorage(m_appId,m_nodeId,100,100))
+      {
+        LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::AppTaskMethod failed to register state storage need with ARF %u", m_appId,m_nodeId);
+        return OSA_ERROR;
+      }
+      if(!m_arf.SetAsPrimary(m_appId))
+      {
+        LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::AppTaskMethod failed to set app as primary with ARF %u", m_appId);
+        return OSA_ERROR;
+      }
+    }
+    else
+    {
+      if(!m_arf.SetAsBackup(m_appId))
+      {
+        LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::AppTaskMethod failed to set app as backup with ARF %u", m_appId);
+        return OSA_ERROR;
+      }
+    }
+    
   }
   else
   {
@@ -94,5 +116,5 @@ OSAStatusCode FirstSimpleTestApp::ClassTaskMethod(void * const pInstance)
 
 void FirstSimpleTestApp::Print() const 
 {
-  LogMsg(LogPrioInfo, "FirstSimpleTestApp: id %u period: %u state: %s ",m_appId,m_periodInMs,m_isPrimary ? "Primary" : "Backup");
+  LogMsg(LogPrioInfo, "FirstSimpleTestApp: AppId %u NodeId: %u period: %u state: %s ",m_appId,m_nodeId,m_periodInMs,m_isPrimary ? "Primary" : "Backup");
 }

@@ -60,6 +60,8 @@ bool ASSP::PairWithUnUsedIfItExist(const unsigned int appId)
       auto storageInfoOrNothing = m_sr.GetStorageInfo(storageId);
       if(storageInfoOrNothing.has_value())
       {
+        m_air.Print()
+        storageInfoOrNothing.value().GetNodeId()
         m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
         LogMsg(LogPrioInfo,"ASSP::PairWithUnUsedIfItExist posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
         isSuccessfullyPairedWithUnusedStateStorage = true;
@@ -179,6 +181,11 @@ void ASSP::StorageRemoved(const unsigned int storageId)
 void ASSP::StorageAdded(const unsigned int storageId)
 {
   CheckForUnPairedAppAndTryToPair();
+}
+
+bool ASSP::IsStorageOnDifferentNode(const unsigned int appId,StorageInfo &storageInfo)
+{
+  m_air
 }
 
 void ASSP::HandleActivity()

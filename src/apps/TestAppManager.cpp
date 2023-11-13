@@ -39,7 +39,7 @@ void TestAppManager::CreateApps()
   if(m_nodeId == 1 || m_nodeId == 3)
   {
     const unsigned int appId = 1;
-    std::unique_ptr<IApp> pApp = std::make_unique<FirstSimpleTestApp>(appId,"not used",m_backupNodeIpAddr,m_arf, 10);
+    std::unique_ptr<IApp> pApp = std::make_unique<FirstSimpleTestApp>(appId,"not used",m_backupNodeIpAddr,m_arf, 10,m_nodeId);
     if(pApp)
     {
       m_tstApps.insert(std::make_pair(appId, std::move(pApp)));
@@ -54,8 +54,8 @@ void TestAppManager::CreateApps()
 
 void TestAppManager::Print() const
 {
-  LogMsg(LogPrioInfo, "--- >TestAppManager<---");
-  LogMsg(LogPrioInfo,"Number of Apps: %d backupIp: %s", m_tstApps.size(),m_backupNodeIpAddr.data());
+  LogMsg(LogPrioInfo, "--- >TestAppManager< ---");
+  LogMsg(LogPrioInfo,"Number of Apps: %d backupIp: %s", m_tstApps.size(),m_backupNodeIpAddr.c_str());
   for(auto &entry : m_tstApps)
   {
     if(entry.second)

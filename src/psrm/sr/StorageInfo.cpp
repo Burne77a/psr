@@ -42,11 +42,12 @@ std::shared_ptr<StorageInfo> StorageInfo::CreateFromRawPtr(const uint8_t * pBuff
 }
 
 
-StorageInfo::StorageInfo(const unsigned int storageId, std::string_view ipAddr, const unsigned int sizeInBytes, const unsigned int bandwidth)
+StorageInfo::StorageInfo(const unsigned int storageId, std::string_view ipAddr, const unsigned int sizeInBytes, const unsigned int bandwidth, const unsigned int nodeId)
 {
   m_data.storageId = storageId;
   m_data.sizeInBytes = sizeInBytes;
   m_data.bandwidth = bandwidth;
+  m_data.nodeId = nodeId;
   size_t lengthToCopy = std::min(ipAddr.size(), sizeof(m_data.ipAddr) - 1);
   std::copy_n(ipAddr.begin(), lengthToCopy, m_data.ipAddr);
   m_data.ipAddr[lengthToCopy] = '\0';
@@ -83,7 +84,7 @@ bool StorageInfo::Deserialize()
 
 void StorageInfo::Print() const
 {
-  LogMsg(LogPrioInfo,"StorageInfo: ID %u ip: %s Size: %u, Bandwidth %u",m_data.storageId,m_data.ipAddr,m_data.sizeInBytes, m_data.bandwidth);
+  LogMsg(LogPrioInfo,"StorageInfo: ID %u NodeId: %u ip: %s Size: %u, Bandwidth %u",m_data.storageId,m_data.nodeId,m_data.ipAddr,m_data.sizeInBytes, m_data.bandwidth);
 }
 
 

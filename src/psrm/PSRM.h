@@ -24,9 +24,9 @@ class PSRM
     {
      return m_pAir->DeRegisterApplication(appId);
     }
-    bool RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
+    bool RegisterStorage(const unsigned int storageId, const unsigned int nodeId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
     {
-      return m_pSr->RegisterStorage(storageId, ipAddr, spaceInBytes, bandwidth);
+      return m_pSr->RegisterStorage(storageId,nodeId,ipAddr, spaceInBytes, bandwidth);
     }
     bool DeRegisterStorage(const unsigned int storageId)
     {

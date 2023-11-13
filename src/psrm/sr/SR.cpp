@@ -42,10 +42,10 @@ bool SR::RegisterWithCCM()
   return isSuccessfullyRegistered;
 }
 
-bool SR::RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
+bool SR::RegisterStorage(const unsigned int storageId, const unsigned int nodeId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
 {
   bool isRegistrationReqSuccessfullyReplicated = false;
-  std::shared_ptr<ISerializable> pStorageInfo = std::make_shared<StorageInfo>(storageId,ipAddr,spaceInBytes,bandwidth);
+  std::shared_ptr<ISerializable> pStorageInfo = std::make_shared<StorageInfo>(storageId,ipAddr,spaceInBytes,bandwidth,nodeId);
   if(!pStorageInfo)
   {
     LogMsg(LogPrioCritical, "ERROR: SR::RegisterApplication failed to create StorageInfo. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));

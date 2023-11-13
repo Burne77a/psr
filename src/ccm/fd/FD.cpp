@@ -65,7 +65,7 @@ FD::~FD()
 
 OSAStatusCode FD::Start()
 {
-  static const int TaskPrio = 30;   
+  static const int TaskPrio = 50;   
   static const std::string TaskName("tFdCcm");
   
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)FD::ClassTaskMethod,(OSAInstancePtr)this);

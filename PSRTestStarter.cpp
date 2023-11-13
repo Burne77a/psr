@@ -24,13 +24,17 @@ static std::unique_ptr<TestAppManager> g_pTstAppMgr;
 
 static bool g_isRunning = false;
 
-static const std::string_view g_backupIpAddr{"192.168.43.103"};
+static const std::string g_backupIpAddr{"192.168.43.103"};
 
 static const int BackupNodeId = 3;
+
+static int g_thisNodeId = 0;
 
 OSAStatusCode StartPSRTest(const int id)
 {
   LogMsgInit();
+  
+  g_thisNodeId = id;
   
   g_pCcm = CCM::CreateAndInitForTest(id);
   if(!g_pCcm)
@@ -62,26 +66,12 @@ OSAStatusCode StartPSRTest(const int id)
     return psrmStartSts;
   }
   
-  g_pArf = ARF::CreateARF();
+  g_pArf = ARF::CreateARF(*g_pPsrm);
   if(!g_pArf)
   {
     LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateARF failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return OSA_ERROR;
   }
-  
-  
-  g_pTstAppMgr = TestAppManager::CreateTestAppManager(id, *g_pArf,g_backupIpAddr);
-  if(!g_pTstAppMgr)
-  {
-    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
-    return OSA_ERROR;
-  }
-  
-  g_pTstAppMgr->CreateApps();
-  
-  g_pTstAppMgr->StartApps(id != BackupNodeId);
-  
-  
   
   g_isRunning = true;
   
@@ -101,7 +91,28 @@ void Print()
   g_pCcm->Print();
   g_pPsrm->Print();
   g_pArf->Print();
-  g_pTstAppMgr->Print();
+  if(g_pTstAppMgr)
+  {
+    g_pTstAppMgr->Print();
+  }
+  else
+  {
+    LogMsg(LogPrioInfo, "Applications not created yet");
+  }
+}
+
+void StartTestApps()
+{
+  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId, *g_pArf,g_backupIpAddr);
+  if(!g_pTstAppMgr)
+  {
+   LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+   return;
+  }
+  
+  g_pTstAppMgr->CreateApps();
+  
+  g_pTstAppMgr->StartApps(g_thisNodeId != BackupNodeId);
 }
 
 void AddApp(unsigned int id)
@@ -136,7 +147,7 @@ void AddStorage(unsigned int id)
   static const unsigned int size = 100U;
   static const unsigned int bandwidth = 200U;
   static const std::string ipAddr{"192.168.201.291"};
-  if(!g_pPsrm->RegisterStorage(id, ipAddr, size, bandwidth))
+  if(!g_pPsrm->RegisterStorage(id,g_thisNodeId, ipAddr, size, bandwidth))
   {
    LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
   }

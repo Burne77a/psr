@@ -28,7 +28,7 @@ bool UDPUniCastSend::Init(const std::string_view dstIp,const int port)
     return false;
   }
   
-  LogMsg(LogPrioInfo,"UDPMCastSend::Init successfully created socket for UDP unicast to %d %s %d",m_dstSendInf.socket, dstIp.data(), port);
+  LogMsg(LogPrioInfo,"UDPUniCastSend::Init successfully created socket for UDP unicast to %d %s %d",m_dstSendInf.socket, dstIp.data(), port);
   return true;
 }
 

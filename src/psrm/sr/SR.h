@@ -17,7 +17,7 @@ class SR
     SR(std::shared_ptr<ICCM>& pIccm,std::unique_ptr<StorageReg>& pStorageReg);
     ~SR() = default;
     bool RegisterWithCCM();
-    bool RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth);
+    bool RegisterStorage(const unsigned int storageId, const unsigned int nodeId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth);
     bool DeRegisterStorage(const unsigned int storageId);
     void RegisterStorageAddedCb(StorageInfoChangeStorageAddedCallbackType callback);
     void RegisterStorageRemovedCb(StorageInfoChangeStorageRemovedCallbackType callback);
