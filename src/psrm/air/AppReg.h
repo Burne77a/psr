@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <mutex>
+#include <optional>
 class AppReg
 {
   public:
@@ -12,6 +13,7 @@ class AppReg
     bool AddEntry(AppInfo &entryToAdd);
     void RemoveEntry(unsigned int appId);
     void GetAllAppIds(std::vector<unsigned int> &appIds) const;
+    std::optional<AppInfo> GetAppInfoForAppId(const unsigned int appId);
     void Print() const;
   private:
     std::unordered_map<unsigned int, AppInfo> m_appInfoEntries{};

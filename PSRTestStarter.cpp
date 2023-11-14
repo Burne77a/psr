@@ -119,8 +119,7 @@ void AddApp(unsigned int id)
 {
   static const unsigned int bytes = 100U;
   static const unsigned int period = 200U;
-  static const unsigned int primaryId = 1;
-  if(!g_pPsrm->RegisterApplication(id, primaryId, bytes, period))
+  if(!g_pPsrm->RegisterApplication(id, g_thisNodeId, bytes, period))
   {
     LogMsg(LogPrioCritical, "ERROR: Failed to register application");
   }

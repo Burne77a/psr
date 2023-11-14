@@ -60,11 +60,12 @@ bool ASSP::PairWithUnUsedIfItExist(const unsigned int appId)
       auto storageInfoOrNothing = m_sr.GetStorageInfo(storageId);
       if(storageInfoOrNothing.has_value())
       {
-        m_air.Print()
-        storageInfoOrNothing.value().GetNodeId()
-        m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
-        LogMsg(LogPrioInfo,"ASSP::PairWithUnUsedIfItExist posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
-        isSuccessfullyPairedWithUnusedStateStorage = true;
+        if(IsStorageOnDifferentNode(appId,storageInfoOrNothing.value()))
+        {
+          m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
+          LogMsg(LogPrioInfo,"ASSP::PairWithUnUsedIfItExist posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
+          isSuccessfullyPairedWithUnusedStateStorage = true;
+        }
       }
       else
       {
@@ -91,9 +92,12 @@ bool ASSP::PairWithUsed(const unsigned int appId)
       auto storageInfoOrNothing = m_sr.GetStorageInfo(storageId);
       if(storageInfoOrNothing.has_value())
       {
-        m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
-        LogMsg(LogPrioInfo,"ASSP::PairWithUsed posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
-        isMatchMade = true;
+        if(IsStorageOnDifferentNode(appId,storageInfoOrNothing.value()))
+        {
+          m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
+          LogMsg(LogPrioInfo,"ASSP::PairWithUsed posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
+          isMatchMade = true;
+        }
       }
       else
       {
@@ -185,7 +189,15 @@ void ASSP::StorageAdded(const unsigned int storageId)
 
 bool ASSP::IsStorageOnDifferentNode(const unsigned int appId,StorageInfo &storageInfo)
 {
-  m_air
+  auto appEntryOrNothing = m_air.GetAppInfoForAppId(appId);
+  if(appEntryOrNothing.has_value())
+  {
+    return appEntryOrNothing.value().GetPrimaryNodeId() != storageInfo.GetNodeId();
+  }
+  else
+  {
+    return false;
+  }
 }
 
 void ASSP::HandleActivity()
