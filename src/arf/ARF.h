@@ -20,8 +20,10 @@ class ARF
     void Print() const;  
     
   private:
-    //Called from AFD when the backup do not observe pings from the primary and entery the "primary" role. 
-    void PrimaryFailureTimeoutCb(const unsigned int appId);
+    
+    //Called when there is an update of app state storage pairing
+    void StateStorageChangeCallback(const AppStateStoragePair &affectedPair, bool isRemoved);
+    
     std::unordered_map<unsigned int, std::unique_ptr<AFD>> m_appFailuredetectors{};
     PSRM & m_psrm;
 };

@@ -62,7 +62,7 @@ bool ASSP::PairWithUnUsedIfItExist(const unsigned int appId)
       {
         if(IsStorageOnDifferentNode(appId,storageInfoOrNothing.value()))
         {
-          m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
+          m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr(),storageInfoOrNothing.value().GetNodeId()});
           LogMsg(LogPrioInfo,"ASSP::PairWithUnUsedIfItExist posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
           isSuccessfullyPairedWithUnusedStateStorage = true;
         }
@@ -94,7 +94,7 @@ bool ASSP::PairWithUsed(const unsigned int appId)
       {
         if(IsStorageOnDifferentNode(appId,storageInfoOrNothing.value()))
         {
-          m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr()});
+          m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,storageId,storageInfoOrNothing.value().GetIpAddr(),storageInfoOrNothing.value().GetNodeId()});
           LogMsg(LogPrioInfo,"ASSP::PairWithUsed posted pairing of app %u and storage %u (%s)",appId,storageId,storageInfoOrNothing.value().GetIpAddr().c_str());
           isMatchMade = true;
         }
@@ -130,7 +130,7 @@ bool ASSP::PairAppWithStorageIfPossible(const unsigned int appId)
 
 void ASSP::RemoveAppStoragePair(const unsigned int appId)
 {
-  m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,AppStateStoragePair::INVALID_VALUE,std::string{"NONE"}});
+  m_sspr.PostStoragePairForReplication(AppStateStoragePair{appId,AppStateStoragePair::INVALID_VALUE,std::string{"NONE"},AppStateStoragePair::INVALID_VALUE});
 }
 
 void ASSP::ApplicationRemoved(const unsigned int appId)

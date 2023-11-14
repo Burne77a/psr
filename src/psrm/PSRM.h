@@ -33,6 +33,8 @@ class PSRM
      return m_pSr->DeRegisterStorage(storageId);
     }
     
+    void SetAppStatePairChangeCb(StateStorageChangeCallbackType cb) {m_pSspr->InstallChangeCallback(cb);}
+    
     
   private:
     OSAStatusCode InstanceTaskMethod();

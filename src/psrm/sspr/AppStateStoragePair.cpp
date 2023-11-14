@@ -42,10 +42,10 @@ std::shared_ptr<AppStateStoragePair> AppStateStoragePair::CreateFromRawPtr(const
 }
 
 
-AppStateStoragePair::AppStateStoragePair(const unsigned int appId, const unsigned int storageId, std::string_view stateStorageIpAddr)
+AppStateStoragePair::AppStateStoragePair(const unsigned int appId, const unsigned int storageId, std::string_view stateStorageIpAddr,const unsigned int storageNodeId)
 {
   m_data.appId = appId;
-  SetStorage(storageId,stateStorageIpAddr);
+  SetStorage(storageId,stateStorageIpAddr,storageNodeId);
 }
 
 AppStateStoragePair::AppStateStoragePair(const unsigned int appId)
@@ -59,9 +59,10 @@ AppStateStoragePair::AppStateStoragePair()
   m_data.storageIpAddr[0] = '\0';
 }
 
-void AppStateStoragePair::SetStorage(const unsigned int storageId, std::string_view storageIpAddr)
+void AppStateStoragePair::SetStorage(const unsigned int storageId, std::string_view storageIpAddr,const unsigned int storageNodeId)
 {
   m_data.storageId = storageId;
+  m_data.storageNodeId = storageNodeId;
   size_t lengthToCopy = std::min(storageIpAddr.size(), sizeof(m_data.storageIpAddr) - 1);
   std::copy_n(storageIpAddr.begin(), lengthToCopy, m_data.storageIpAddr);
   m_data.storageIpAddr[lengthToCopy] = '\0';
@@ -87,5 +88,5 @@ bool AppStateStoragePair::Deserialize()
 
 void AppStateStoragePair::Print() const
 {
-  LogMsg(LogPrioInfo,"AppStateStoragePair: AppId %u StorageId: %u ip: %s",m_data.appId,m_data.storageId,m_data.storageIpAddr);
+  LogMsg(LogPrioInfo,"AppStateStoragePair: AppId %u StorageId: %u NodeId: %u ip: %s",m_data.appId,m_data.storageId,m_data.storageNodeId,m_data.storageIpAddr);
 }

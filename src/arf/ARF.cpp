@@ -103,14 +103,16 @@ bool ARF::Kickwatchdog(const unsigned int appId)
   return true;
 }
 
-void ARF::PrimaryFailureTimeoutCb(const unsigned int appId)
+
+
+void ARF::StateStorageChangeCallback(const AppStateStoragePair &affectedPair, bool isRemoved)
 {
   
 }
 
 void ARF::Print() const
 {
-  LogMsg(LogPrioInfo, "--- >ARF<---");
+  LogMsg(LogPrioInfo, "--- >ARF< ---");
   LogMsg(LogPrioInfo,"Number of AFDs: %d", m_appFailuredetectors.size());
   for(auto &entry : m_appFailuredetectors)
   {
