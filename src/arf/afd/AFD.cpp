@@ -121,6 +121,7 @@ void AFD::BackupStateHandling()
       if(m_hbTmoCb)
       {
         LogMsg(LogPrioInfo, "AFD::BackupStateHandling() - Heartbeat timeout - informing application by calling callback");
+        m_hbTmoCb(m_appId);
       }
     }
   } 

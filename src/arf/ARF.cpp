@@ -10,6 +10,7 @@ std::unique_ptr<ARF> ARF::CreateARF(PSRM &psrm,const unsigned int backupId)
   {
     LogMsg(LogPrioCritical, "ERROR: ARF::CreateARF failed to create ARF. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
   }
+  psrm.SetAppStatePairChangeCb(std::bind(&ARF::StateStorageChangeCallback,&*pArf, std::placeholders::_1,std::placeholders::_2));
   return pArf;
 }
 
@@ -144,7 +145,7 @@ void ARF::StateStorageChangeCallback(const AppStateStoragePair &affectedPair, bo
   const unsigned int myId = m_psrm.GetMyId();
   const unsigned int appId = affectedPair.GetAppId();
   const unsigned int primaryId = affectedPair.GetPrimaryAppNodeId();
-  const unsigned int storageId = affectedPair.GetStorageId();
+  const unsigned int storageId = affectedPair.GetStorageNodeId();
   const unsigned int backupId = m_backupId;
  
   //Is this node affected?

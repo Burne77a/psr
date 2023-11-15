@@ -8,11 +8,12 @@ StateDataMsg::StateDataMsg()
   m_dataAndPayloadSerialized.assign(pStartOfMeta, pStartOfMeta + sizeOfMeta);
 }
 
-StateDataMsg::StateDataMsg(const MsgType type)
+StateDataMsg::StateDataMsg(const unsigned int appId,const MsgType type)
 {
   const uint8_t * pStartOfMeta = (uint8_t*)(&m_data);
   const uint32_t sizeOfMeta = sizeof(m_data);
   m_data.type = type;
+  m_data.appId = appId;
   m_dataAndPayloadSerialized.assign(pStartOfMeta, pStartOfMeta + sizeOfMeta);
 }
 
@@ -56,7 +57,7 @@ uint8_t * StateDataMsg::GetPayloadBuffer(uint32_t &size) const
 }
 
 
-void StateDataMsg::SetPayload(ISerializable &objToSend)
+void StateDataMsg::SetPayload(const ISerializable &objToSend)
 {
   const uint8_t * pPayloadData = objToSend.Serialize(m_data.payloadSize);
   const uint8_t * pStartOfMeta = (uint8_t*)(&m_data);
@@ -99,7 +100,7 @@ bool StateDataMsg::Deserialize()
 
 void StateDataMsg::Print() const
 {
-  LogMsg(LogPrioInfo,"StateDataMsg: PayloadSize: %u, Type: %u, appId: %u Capacity: %u Size: %u DataAddr: 0x%x,",m_data.payloadSize,m_data.type,m_data.appId,m_dataAndPayloadSerialized.capacity(),
+  LogMsg(LogPrioInfo,"StateDataMsg: PayloadSize: %u, Type: %d, appId: %u Capacity: %u Size: %u DataAddr: 0x%x,",m_data.payloadSize,m_data.type,m_data.appId,m_dataAndPayloadSerialized.capacity(),
       m_dataAndPayloadSerialized.size(),m_dataAndPayloadSerialized.data());
 }
 

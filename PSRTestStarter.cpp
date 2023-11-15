@@ -73,6 +73,7 @@ OSAStatusCode StartPSRTest(const int id)
     return OSA_ERROR;
   }
   
+  
   g_isRunning = true;
   
   g_pTstClient = std::make_unique<TestClient>(*g_pCsaIf);
@@ -145,7 +146,7 @@ void AddStorage(unsigned int id)
 {
   static const unsigned int size = 100U;
   static const unsigned int bandwidth = 200U;
-  static const std::string ipAddr{"192.168.201.291"};
+  static const std::string ipAddr{g_pCcm->GetIp(g_thisNodeId)};
   if(!g_pPsrm->RegisterStorage(id,g_thisNodeId, ipAddr, size, bandwidth))
   {
    LogMsg(LogPrioCritical, "ERROR: Failed to register storage");

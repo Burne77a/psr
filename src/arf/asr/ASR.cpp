@@ -3,11 +3,13 @@
 #include "NwAid.h"
 #include <errnoLib.h>
 
-static const int APP_STORE_PORT_BASE = 9500;
+static const int APP_STORE_PORT_BASE_RETRIEVER = 9200;
+static const int APP_STORE_PORT_BASE_KEEPER = 9400;
 
 std::unique_ptr<ASR> ASR::CreateASR(const unsigned int appId, const unsigned int primaryNodeId, const unsigned int storageNodeId, const unsigned int thisNodeId ,std::string_view backupIp,std::string_view storageIp)
 {
-  const int appStatePort = APP_STORE_PORT_BASE + appId;
+  const int appStatePortKeeper = APP_STORE_PORT_BASE_KEEPER + appId;
+  const int appStatePortRetriever = APP_STORE_PORT_BASE_RETRIEVER + appId;
   bool isCreationOk = true;
   
   std::unique_ptr<ASR> pAsr{nullptr};
@@ -15,27 +17,27 @@ std::unique_ptr<ASR> ASR::CreateASR(const unsigned int appId, const unsigned int
   std::unique_ptr<StateRetriever> pStateRetriever{nullptr};
   std::unique_ptr<StateStorer> pStateStorer{nullptr};
   
-  pStateStorer = StateStorer::CreateStateStorer(appId, appStatePort, storageIp);
+  pStateStorer = StateStorer::CreateStateStorer(appId, appStatePortKeeper, storageIp);
   if(!pStateStorer)
   {
-    LogMsg(LogPrioCritical, "ERROR: ASR::CreateASR failed to create StateStorer (port %d). Errno: 0x%x (%s)",appStatePort,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: ASR::CreateASR failed to create StateStorer (port %d). Errno: 0x%x (%s)",appStatePortKeeper,errnoGet(),strerror(errnoGet()));
     isCreationOk = false;
   }
   
-  pStateRetriever = StateRetriever::CreateStateRetriever(appId, appStatePort, storageIp);
+  pStateRetriever = StateRetriever::CreateStateRetriever(appId, appStatePortRetriever,appStatePortKeeper, storageIp);
   if(!pStateRetriever)
   {
-    LogMsg(LogPrioCritical, "ERROR: ASR::CreateASR failed to create StateRetriever (port %d). Errno: 0x%x (%s)",appStatePort,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: ASR::CreateASR failed to create StateRetriever (port %d). Errno: 0x%x (%s)",appStatePortRetriever,errnoGet(),strerror(errnoGet()));
     isCreationOk = false;
   } 
   
   
   if(thisNodeId == storageNodeId)
   {
-    pStateKeeper = StateKeeper::CreateStateKeeper(appId, appStatePort, backupIp);
+    pStateKeeper = StateKeeper::CreateStateKeeper(appId, appStatePortRetriever,appStatePortKeeper, backupIp);
     if(!pStateKeeper)
     {
-      LogMsg(LogPrioCritical, "ERROR: ASR::CreateASR failed to create StateKeeper (port %d). Errno: 0x%x (%s)",appStatePort,errnoGet(),strerror(errnoGet()));
+      LogMsg(LogPrioCritical, "ERROR: ASR::CreateASR failed to create StateKeeper (port %d). Errno: 0x%x (%s)",appStatePortRetriever,errnoGet(),strerror(errnoGet()));
       isCreationOk = false;
     } 
   }  

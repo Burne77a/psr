@@ -36,7 +36,9 @@ StateStorer::StateStorer(const unsigned int appId,std::unique_ptr<ISender> &pSen
 bool StateStorer::SendAppDataToStorage(const ISerializable & appStateData)
 {
   bool isSuccessfullySent = false;
-  if(m_pSender->Send(appStateData))
+  StateDataMsg outboundMsg(m_appId,StateDataMsg::MsgType::Store);
+  outboundMsg.SetPayload(appStateData);
+  if(m_pSender->Send(outboundMsg))
   {
     isSuccessfullySent = true;
   }
@@ -51,7 +53,7 @@ bool StateStorer::SendAppDataToStorage(const ISerializable & appStateData)
 void StateStorer::Print() const
 {
   LogMsg(LogPrioInfo,"--- >StateStorer< ---");
-  LogMsg(LogPrioInfo,"AppId: %u StateReceived: %s",m_appId);
+  LogMsg(LogPrioInfo,"AppId: %u ",m_appId);
   LogMsg(LogPrioInfo,"--- <StateStorer> ---");
 }
 

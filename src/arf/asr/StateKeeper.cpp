@@ -5,23 +5,23 @@
 
 
 
-std::unique_ptr<StateKeeper> StateKeeper::CreateStateKeeper(const unsigned int appId, const unsigned int port, std::string_view backupIp)
+std::unique_ptr<StateKeeper> StateKeeper::CreateStateKeeper(const unsigned int appId, const unsigned int portRetriever,const unsigned int portKeeper, std::string_view backupIp)
 {
   std::unique_ptr<StateKeeper> pSk{nullptr};
   
   
-  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(port);
+  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(portKeeper);
   if(!pRcv)
   {
-    LogMsg(LogPrioCritical, "ERROR: StateKeeper::CreateStateKeeper failed to create IReceiver (port %d). Errno: 0x%x (%s)",port,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: StateKeeper::CreateStateKeeper failed to create IReceiver (port %d). Errno: 0x%x (%s)",portKeeper,errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
   
-  std::unique_ptr<ISender> pSnd = NwAid::CreateUniCastSender(backupIp,port);
+  std::unique_ptr<ISender> pSnd = NwAid::CreateUniCastSender(backupIp,portRetriever);
   if(!pSnd)
   {
-    LogMsg(LogPrioCritical, "ERROR: StateKeeper::CreateStateKeeper failed to create ISender (port %d). Errno: 0x%x (%s)",port,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: StateKeeper::CreateStateKeeper failed to create ISender (port %d). Errno: 0x%x (%s)",portRetriever,errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
@@ -30,7 +30,11 @@ std::unique_ptr<StateKeeper> StateKeeper::CreateStateKeeper(const unsigned int a
   pSk = std::make_unique<StateKeeper>(appId,pSnd,pRcv);
   if(!pSk)
   {
-    LogMsg(LogPrioCritical, "ERROR: StateKeeper::CreateStateKeeper failed to create StateKeeper. appId: %u  Errno: 0x%x (%s)",port,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: StateKeeper::CreateStateKeeper failed to create StateKeeper. appId: %u  Errno: 0x%x (%s)",portRetriever,errnoGet(),strerror(errnoGet()));
+  }
+  else
+  {
+    LogMsg(LogPrioInfo,"Created StateKeeper Outbound port: %u inbound port %u",portRetriever,portKeeper);
   }
   
   return pSk;
@@ -117,10 +121,15 @@ void StateKeeper::RcvMyStorageData()
       {
         SendLatestStateToRequester(incomingStateData);
       }
+      else
+      {
+        LogMsg(LogPrioCritical, "ERROR: StateKeeper::RcvMyStorageData received message of unexpected type");
+        incomingStateData.Print();
+      }
     }
     else
     {
-      LogMsg(LogPrioCritical, "StateKeeper::RcvMyStorageData received state data destined to another app. Rcvd: %u My: %u",incomingStateData.GetAppId(), m_appId);
+      LogMsg(LogPrioCritical, "ERROR: StateKeeper::RcvMyStorageData received state data destined to another app. Rcvd: %u My: %u",incomingStateData.GetAppId(), m_appId);
     }
   }
 

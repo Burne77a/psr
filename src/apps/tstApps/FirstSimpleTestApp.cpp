@@ -21,7 +21,7 @@ void FirstSimpleTestApp::PrimaryHbTimeoutCb(const unsigned int appId)
   }
   else
   {
-    LogMsg(LogPrioInfo, "AFD::PrimaryHbTimeoutCb ARF says that this app %u should become primary",m_appId);
+    LogMsg(LogPrioInfo, "FirstSimpleTestApp::PrimaryHbTimeoutCb ARF says that this app %u should become primary",m_appId);
     m_nextIsPrimary = true;
   }
 }
@@ -47,11 +47,11 @@ void FirstSimpleTestApp::RunStateMachine()
 {
   if(m_nextIsPrimary != m_isPrimary)
   {
-    LogMsg(LogPrioInfo, "AFD::RunStateMachine changed role to %s",m_nextIsPrimary? "Primary" : "Backup");
+    LogMsg(LogPrioInfo, "FirstSimpleTestApp::RunStateMachine changed role to %s",m_nextIsPrimary? "Primary" : "Backup");
     m_isPrimary = m_nextIsPrimary;
-    if(!m_isPrimary)
+    if(m_isPrimary)
     {
-      
+      GetStateData();
     }
   }
   

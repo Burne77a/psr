@@ -10,7 +10,7 @@ class StateRetriever
 {
   public:
     
-    static std::unique_ptr<StateRetriever> CreateStateRetriever(const unsigned int appId, const unsigned int port, std::string_view storageIp);
+    static std::unique_ptr<StateRetriever> CreateStateRetriever(const unsigned int appId, const unsigned int portRetriever,const unsigned int portKeeper, std::string_view storageIp);
     StateRetriever(const unsigned int appId,std::unique_ptr<ISender> &pSender, std::unique_ptr<IReceiver> &pReceiver);
     ~StateRetriever() = default;
     

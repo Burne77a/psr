@@ -76,7 +76,7 @@ bool LeaderCommunicator::WaitForCommitAckToRequest(const ClientMessage &req,cons
       isWaitOver = (elapsed > TimeToWaitInMsDuration);
       if(!isWaitOver)
       {
-        OSATaskSleep(10);
+        OSATaskSleep(200);
       }
     }
   }while(!isCorrectReplyReceived && !isWaitOver);

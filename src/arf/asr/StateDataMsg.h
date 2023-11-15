@@ -25,7 +25,7 @@ class StateDataMsg : public ISerializable
     
   public:
     StateDataMsg();
-    StateDataMsg(const MsgType type);
+    StateDataMsg(const unsigned int appId, const MsgType type);
     StateDataMsg(const StateDataMsg &src);
     StateDataMsg(const MsgType type, const StateDataMsg &src);
     ~StateDataMsg();
@@ -38,7 +38,7 @@ class StateDataMsg : public ISerializable
     uint8_t *  GetPayloadBuffer(uint32_t &size) const;
     
     
-    void SetPayload(ISerializable &objToSend);
+    void SetPayload(const ISerializable &objToSend);
     
     //ISerializable
     uint8_t *  Serialize(uint32_t &size) const override;

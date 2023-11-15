@@ -11,7 +11,7 @@ class StateKeeper
 {
   public:
     
-    static std::unique_ptr<StateKeeper> CreateStateKeeper(const unsigned int appId, const unsigned int port, std::string_view backupIp);
+    static std::unique_ptr<StateKeeper> CreateStateKeeper(const unsigned int appId, const unsigned int portRetriever,const unsigned int portKeeper, std::string_view backupIp);
     StateKeeper(const unsigned int appId,std::unique_ptr<ISender> &pSender, std::unique_ptr<IReceiver> &pReceiver);
     ~StateKeeper() = default;
         

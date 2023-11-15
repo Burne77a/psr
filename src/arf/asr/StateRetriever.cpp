@@ -6,23 +6,23 @@
 
 
 
-std::unique_ptr<StateRetriever> StateRetriever::CreateStateRetriever(const unsigned int appId, const unsigned int port, std::string_view storageIp)
+std::unique_ptr<StateRetriever> StateRetriever::CreateStateRetriever(const unsigned int appId, const unsigned int portRetriever,const unsigned int portKeeper, std::string_view storageIp)
 {
   std::unique_ptr<StateRetriever> pSr{nullptr};
   
   
-  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(port);
+  std::unique_ptr<IReceiver> pRcv = NwAid::CreateUniCastReceiver(portRetriever);
   if(!pRcv)
   {
-    LogMsg(LogPrioCritical, "ERROR: StateRetriever::CreateStateRetriever failed to create IReceiver (port %d). Errno: 0x%x (%s)",port,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: StateRetriever::CreateStateRetriever failed to create IReceiver (port %d). Errno: 0x%x (%s)",portRetriever,errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
   
-  std::unique_ptr<ISender> pSnd = NwAid::CreateUniCastSender(storageIp,port);
+  std::unique_ptr<ISender> pSnd = NwAid::CreateUniCastSender(storageIp,portKeeper);
   if(!pSnd)
   {
-    LogMsg(LogPrioCritical, "ERROR: StateRetriever::CreateStateRetriever failed to create ISender (port %d). Errno: 0x%x (%s)",port,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: StateRetriever::CreateStateRetriever failed to create ISender (port %d). Errno: 0x%x (%s)",portKeeper,errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
   
@@ -31,9 +31,12 @@ std::unique_ptr<StateRetriever> StateRetriever::CreateStateRetriever(const unsig
   pSr = std::make_unique<StateRetriever>(appId,pSnd,pRcv);
   if(!pSr)
   {
-    LogMsg(LogPrioCritical, "ERROR: StateRetriever::CreateStateRetriever failed to create StateRetriever. appId: %u  Errno: 0x%x (%s)",port,errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: StateRetriever::CreateStateRetriever failed to create StateRetriever. appId: %u  Errno: 0x%x (%s)",portKeeper,errnoGet(),strerror(errnoGet()));
   }
-  
+  else
+  {
+    LogMsg(LogPrioInfo,"Created StateRetriever Outbound port: %u inbound port %u",portKeeper, portRetriever);
+  }
   return pSr;
 }
 
@@ -46,7 +49,7 @@ StateRetriever::StateRetriever(const unsigned int appId,std::unique_ptr<ISender>
 
 bool StateRetriever::GetLatestStateFromStorage(ISerializable & objToPopulate)
 {
-  StateDataMsg msgToReqLatestState{StateDataMsg::MsgType::Get};
+  StateDataMsg msgToReqLatestState{m_appId,StateDataMsg::MsgType::Get};
   if(!m_pSender->Send(msgToReqLatestState))
   {
     LogMsg(LogPrioCritical, "ERROR: StateRetriever::GetLatestStateFromStorage failed to send request for state (appId %u). Errno: 0x%x (%s)",m_appId,errnoGet(),strerror(errnoGet()));
