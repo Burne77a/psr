@@ -6,6 +6,7 @@
 #include "assp/ASSP.h"
 #include "TaskAbstraction.h"
 #include <memory>
+#include <string>
 
 class PSRM
 {
@@ -34,6 +35,9 @@ class PSRM
     }
     
     void SetAppStatePairChangeCb(StateStorageChangeCallbackType cb) {m_pSspr->InstallChangeCallback(cb);}
+    
+    unsigned int GetMyId() const{return m_pIccm->GetMyId();}
+    std::string GetIp(const unsigned int id) const{return m_pIccm->GetIp(id);}
     
     
   private:

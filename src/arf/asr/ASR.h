@@ -1,10 +1,10 @@
 #ifndef ARF_ASR_H
 #define ARF_ASR_H
 
+#include "StateKeeper.h"
+#include "StateRetriever.h"
+#include "StateStorer.h"
 
-#include "TaskAbstraction.h"
-#include "ISender.h"
-#include "IReceiver.h"
 #include <memory>
 #include <string>
 
@@ -13,13 +13,13 @@ class ASR
 {
   public:
     
-    static std::unique_ptr<ASR> CreateASR(const unsigned int appId);
-    ASR(const unsigned int appId, std::unique_ptr<IReceiver> &pReceiver);
+    static std::unique_ptr<ASR> CreateASR(const unsigned int appId, const unsigned int primaryNodeId, const unsigned int storageNodeId, const unsigned int thisNodeId ,std::string_view backupIp,std::string_view storageIp);
+    ASR(const unsigned int appId,  std::unique_ptr<StateKeeper> & pStateKeeper,std::unique_ptr<StateRetriever> & pStateRetriever,std::unique_ptr<StateStorer> &pStateStorer);
     ~ASR() = default;
     
-    bool SendToStorage(const ISerializable & objToSend);
+    bool PrimaryAppSendStateToStorage(const ISerializable & objToSend);
     
-    bool GetFromStorage(const ISerializable & objToRcvTo);
+    bool BackupAppGetStateFromStorage(ISerializable & objToRcvTo);
     
     OSAStatusCode Start();
     void Stop();
@@ -27,19 +27,10 @@ class ASR
  
   private:
         
-    void RunStateMachine();
-    
-    bool RcvMyStorageData();
-    void Flush();
-    
-    OSAStatusCode StorageTaskMethod();
-    static OSAStatusCode ClassTaskMethod(void * const pInstance);
-    
-    bool m_isRunning{false};
-    const uint32_t  m_periodInMs{10U};
     const unsigned int m_appId;
-    std::unique_ptr<ISender> m_pSender; 
-    std::unique_ptr<IReceiver> m_pReceiver;
+    std::unique_ptr<StateKeeper> m_pStateKeeper{nullptr}; 
+    std::unique_ptr<StateRetriever> m_pStateRetriever{nullptr};
+    std::unique_ptr<StateStorer> m_pStateStorer{nullptr};
     
 };
 

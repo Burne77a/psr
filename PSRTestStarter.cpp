@@ -66,7 +66,7 @@ OSAStatusCode StartPSRTest(const int id)
     return psrmStartSts;
   }
   
-  g_pArf = ARF::CreateARF(*g_pPsrm);
+  g_pArf = ARF::CreateARF(*g_pPsrm,BackupNodeId);
   if(!g_pArf)
   {
     LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateARF failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));

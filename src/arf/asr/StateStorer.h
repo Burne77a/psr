@@ -4,7 +4,7 @@
 
 #include "TaskAbstraction.h"
 #include "ISender.h"
-#include "IReceiver.h"
+#include "StateDataMsg.h"
 #include <memory>
 #include <string>
 
@@ -13,29 +13,15 @@ class StateStorer
 {
   public:
     
-    static std::unique_ptr<StateStorer> CreateStateStorer(const unsigned int port, std::string_view backupIp);
-    StateStorer(const unsigned int appId,std::unique_ptr<IReceiver> &pReceiver, std::unique_ptr<ISender> &pSender);
+    static std::unique_ptr<StateStorer> CreateStateStorer(const unsigned int appId, const unsigned int port, std::string_view storageIp);
+    StateStorer(const unsigned int appId,std::unique_ptr<ISender> &pSender);
     ~StateStorer() = default;
-        
-    OSAStatusCode Start();
-    void Stop();
+    bool SendAppDataToStorage(const ISerializable & appStateData);    
     void Print() const;
  
   private:        
-    void RunStateMachine();
-    
-    bool RcvMyStorageData();
-    void Flush();
-    
-    OSAStatusCode StorageTaskMethod();
-    static OSAStatusCode ClassTaskMethod(void * const pInstance);
-    
-    bool m_isRunning{false};
-    const uint32_t  m_periodInMs{5U};
     std::unique_ptr<ISender> m_pSender; 
-    std::unique_ptr<IReceiver> m_pReceiver;
     const unsigned int m_appId;
-    
 };
 
 #endif //ARF_ASR_STATESTORER_H

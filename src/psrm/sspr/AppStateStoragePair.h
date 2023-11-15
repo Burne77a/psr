@@ -11,21 +11,23 @@ class AppStateStoragePair: public ISerializable
     struct AppStateStorageInfoData
     {
      unsigned int appId{INVALID_VALUE};
+     unsigned int primaryNodeId{INVALID_VALUE};
      unsigned int storageId{INVALID_VALUE};
      unsigned int storageNodeId{INVALID_VALUE};
      char storageIpAddr[20];
     };
   public: 
     static std::shared_ptr<AppStateStoragePair> CreateFromRawPtr(const uint8_t * pBuffer, const uint32_t size);
-    AppStateStoragePair(const unsigned int appId, const unsigned int storageId, std::string_view stateStorageIpAddr, const unsigned int storageNodeId);
+    AppStateStoragePair(const unsigned int appId, const unsigned int storageId, std::string_view stateStorageIpAddr, const unsigned int storageNodeId,const unsigned int primaryNodeId);
     AppStateStoragePair(const unsigned int appId);
     AppStateStoragePair();
     ~AppStateStoragePair() = default;
     unsigned int GetAppId() const {return m_data.appId;}
     unsigned int GetStorageId() const {return m_data.storageId;}
     unsigned int GetStorageNodeId() const{return m_data.storageNodeId;}
+    unsigned int GetPrimaryAppNodeId() const {return m_data.primaryNodeId;}
     bool IsPaired() const {return m_data.storageId != INVALID_VALUE;}
-    void SetStorage(const unsigned int storageId, std::string_view storageIpAddr,const unsigned int storageNodeId);
+    void SetStorage(const unsigned int storageId, std::string_view storageIpAddr,const unsigned int storageNodeId,const unsigned int primaryNodeId);
     std::string GetIpAddr() const {return std::string{m_data.storageIpAddr};}
     
     //ISerializable

@@ -3,6 +3,7 @@
 #include "csa/UpcallCallback.h"
 #include "csa/ClientMessage.h"
 #include "Logger.h"
+#include <string>
 #include <memory>
 class ICCM
 {
@@ -30,6 +31,8 @@ class ICCM
     };
     virtual bool ReplicateRequest(const ClientMessage & msg) = 0;
     virtual bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) = 0; 
+    virtual unsigned int GetMyId() const = 0;
+    virtual std::string GetIp(const unsigned int id) const = 0;
     virtual ClientRequestId CreateUniqueId() = 0;
     virtual bool IsFullySyncLeader() = 0;
 };

@@ -7,6 +7,7 @@
 
 class StateDataMsg : public ISerializable
 {
+  public:
     enum class MsgType
      {
        Store = 0,
@@ -15,7 +16,6 @@ class StateDataMsg : public ISerializable
      };
     
   private:
-     
     struct StateData
     {
       MsgType type{MsgType::Store};
@@ -25,7 +25,18 @@ class StateDataMsg : public ISerializable
     
   public:
     StateDataMsg();
+    StateDataMsg(const MsgType type);
+    StateDataMsg(const StateDataMsg &src);
+    StateDataMsg(const MsgType type, const StateDataMsg &src);
     ~StateDataMsg();
+    StateDataMsg& operator=(const StateDataMsg& other);
+    
+    bool IsStoreMsg() const {return m_data.type == MsgType::Store;}
+    bool IsGetMsg() const {return m_data.type == MsgType::Get;}
+    bool IsFetchedMsg() const {return m_data.type == MsgType::Fetched;}
+    unsigned int GetAppId() const{return m_data.appId;}
+    uint8_t *  GetPayloadBuffer(uint32_t &size) const;
+    
     
     void SetPayload(ISerializable &objToSend);
     
@@ -34,9 +45,11 @@ class StateDataMsg : public ISerializable
     const uint8_t * GetSerializableDataBuffer(uint32_t &size) const override;
     bool Deserialize() override;
     
+    void Print() const;
+    
   private:
     mutable StateData m_data;
-    std::vector<uint8_t> m_dataAndPayloadSerialized;
+    mutable std::vector<uint8_t> m_dataAndPayloadSerialized;
     static const unsigned int MAX_PAYLOAD_SIZE{3000U};
 };
 
