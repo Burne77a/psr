@@ -16,6 +16,8 @@ class FirstSimpleTestApp : public IApp
     //Called by ARF (AFD) when a the backup do no longer observe heartbeats from primary as expected. 
     void PrimaryHbTimeoutCb(const unsigned int appId);
     void RunStateMachine();
+    void SendState();
+    void GetStateData();
     OSAStatusCode AppTaskMethod();
     static OSAStatusCode ClassTaskMethod(void * const pInstance);
     ARF &m_arf;

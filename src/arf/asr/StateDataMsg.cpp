@@ -62,7 +62,7 @@ void StateDataMsg::SetPayload(ISerializable &objToSend)
   const uint8_t * pStartOfMeta = (uint8_t*)(&m_data);
   const uint32_t sizeOfMeta = sizeof(m_data);
   m_dataAndPayloadSerialized.assign(pStartOfMeta, pStartOfMeta + sizeOfMeta);
-  if((pStartOfMeta != nullptr) && (m_data.payloadSize > 0))
+  if((pPayloadData != nullptr) && (m_data.payloadSize > 0))
   {
     m_dataAndPayloadSerialized.insert(m_dataAndPayloadSerialized.end(), pPayloadData, pPayloadData + m_data.payloadSize);
   }

@@ -104,6 +104,40 @@ bool ARF::Kickwatchdog(const unsigned int appId)
 }
 
 
+bool ARF::PrimaryAppSendStateToStorage(const unsigned int appId,const ISerializable & objToSend)
+{
+  auto entry = m_appStateReplicators.find(appId);
+  if(entry == m_appStateReplicators.end())
+  {
+    LogMsg(LogPrioCritical, "ERROR: ARF::PrimaryAppSendStateToStorage could not find ASR for ID %u",appId);
+    return false;
+  }
+  if(!entry->second)
+  {
+    LogMsg(LogPrioCritical, "ERROR: ARF::PrimaryAppSendStateToStorage no valid ASR pointer for ID %u",appId);
+    return false;
+  }
+  
+  return entry->second->PrimaryAppSendStateToStorage(objToSend);
+}
+
+bool ARF::BackupAppGetStateFromStorage(const unsigned int appId,ISerializable & objToRcvTo)
+{
+  auto entry = m_appStateReplicators.find(appId);
+  if(entry == m_appStateReplicators.end())
+  {
+    LogMsg(LogPrioCritical, "ERROR: ARF::BackupAppGetStateFromStorage could not find ASR for ID %u",appId);
+    return false;
+  }
+  if(!entry->second)
+  {
+    LogMsg(LogPrioCritical, "ERROR: ARF::BackupAppGetStateFromStorage no valid ASR pointer for ID %u",appId);
+    return false;
+  }
+  
+  return entry->second->BackupAppGetStateFromStorage(objToRcvTo);
+}
+
 
 void ARF::StateStorageChangeCallback(const AppStateStoragePair &affectedPair, bool isRemoved)
 {
@@ -119,7 +153,6 @@ void ARF::StateStorageChangeCallback(const AppStateStoragePair &affectedPair, bo
     std::string backupIp{m_psrm.GetIp(backupId)};
     CreateAndInstallASR(appId,primaryId,storageId,myId,backupIp,affectedPair.GetIpAddr());
   }
-  //affectedPair.GetStorageId()
 }
 
 
@@ -130,7 +163,14 @@ void ARF::CreateAndInstallASR(const unsigned int appId, const unsigned int prima
     std::unique_ptr<ASR> pAsr = ASR::CreateASR(appId, primaryNodeId, storageNodeId,thisNodeId, backupIp,storageIp);
     if(pAsr)
     {
-      m_appStateReplicators.insert(std::make_pair(appId, std::move(pAsr)));
+      if(pAsr->Start() == OSA_OK)
+      {
+        m_appStateReplicators.insert(std::make_pair(appId, std::move(pAsr)));
+      }
+      else
+      {
+        LogMsg(LogPrioCritical, "ERROR: ARF::CreateAndInstallASR failed to start ASR for Id %u Errno: 0x%x (%s)",appId,errnoGet(),strerror(errnoGet()));
+      }
     }
     else
     {

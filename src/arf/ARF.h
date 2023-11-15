@@ -18,6 +18,10 @@ class ARF
     bool SetAsPrimary(const unsigned int appId);
     bool SetAsBackup(const unsigned int appId);
     bool Kickwatchdog(const unsigned int appId);
+    bool PrimaryAppSendStateToStorage(const unsigned int appId,const ISerializable & objToSend);
+    bool BackupAppGetStateFromStorage(const unsigned int appId,ISerializable & objToRcvTo);
+    
+    
     void Print() const;  
     
   private:

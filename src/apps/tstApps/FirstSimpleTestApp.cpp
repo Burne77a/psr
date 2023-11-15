@@ -1,4 +1,5 @@
 #include "FirstSimpleTestApp.h"
+#include "DummyStateData.h"
 #include "Logger.h"
 #include <errnoLib.h>
 FirstSimpleTestApp::FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr, std::string_view backupIpAddr, ARF& arf,unsigned int periodInMs,unsigned int nodeId) : 
@@ -48,6 +49,10 @@ void FirstSimpleTestApp::RunStateMachine()
   {
     LogMsg(LogPrioInfo, "AFD::RunStateMachine changed role to %s",m_nextIsPrimary? "Primary" : "Backup");
     m_isPrimary = m_nextIsPrimary;
+    if(!m_isPrimary)
+    {
+      
+    }
   }
   
   if(m_isPrimary)
@@ -56,6 +61,30 @@ void FirstSimpleTestApp::RunStateMachine()
     {
       LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::RunStateMachine Kickwatchdog failed %u", m_appId);
     }
+    SendState();
+  }
+}
+
+void FirstSimpleTestApp::SendState()
+{
+  DummyStateData dummyDataToSend(100);
+  if(!m_arf.PrimaryAppSendStateToStorage(m_appId, dummyDataToSend))
+  {
+    LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::SendState failed to send dummy data to storage Id %u", m_appId);
+  }
+}
+
+void FirstSimpleTestApp::GetStateData()
+{
+  DummyStateData rcvdData;
+  if(m_arf.BackupAppGetStateFromStorage(m_appId, rcvdData))
+  {
+    LogMsg(LogPrioInfo,"Successfully retrieved state from storage when app %u became primary",m_appId);
+    rcvdData.Print();
+  }
+  else
+  {
+    LogMsg(LogPrioError,"FirstSimpleTestApp::GetStateData failed to get latest state when becoming primary",m_appId);
   }
 }
 
@@ -96,7 +125,7 @@ OSAStatusCode FirstSimpleTestApp::AppTaskMethod()
     m_isRunning = false;
   }
   
- 
+  OSATaskSleep(10*1000); //Wait for state storage to be setup.
   while(m_isRunning)
   {
     RunStateMachine();

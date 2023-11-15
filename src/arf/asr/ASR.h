@@ -18,7 +18,6 @@ class ASR
     ~ASR() = default;
     
     bool PrimaryAppSendStateToStorage(const ISerializable & objToSend);
-    
     bool BackupAppGetStateFromStorage(ISerializable & objToRcvTo);
     
     OSAStatusCode Start();
