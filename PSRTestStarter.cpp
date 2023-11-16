@@ -2,6 +2,8 @@
 #include "src/ccm/CCM.h"
 #include "src/ccm/ICCM.h"
 #include "src/psrm/PSRM.h"
+#include "src/arf/ARF.h"
+#include "src/apps/TestAppManager.h"
 
 #include "Logger.h"
 #include "TestClient.h"
@@ -16,11 +18,23 @@ static std::unique_ptr<TestClient> g_pTstClient;
 
 static std::unique_ptr<PSRM> g_pPsrm;
 
+static std::unique_ptr<ARF> g_pArf;
+
+static std::unique_ptr<TestAppManager> g_pTstAppMgr;
+
 static bool g_isRunning = false;
+
+static const std::string g_backupIpAddr{"192.168.43.103"};
+
+static const int BackupNodeId = 3;
+
+static int g_thisNodeId = 0;
 
 OSAStatusCode StartPSRTest(const int id)
 {
   LogMsgInit();
+  
+  g_thisNodeId = id;
   
   g_pCcm = CCM::CreateAndInitForTest(id);
   if(!g_pCcm)
@@ -52,6 +66,14 @@ OSAStatusCode StartPSRTest(const int id)
     return psrmStartSts;
   }
   
+  g_pArf = ARF::CreateARF(*g_pPsrm,BackupNodeId);
+  if(!g_pArf)
+  {
+    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateARF failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    return OSA_ERROR;
+  }
+  
+  
   g_isRunning = true;
   
   g_pTstClient = std::make_unique<TestClient>(*g_pCsaIf);
@@ -69,14 +91,36 @@ void Print()
 {
   g_pCcm->Print();
   g_pPsrm->Print();
+  g_pArf->Print();
+  if(g_pTstAppMgr)
+  {
+    g_pTstAppMgr->Print();
+  }
+  else
+  {
+    LogMsg(LogPrioInfo, "Applications not created yet");
+  }
+}
+
+void StartTestApps()
+{
+  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId, *g_pArf,g_backupIpAddr);
+  if(!g_pTstAppMgr)
+  {
+   LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+   return;
+  }
+  
+  g_pTstAppMgr->CreateApps();
+  
+  g_pTstAppMgr->StartApps(g_thisNodeId != BackupNodeId);
 }
 
 void AddApp(unsigned int id)
 {
   static const unsigned int bytes = 100U;
   static const unsigned int period = 200U;
-  static const unsigned int primaryId = 1;
-  if(!g_pPsrm->RegisterApplication(id, primaryId, bytes, period))
+  if(!g_pPsrm->RegisterApplication(id, g_thisNodeId, bytes, period))
   {
     LogMsg(LogPrioCritical, "ERROR: Failed to register application");
   }
@@ -102,8 +146,8 @@ void AddStorage(unsigned int id)
 {
   static const unsigned int size = 100U;
   static const unsigned int bandwidth = 200U;
-  static const std::string ipAddr{"192.168.201.291"};
-  if(!g_pPsrm->RegisterStorage(id, ipAddr, size, bandwidth))
+  static const std::string ipAddr{g_pCcm->GetIp(g_thisNodeId)};
+  if(!g_pPsrm->RegisterStorage(id,g_thisNodeId, ipAddr, size, bandwidth))
   {
    LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
   }

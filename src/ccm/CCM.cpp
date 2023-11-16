@@ -3,7 +3,7 @@
 #include "NwAid.h"
 #include <errnoLib.h>
 
-static constexpr std::string_view IP_ADDRESS_OF_LEADER{"192.168.213.10"};
+static constexpr std::string_view IP_ADDRESS_OF_LEADER{"192.168.44.10"};
 
 std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
 {
@@ -14,9 +14,9 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
     LogMsg(LogPrioCritical, "ERROR CCM::CreateAndInitForTest failed to create GMM. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     return nullptr;
   }
-  pGmm->AddMember(1, "Instance 1", "192.168.213.101");
-  pGmm->AddMember(2, "Instance 2", "192.168.213.102");
-  pGmm->AddMember(3, "Instance 3", "192.168.213.103");
+  pGmm->AddMember(1, "Instance 1", "192.168.43.101");
+  pGmm->AddMember(2, "Instance 2", "192.168.43.102");
+  pGmm->AddMember(3, "Instance 3", "192.168.43.103");
   
   std::unique_ptr<FD> pFd = FD::CreateFD(*pGmm);
   if(!pFd)
@@ -146,7 +146,7 @@ void CCM::LeftLeaderRole()
 
 OSAStatusCode CCM::StartCCMTask()
 {
-  static const int TaskPrio = 30;   
+  static const int TaskPrio = 80;   
   static const std::string TaskName("tCcm");
   
   const OSATaskId taskId = OSACreateTask(TaskName,TaskPrio,(OSATaskFunction)CCM::ClassTaskMethod,(OSAInstancePtr)this);

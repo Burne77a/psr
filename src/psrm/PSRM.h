@@ -6,6 +6,7 @@
 #include "assp/ASSP.h"
 #include "TaskAbstraction.h"
 #include <memory>
+#include <string>
 
 class PSRM
 {
@@ -24,14 +25,19 @@ class PSRM
     {
      return m_pAir->DeRegisterApplication(appId);
     }
-    bool RegisterStorage(const unsigned int storageId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
+    bool RegisterStorage(const unsigned int storageId, const unsigned int nodeId, const std::string_view ipAddr, const unsigned int spaceInBytes, const unsigned int bandwidth)
     {
-      return m_pSr->RegisterStorage(storageId, ipAddr, spaceInBytes, bandwidth);
+      return m_pSr->RegisterStorage(storageId,nodeId,ipAddr, spaceInBytes, bandwidth);
     }
     bool DeRegisterStorage(const unsigned int storageId)
     {
      return m_pSr->DeRegisterStorage(storageId);
     }
+    
+    void SetAppStatePairChangeCb(StateStorageChangeCallbackType cb) {m_pSspr->InstallChangeCallback(cb);}
+    
+    unsigned int GetMyId() const{return m_pIccm->GetMyId();}
+    std::string GetIp(const unsigned int id) const{return m_pIccm->GetIp(id);}
     
     
   private:

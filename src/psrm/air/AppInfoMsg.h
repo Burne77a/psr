@@ -15,8 +15,8 @@ class AppInfoMsg : public ISerializable
   private:
     struct AppInfoMsgData
     {
-      MsgType type;
-      uint32_t payloadSize;
+      MsgType type{MsgType::AddRequest};
+      uint32_t payloadSize{0U};
     };
   public:
     AppInfoMsg(const uint8_t * pBuffer, const uint32_t size);

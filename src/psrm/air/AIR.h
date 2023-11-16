@@ -4,6 +4,7 @@
 #include "AppInfoMsg.h"
 #include "../../ccm/ICCM.h"
 #include <memory>
+#include <optional>
 
 using AppInfoChangeAppAddedCallbackType = std::function<void(const unsigned int appId)>;
 using AppInfoChangeAppRemovedCallbackType = std::function<void(const unsigned int appId)>;
@@ -21,6 +22,7 @@ class AIR
     void RegisterAppAddedCb(AppInfoChangeAppAddedCallbackType callback);
     void RegisterAppRemovedCb(AppInfoChangeAppRemovedCallbackType callback);
     void GetAllAppIds(std::vector<unsigned int> &appIds) const{m_pAppReg->GetAllAppIds(appIds);}
+    std::optional<AppInfo> GetAppInfoForAppId(const unsigned int appId) const {return m_pAppReg->GetAppInfoForAppId(appId);}
     void Print() const;
   private:
     bool PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const AppInfoMsg::MsgType type);

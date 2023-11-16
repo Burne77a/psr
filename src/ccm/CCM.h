@@ -22,6 +22,8 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    //ICCM
    bool ReplicateRequest(const ClientMessage & msg) override {return m_pCsa->ReplicateRequest(msg);}
    bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb) override {return m_pCsa->RegisterService(serviceId, upcallCb);}
+   unsigned int GetMyId() const override{return m_pGmm->GetMyId();}
+   std::string GetIp(const unsigned int id) const override {return m_pGmm->GetIp((int)id);}
    ClientRequestId CreateUniqueId() override {return m_pCsa->CreateUniqueId();}
    bool IsFullySyncLeader() override {return ((m_pLe->GetCurrentStateValue()==StateBaseLE::StateValue::Leader) && (m_pLr->HasLatestEntries()));}
    void ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts);

@@ -50,6 +50,15 @@ void SSPR::HandleActivity()
   ProcessIncomingParingRequestIfLeaderFlushOtherwise();
 }
 
+void SSPR::InstallChangeCallback(StateStorageChangeCallbackType cb)
+{
+  if(m_changeCb)
+  {
+    LogMsg(LogPrioWarning, "WARNING: SSPR::InstallChangeCallback - overwriting callback");
+  }
+  m_changeCb = cb;
+}
+
 void SSPR::PostStoragePairForReplication(const AppStateStoragePair &pair)
 {
   std::lock_guard<std::mutex> lock(m_queueMutex);
@@ -181,6 +190,7 @@ void SSPR::HandleAddReq(AppStateStoragePairMsg& msg)
     {
       LogMsg(LogPrioInfo,"SSPR::HandleAddReq successfully added AppStateStoragePair");
       pAssp->Print();
+      CallCallback(*pAssp,true);
     }
     else
     {
@@ -202,6 +212,7 @@ void SSPR::HandleRemoveReq(AppStateStoragePairMsg& msg)
   {
     m_pAppStateReg->RemoveEntry(pAssp->GetAppId()); 
     LogMsg(LogPrioInfo,"SSPR::HandleRemoveReq successfully removed AppStateStoragePair");
+    CallCallback(*pAssp,false);
   }
   else
   {
@@ -238,6 +249,14 @@ void SSPR::UpcallMethod(const ClientMessage& commitedMsg)
   {
     LogMsg(LogPrioCritical, "ERROR: SSPR:UpcallMethod failed to create AppStateStoragePairMsg. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
     commitedMsg.Print();
+  }
+}
+
+void SSPR::CallCallback(const AppStateStoragePair &affectedPair, bool isRemoved)
+{
+  if(m_changeCb)
+  {
+    m_changeCb(affectedPair,isRemoved);
   }
 }
 

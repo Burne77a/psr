@@ -11,6 +11,7 @@ class StorageInfo : public ISerializable
   private:
     struct StorageInfoData
     {
+     unsigned int nodeId{INVALID_VALUE};
      unsigned int storageId{INVALID_APP_ID};
      char ipAddr[20];
      unsigned int sizeInBytes{INVALID_VALUE};
@@ -18,11 +19,12 @@ class StorageInfo : public ISerializable
     };
   public: 
     static std::shared_ptr<StorageInfo> CreateFromRawPtr(const uint8_t * pBuffer, const uint32_t size);
-    StorageInfo(const unsigned int storageId, std::string_view ipAddr, const unsigned int sizeInBytes, const unsigned int bandwidth);
+    StorageInfo(const unsigned int storageId, std::string_view ipAddr, const unsigned int sizeInBytes, const unsigned int bandwidth,const unsigned int nodeId);
     StorageInfo(const unsigned int storageId);
     StorageInfo();
     ~StorageInfo() = default;
      unsigned int GetId() const {return m_data.storageId;}
+     unsigned int GetNodeId() const {return m_data.nodeId;}
      std::string GetIpAddr() const {return std::string{m_data.ipAddr};}
      unsigned int GetSizeInBytes() const {return m_data.sizeInBytes;}
      unsigned int GetBandwidth() const {return m_data.bandwidth;}

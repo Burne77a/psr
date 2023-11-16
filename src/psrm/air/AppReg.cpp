@@ -50,6 +50,20 @@ void AppReg::GetAllAppIds(std::vector<unsigned int> &appIds) const
   }
 }
 
+std::optional<AppInfo> AppReg::GetAppInfoForAppId(const unsigned int appId)
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto existingEntry = m_appInfoEntries.find(appId);
+  if( existingEntry != m_appInfoEntries.end())
+  {
+    return existingEntry->second;
+  }
+  else
+  {
+    return std::nullopt;
+  }
+}
+
 
 void AppReg::Print() const
 {

@@ -26,6 +26,8 @@ class ASSP
     //Calle from SR
     void StorageRemoved(const unsigned int storageId);
     void StorageAdded(const unsigned int storageId);
+    
+    bool IsStorageOnDifferentNode(const unsigned int appId,StorageInfo &storageInfo);
     std::shared_ptr<ICCM> m_pIccm{nullptr};
     const AIR &m_air;
     const SR &m_sr;

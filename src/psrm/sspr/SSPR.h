@@ -8,6 +8,9 @@
 #include <string>
 #include <mutex>
 #include <optional>
+
+using StateStorageChangeCallbackType = std::function<void(const AppStateStoragePair &affectedPair, bool isRemoved)>;
+
 class SSPR
 {
   public:
@@ -23,9 +26,12 @@ class SSPR
     std::optional<unsigned int> FindLowestUsedStateStorage(unsigned int &usingAppsCount) const {return m_pAppStateReg->FindLowestUsedStateStorage(usingAppsCount);}
     void GetAllAppIdThatUseThisStorageId(const unsigned int storageId, std::vector<unsigned int>& appIds) const {return m_pAppStateReg->GetAllAppIdThatUseThisStorageId(storageId,appIds);}
     
+    void InstallChangeCallback(StateStorageChangeCallbackType cb);
+    
     void PostStoragePairForReplication(const AppStateStoragePair &pair);
     void Print() const;
   private: 
+    void CallCallback(const AppStateStoragePair &affectedPair, bool isRemoved);
     void PrintQueueWithLock() const;
     bool PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, const AppStateStoragePairMsg::MsgType type);
     void DeRegisterPairing(AppStateStoragePair &pairingToDeReg);
@@ -41,6 +47,7 @@ class SSPR
     std::unique_ptr<AppStateStoragePairReg> m_pAppStateReg{nullptr};
     mutable std::mutex m_queueMutex;
     std::vector<std::unique_ptr<AppStateStoragePair>> m_appStoragePairQueue{};
+    StateStorageChangeCallbackType m_changeCb{nullptr};
 
     
     
