@@ -93,7 +93,7 @@ void StateKeeper::SendLatestStateToRequester(StateDataMsg &stateDataMsg)
 {
   if(m_pLatestStateDataMsg)
   {
-    StateDataMsg reply(StateDataMsg::MsgType::Fetched,stateDataMsg);
+    StateDataMsg reply(StateDataMsg::MsgType::Fetched,*m_pLatestStateDataMsg);
     if(!m_pSender->Send(reply))
     {
       LogMsg(LogPrioCritical, "WARNING: StateKeeper::SendLatestStateToRequester - failed to send latest state to backup %u",m_appId);
