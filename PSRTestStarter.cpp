@@ -118,7 +118,7 @@ OSAStatusCode StartPSRTest(const int id)
 
 void RegisterStorageForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 3;
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 4;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader())
@@ -141,7 +141,7 @@ void RegisterStorageForThisNode()
 
 void StartTestAppsForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 20;
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 25;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader() && g_isStorageRegistred)

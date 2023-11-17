@@ -74,7 +74,7 @@ class AFD
     static const std::string GetEventAsString(const EventValue event);
     
     bool m_isRunning{false};
-    const uint32_t  m_periodInMs{10U};
+    const uint32_t  m_periodInMs{20U};
     const unsigned int m_appId;
     std::unique_ptr<ISender> m_pSender; 
     std::unique_ptr<IReceiver> m_pReceiver;
