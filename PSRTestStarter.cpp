@@ -26,9 +26,13 @@ static bool g_isRunning = false;
 
 static const std::string g_backupIpAddr{"192.168.43.103"};
 
-static const int BackupNodeId = 3;
+static const int g_BackupNodeId = 3;
 
 static int g_thisNodeId = 0;
+
+static bool g_IsToRegisterStorageOnlyOnBackup{true};
+
+static void RegisterStorageForThisNode();
 
 OSAStatusCode StartPSRTest(const int id)
 {
@@ -66,7 +70,7 @@ OSAStatusCode StartPSRTest(const int id)
     return psrmStartSts;
   }
   
-  g_pArf = ARF::CreateARF(*g_pPsrm,BackupNodeId);
+  g_pArf = ARF::CreateARF(*g_pPsrm,g_BackupNodeId);
   if(!g_pArf)
   {
     LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateARF failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -79,12 +83,53 @@ OSAStatusCode StartPSRTest(const int id)
   g_pTstClient = std::make_unique<TestClient>(*g_pCsaIf);
   g_pTstClient->RegisterForUpcall();
   
+  bool isLeaderAvilableLatched = false;
+  
   do
   {
+    if(isLeaderAvilableLatched != g_pCsaIf->IsThereALeader())
+    {
+      if(g_pCsaIf->IsThereALeader())
+      {
+        LogMsg(LogPrioInfo, "Leader became available");
+        isLeaderAvilableLatched = true;
+        
+      }
+      else
+      {
+        LogMsg(LogPrioInfo, "Leader lost");
+        isLeaderAvilableLatched = false;
+      }
+      
+    }
+    RegisterStorageForThisNode();
     OSATaskSleep(1000);
   }while(g_isRunning);
 
   return OSA_OK;
+}
+
+void RegisterStorageForThisNode()
+{
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 3;
+  static unsigned int iterationCnt = 0;
+  static bool isRegistryRegistred = false;
+  if(g_pCsaIf->IsThereALeader())
+  {
+    if(!isRegistryRegistred)
+    {
+      if(iterationCnt >= IterationsToWaitBeforeReg)
+      {
+      
+        if(!g_IsToRegisterStorageOnlyOnBackup || ((g_IsToRegisterStorageOnlyOnBackup) && (g_thisNodeId == g_BackupNodeId)))
+        {
+          AddStorage(10 + g_thisNodeId);
+          isRegistryRegistred = true;
+        }
+      }
+      iterationCnt++;
+    }
+  }
 }
 
 void Print()
@@ -113,7 +158,7 @@ void StartTestApps()
   
   g_pTstAppMgr->CreateApps();
   
-  g_pTstAppMgr->StartApps(g_thisNodeId != BackupNodeId);
+  g_pTstAppMgr->StartApps(g_thisNodeId != g_BackupNodeId);
 }
 
 void AddApp(unsigned int id)
@@ -153,7 +198,7 @@ void AddStorage(unsigned int id)
   }
   else
   {
-   LogMsg(LogPrioInfo, "Successfully registered storage");
+   LogMsg(LogPrioInfo, "Successfully registered storage %u on node %u",id,g_thisNodeId);
   }
 }
 void DelStorage(unsigned int id)

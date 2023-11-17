@@ -23,10 +23,10 @@ class GMM {
     void RemoveMySelfAsLeader();
     
     
-    int GetLeaderId(void);
+    int GetLeaderId(void) const;
     std::string GetLeaderIp();
     std::string GetIp(const int id) const;
-    bool IsLeaderAvailable(void) {return (GetLeaderId() != INVALID_LEADER_ID);}
+    bool IsLeaderAvailable(void) const {return (GetLeaderId() != INVALID_LEADER_ID);}
     void ResetLeaderVoteCount();
     void AddLeaderVote(const int id);
     void SetViewNumber(const int id, const unsigned int viewNumber);

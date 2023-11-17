@@ -26,6 +26,7 @@ class CCM : public LE::ILeaderRoleChangeCallbacks,public std::enable_shared_from
    std::string GetIp(const unsigned int id) const override {return m_pGmm->GetIp((int)id);}
    ClientRequestId CreateUniqueId() override {return m_pCsa->CreateUniqueId();}
    bool IsFullySyncLeader() override {return ((m_pLe->GetCurrentStateValue()==StateBaseLE::StateValue::Leader) && (m_pLr->HasLatestEntries()));}
+   bool IsThereALeader() const override {return m_pGmm->IsLeaderAvailable();}
    void ReqDoneCbFromLr(const ClientRequestId& reqId,const RequestStatus reqSts);
    void ForceUpcalls(){m_pLr->PerformUpcalls(true);}
    void Print() const; 

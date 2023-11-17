@@ -164,7 +164,7 @@ void GMM::RemoveMySelfAsLeader()
   }
 }
 
-int GMM::GetLeaderId(void)
+int GMM::GetLeaderId(void) const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   auto pMySelf = GetMember(m_myId);

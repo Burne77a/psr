@@ -35,6 +35,7 @@ class ICCM
     virtual std::string GetIp(const unsigned int id) const = 0;
     virtual ClientRequestId CreateUniqueId() = 0;
     virtual bool IsFullySyncLeader() = 0;
+    virtual bool IsThereALeader() const = 0;
 };
 
     
