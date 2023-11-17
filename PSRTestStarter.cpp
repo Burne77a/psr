@@ -26,6 +26,7 @@ static bool g_isRunning = false;
 
 static const std::string g_backupIpAddr{"192.168.43.103"};
 
+
 static const int g_BackupNodeId = 3;
 
 static int g_thisNodeId = 0;
@@ -71,6 +72,7 @@ OSAStatusCode StartPSRTest(const int id)
   }
   
   g_pArf = ARF::CreateARF(*g_pPsrm,g_BackupNodeId);
+
   if(!g_pArf)
   {
     LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateARF failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -159,7 +161,7 @@ void StartTestApps()
   g_pTstAppMgr->CreateApps();
   
   g_pTstAppMgr->StartApps(g_thisNodeId != g_BackupNodeId);
-}
+
 
 void AddApp(unsigned int id)
 {

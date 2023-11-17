@@ -33,6 +33,7 @@ StateDataMsg::StateDataMsg(const MsgType type, const StateDataMsg &src) :  m_dat
   const uint32_t sizeOfMeta = sizeof(m_data);
   std::memcpy(m_dataAndPayloadSerialized.data(), pStartOfMeta, sizeOfMeta);
   std::memcpy(m_dataAndPayloadSerialized.data()+ sizeOfMeta,src.m_dataAndPayloadSerialized.data() + sizeOfMeta,src.m_data.payloadSize); 
+
 }
  
 StateDataMsg::~StateDataMsg()
