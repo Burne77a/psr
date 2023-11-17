@@ -5,6 +5,7 @@ class IApp
   public:
     virtual ~IApp() = default;
     virtual void Start(const bool asPrimary) = 0;
+    virtual void InitiateCountdownToShutdown() = 0;
     virtual void Print() const = 0;
 };
 

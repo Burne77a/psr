@@ -57,6 +57,6 @@ bool DummyStateData::Deserialize()
 
 void DummyStateData::Print() const
 {
-  LogMsg(LogPrioInfo,"DummyStateData: Size: %u, postPatern: %s serializedSize: %d payloadSize: %d", m_data.payloadSize,m_data.postPattern,m_serializedData.size(),m_payload.size());
+  LogMsg(LogPrioInfo,"DummyStateData: SeqNr %u Size: %u, postPatern: %s serializedSize: %d payloadSize: %d",m_data.seqNr, m_data.payloadSize,m_data.postPattern,m_serializedData.size(),m_payload.size());
 }
 

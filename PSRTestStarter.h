@@ -11,6 +11,7 @@ OSAStatusCode StartPSRTest(const int id);
 
 void Print();
 void StartTestApps();
+void TriggerShutdown();
 
 void AddApp(unsigned int id);
 void DelApp(unsigned int id);

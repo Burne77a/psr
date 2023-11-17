@@ -2,8 +2,10 @@
 #include "DummyStateData.h"
 #include "Logger.h"
 #include <errnoLib.h>
-FirstSimpleTestApp::FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr, std::string_view backupIpAddr, ARF& arf,unsigned int periodInMs,unsigned int nodeId) : 
-m_primaryIpAddr{primaryIpAddr},m_backupIpAddr{backupIpAddr},m_appId{appId}, m_arf{arf}, m_periodInMs{periodInMs}, m_nodeId{nodeId}
+FirstSimpleTestApp::FirstSimpleTestApp(unsigned int appId,std::string_view primaryIpAddr,
+    std::string_view backupIpAddr, ARF& arf,unsigned int periodInMs,unsigned int nodeId,const unsigned int bytes) : 
+m_primaryIpAddr{primaryIpAddr},m_backupIpAddr{backupIpAddr},m_appId{appId}, m_arf{arf}, 
+m_periodInMs{periodInMs},m_bytesToSync{bytes}, m_nodeId{nodeId}
 {
  
 }
@@ -43,6 +45,23 @@ void FirstSimpleTestApp::Start(const bool asPrimary)
   }
 }
 
+void FirstSimpleTestApp::InitiateCountdownToShutdown()
+{
+  if(m_isCountDownRunning)
+  {
+    LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::InitiateCountdownToShutdown count down already running %u",m_appId);
+  }
+  else if(!m_isPrimary)
+  {
+    LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::InitiateCountdownToShutdown count down cannot be started on backup %u",m_appId);
+  }
+  else
+  {
+    LogMsg(LogPrioInfo, "FirstSimpleTestApp::InitiateCountdownToShutdown count down to shutdown started &u", m_appId);
+    m_isCountDownStartRequested = true;
+  }
+}
+
 void FirstSimpleTestApp::RunStateMachine()
 {
   if(m_nextIsPrimary != m_isPrimary)
@@ -61,13 +80,33 @@ void FirstSimpleTestApp::RunStateMachine()
     {
       LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::RunStateMachine Kickwatchdog failed %u", m_appId);
     }
+    m_iterationCount++;
     SendState();
+    HandleCountdownToShutdownIfActive();
+  }
+}
+
+void FirstSimpleTestApp::HandleCountdownToShutdownIfActive()
+{
+  if(m_isCountDownStartRequested && !m_isCountDownRunning)
+  {
+    LogMsg(LogPrioInfo, "Count down to shutdown running for app: %u",m_appId);
+    m_isCountDownRunning = true;
+    m_iterationCount = 0;
+  }
+  if(m_isCountDownRunning)
+  {
+    if(m_iterationCount >= m_shutdownLimit)
+    {
+      m_isRunning = false;
+    }
   }
 }
 
 void FirstSimpleTestApp::SendState()
 {
-  DummyStateData dummyDataToSend(100);
+  DummyStateData dummyDataToSend(m_bytesToSync);
+  dummyDataToSend.SetSeqNr(m_iterationCount);
   if(!m_arf.PrimaryAppSendStateToStorage(m_appId, dummyDataToSend))
   {
     LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::SendState failed to send dummy data to storage Id %u", m_appId);
@@ -79,7 +118,14 @@ void FirstSimpleTestApp::GetStateData()
   DummyStateData rcvdData;
   if(m_arf.BackupAppGetStateFromStorage(m_appId, rcvdData))
   {
-    LogMsg(LogPrioInfo,"Successfully retrieved state from storage when app %u became primary",m_appId);
+    if(rcvdData.GetSeqNr() == m_shutdownLimit)
+    {
+      LogMsg(LogPrioInfo,"Successfully retrieved state from storage when app %u became primary. With expected seqNr",m_appId);
+    }
+    else
+    {
+      LogMsg(LogPrioInfo,"WARNING, Successfully retrieved state from storage when app %u became primary but unexpected seqnr %u",m_appId,rcvdData.GetSeqNr());
+    }
     rcvdData.Print();
   }
   else
@@ -145,5 +191,5 @@ OSAStatusCode FirstSimpleTestApp::ClassTaskMethod(void * const pInstance)
 
 void FirstSimpleTestApp::Print() const 
 {
-  LogMsg(LogPrioInfo, "FirstSimpleTestApp: AppId %u NodeId: %u period: %u state: %s ",m_appId,m_nodeId,m_periodInMs,m_isPrimary ? "Primary" : "Backup");
+  LogMsg(LogPrioInfo, "FirstSimpleTestApp: AppId %u NodeId: %u period: %u bytes: %u state: %s ",m_appId,m_nodeId,m_periodInMs,m_bytesToSync,m_isPrimary ? "Primary" : "Backup");
 }

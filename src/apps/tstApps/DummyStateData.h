@@ -11,7 +11,7 @@ class DummyStateData : public ISerializable
     struct TheData
     {
       uint8_t prePattern[10]{1,2,3,4,5,6,7,8,9,10};
-      uint32_t repCounter{0U};
+      uint32_t seqNr{0U};
       char postPattern[12]{"ABCDEFGHIJ"};
       uint32_t payloadSize{0};
     };
@@ -21,6 +21,8 @@ class DummyStateData : public ISerializable
     DummyStateData();
     ~DummyStateData();
     
+    void SetSeqNr(const unsigned int seqNr) {m_data.seqNr = seqNr;}
+    unsigned int GetSeqNr()const {return m_data.seqNr;}
     
     //ISerializable
     uint8_t *  Serialize(uint32_t &size) const override;

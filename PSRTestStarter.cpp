@@ -141,7 +141,7 @@ void RegisterStorageForThisNode()
 
 void StartTestAppsForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 8;
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 20;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader() && g_isStorageRegistred)
@@ -175,7 +175,7 @@ void Print()
 
 void StartTestApps()
 {
-  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId, *g_pArf,g_backupIpAddr);
+  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId,g_BackupNodeId, *g_pArf,g_backupIpAddr);
   if(!g_pTstAppMgr)
   {
    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -184,7 +184,12 @@ void StartTestApps()
   
   g_pTstAppMgr->CreateApps();
   
-  g_pTstAppMgr->StartApps(g_thisNodeId != g_BackupNodeId);
+  g_pTstAppMgr->StartApps();
+}
+
+void TriggerShutdown()
+{
+  g_pTstAppMgr->TriggerShutdownOfAppsOnThisNode();
 }
 
 void AddApp(unsigned int id)
@@ -225,6 +230,20 @@ void AddStorage(unsigned int id)
   else
   {
    LogMsg(LogPrioInfo, "Successfully registered storage %u on node %u",id,g_thisNodeId);
+   if(g_IsToRegisterStorageOnlyOnBackup && g_BackupNodeId == g_thisNodeId)
+   {
+     const unsigned int additionalStorageId = id+1;
+     LogMsg(LogPrioInfo, "This node is the sole storage, register one more storage"); 
+     OSATaskSleep(1000);
+     if(!g_pPsrm->RegisterStorage(additionalStorageId,g_thisNodeId, ipAddr, size, bandwidth))
+     {
+       LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
+     }
+     else
+     {
+       LogMsg(LogPrioInfo, "Successfully registered additional storage %u on this backup node  %u",additionalStorageId ,g_thisNodeId);
+     }
+   }
   }
 }
 void DelStorage(unsigned int id)
