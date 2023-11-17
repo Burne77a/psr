@@ -26,12 +26,14 @@ StateDataMsg::StateDataMsg(const StateDataMsg &src) : m_data{src.m_data}
 
 StateDataMsg::StateDataMsg(const MsgType type, const StateDataMsg &src) :  m_data{src.m_data}
 {
-  m_dataAndPayloadSerialized.reserve(MAX_PAYLOAD_SIZE + sizeof(m_data));
-  std::memcpy(m_dataAndPayloadSerialized.data(),src.m_dataAndPayloadSerialized.data(),src.m_data.payloadSize + sizeof(m_data));
   m_data.type = type;
+  m_dataAndPayloadSerialized.reserve(MAX_PAYLOAD_SIZE + sizeof(m_data));
+  
   const uint8_t * pStartOfMeta = (uint8_t*)(&m_data);
   const uint32_t sizeOfMeta = sizeof(m_data);
-  m_dataAndPayloadSerialized.assign(pStartOfMeta, pStartOfMeta + sizeOfMeta);
+  std::memcpy(m_dataAndPayloadSerialized.data(), pStartOfMeta, sizeOfMeta);
+  std::memcpy(m_dataAndPayloadSerialized.data()+ sizeOfMeta,src.m_dataAndPayloadSerialized.data() + sizeOfMeta,src.m_data.payloadSize); 
+
 }
  
 StateDataMsg::~StateDataMsg()
@@ -72,7 +74,7 @@ void StateDataMsg::SetPayload(const ISerializable &objToSend)
 uint8_t *  StateDataMsg::Serialize(uint32_t &size) const
 {
   //TODO: adapt to endian differences, for now we just run little endian. 
-  size = m_dataAndPayloadSerialized.size();
+  size = m_data.payloadSize + sizeof(m_data);
   return m_dataAndPayloadSerialized.data();
 }
 

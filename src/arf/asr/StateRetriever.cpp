@@ -86,7 +86,14 @@ bool StateRetriever::PopulateFromRcvdState(const StateDataMsg &msgRcvd, ISeriali
     if((pInbuffer != nullptr) && (inBufferSize >= payloadSize))
     {
       std::memcpy((void*)pInbuffer,pPayloadBuffer,payloadSize);
-      isSuccessfullyPopulated = true;
+      if(objToPopulate.Deserialize())
+      {
+        isSuccessfullyPopulated = true;
+      }
+      else
+      {
+        LogMsg(LogPrioCritical,"ERROR: StateRetriever::PopulateFromRcvdState failed to Deserialize  inbuffers 0x%x %u %u", pInbuffer,inBufferSize,payloadSize);
+      }
     }
     else
     {
