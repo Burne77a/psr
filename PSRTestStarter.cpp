@@ -33,7 +33,11 @@ static int g_thisNodeId = 0;
 
 static bool g_IsToRegisterStorageOnlyOnBackup{true};
 
+static bool g_isStorageRegistred = false;
+static bool g_isAppStarted = false;
+
 static void RegisterStorageForThisNode();
+static void StartTestAppsForThisNode();
 
 OSAStatusCode StartPSRTest(const int id)
 {
@@ -105,6 +109,7 @@ OSAStatusCode StartPSRTest(const int id)
       
     }
     RegisterStorageForThisNode();
+    StartTestAppsForThisNode();
     OSATaskSleep(1000);
   }while(g_isRunning);
 
@@ -115,10 +120,10 @@ void RegisterStorageForThisNode()
 {
   static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 3;
   static unsigned int iterationCnt = 0;
-  static bool isRegistryRegistred = false;
+
   if(g_pCsaIf->IsThereALeader())
   {
-    if(!isRegistryRegistred)
+    if(!g_isStorageRegistred)
     {
       if(iterationCnt >= IterationsToWaitBeforeReg)
       {
@@ -126,8 +131,27 @@ void RegisterStorageForThisNode()
         if(!g_IsToRegisterStorageOnlyOnBackup || ((g_IsToRegisterStorageOnlyOnBackup) && (g_thisNodeId == g_BackupNodeId)))
         {
           AddStorage(10 + g_thisNodeId);
-          isRegistryRegistred = true;
         }
+        g_isStorageRegistred = true;
+      }
+      iterationCnt++;
+    }
+  }
+}
+
+void StartTestAppsForThisNode()
+{
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 8;
+  static unsigned int iterationCnt = 0;
+
+  if(g_pCsaIf->IsThereALeader() && g_isStorageRegistred)
+  {
+    if(!g_isAppStarted)
+    {
+      if(iterationCnt >= IterationsToWaitBeforeReg)
+      {
+        StartTestApps();
+        g_isAppStarted = true;
       }
       iterationCnt++;
     }
@@ -161,7 +185,7 @@ void StartTestApps()
   g_pTstAppMgr->CreateApps();
   
   g_pTstAppMgr->StartApps(g_thisNodeId != g_BackupNodeId);
-
+}
 
 void AddApp(unsigned int id)
 {
