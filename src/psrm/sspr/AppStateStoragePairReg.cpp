@@ -82,6 +82,33 @@ std::optional<unsigned int> AppStateStoragePairReg::FindLowestUsedStateStorage(u
   return lowestStorageId;
 }
 
+std::optional<unsigned int> AppStateStoragePairReg::FindLowestUsedStateStorageOnDifferentNode(unsigned int &usingAppsCount,const unsigned int nodeId) const
+{
+  std::lock_guard<std::mutex> lock(m_mutex);
+  std::unordered_map<unsigned int, unsigned int> storageUsageCounts; 
+  std::optional<unsigned int> lowestStorageId{std::nullopt};
+  usingAppsCount = std::numeric_limits<unsigned int>::max();
+  
+  for (const auto& pair : m_appStatePairEntries) 
+  {
+      unsigned int storageId = pair.second.GetStorageId();
+      if ((storageId != AppStateStoragePair::INVALID_VALUE) && (nodeId != pair.second.GetStorageNodeId())) 
+      {
+          storageUsageCounts[storageId]++;
+      }
+  }
+
+  for (const auto& countPair : storageUsageCounts) 
+  {
+      if (countPair.second < usingAppsCount) 
+      {
+          usingAppsCount = countPair.second;
+          lowestStorageId = countPair.first;
+      }
+  }
+  return lowestStorageId;
+}
+
 void AppStateStoragePairReg::GetAllAppIdThatUseThisStorageId(const unsigned int storageId, std::vector<unsigned int>& appIds) const
 {
   std::lock_guard<std::mutex> lock(m_mutex); 

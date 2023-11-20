@@ -81,8 +81,20 @@ bool ASSP::PairWithUsed(const unsigned int appId)
 {
   unsigned int useCnt = 0U;
   bool isMatchMade = false;
+  unsigned int appNode = 0U;
   
-  auto storageIdOrNothing = m_sspr.FindLowestUsedStateStorage(useCnt);
+  auto appEntryOrNothing = m_air.GetAppInfoForAppId(appId);
+  if(appEntryOrNothing.has_value())
+  {
+    appNode = appEntryOrNothing.value().GetPrimaryNodeId();
+  }
+  else
+  {
+    LogMsg(LogPrioError, "WARNING: ASSP::PairWithUsed Not able to find primary node for app with id %u",appId);
+    return false;
+  }
+  
+  auto storageIdOrNothing = m_sspr.FindLowestUsedStateStorageOnDifferentNode(useCnt,appNode);
   if(storageIdOrNothing.has_value())
   {
     unsigned int storageId = storageIdOrNothing.value();

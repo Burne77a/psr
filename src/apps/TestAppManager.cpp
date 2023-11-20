@@ -17,6 +17,7 @@ std::unique_ptr<TestAppManager> TestAppManager::CreateTestAppManager(const int n
 TestAppManager::TestAppManager(const int nodeId,const int backupNodeId,ARF &arf,std::string_view backupNodeIpAddr) : 
     m_nodeId{nodeId},m_arf{arf},m_backupNodeIpAddr{backupNodeIpAddr},m_backupNodeId{(unsigned int)backupNodeId}
 {
+  // appId, primaryNodeId,periodInMs, bytesToSyncEachPeriod, isPrimary,pApp
   m_appsAndInfo[1] = {1,1,40,1000,false,nullptr};
   m_appsAndInfo[2] = {2,1,40,1000,false,nullptr};
   m_appsAndInfo[3] = {3,2,40,1000,false,nullptr};

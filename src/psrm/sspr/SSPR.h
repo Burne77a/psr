@@ -23,6 +23,7 @@ class SSPR
     void HandleActivity();
     
     std::optional<AppStateStoragePair> GetEntry(const unsigned int appId) const {return m_pAppStateReg->GetEntry(appId);}
+    std::optional<unsigned int> FindLowestUsedStateStorageOnDifferentNode(unsigned int &usingAppsCount, const unsigned int nodeId) const {return m_pAppStateReg->FindLowestUsedStateStorageOnDifferentNode(usingAppsCount,nodeId);}
     std::optional<unsigned int> FindLowestUsedStateStorage(unsigned int &usingAppsCount) const {return m_pAppStateReg->FindLowestUsedStateStorage(usingAppsCount);}
     void GetAllAppIdThatUseThisStorageId(const unsigned int storageId, std::vector<unsigned int>& appIds) const {return m_pAppStateReg->GetAllAppIdThatUseThisStorageId(storageId,appIds);}
     

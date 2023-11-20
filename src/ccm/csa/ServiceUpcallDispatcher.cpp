@@ -9,6 +9,7 @@ ServiceUpcallDispatcher::ServiceUpcallDispatcher()
 
 bool ServiceUpcallDispatcher::RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb)
 {
+  std::lock_guard<std::mutex> lock(m_mutex); 
   m_upcallCbs[serviceId] = upcallCb;
   LogMsg(LogPrioInfo, "ServiceUpcallDispatcher::RegisterService - registered upcall callback for service %u", serviceId);
   return true;
@@ -16,6 +17,7 @@ bool ServiceUpcallDispatcher::RegisterService(const unsigned int serviceId,Upcal
 
 void ServiceUpcallDispatcher::MakeUpcall(std::shared_ptr<ClientMessage> pCmsg)
 {
+  std::lock_guard<std::mutex> lock(m_mutex); 
   if(pCmsg)
   {
     const unsigned int serviceId = pCmsg->GetServiceId();
@@ -38,6 +40,7 @@ void ServiceUpcallDispatcher::MakeUpcall(std::shared_ptr<ClientMessage> pCmsg)
 
 void ServiceUpcallDispatcher::Print() const
 {
+  std::lock_guard<std::mutex> lock(m_mutex); 
   LogMsg(LogPrioInfo, "--- >ServiceUpcallDispatcher< ---");
   
   for(auto & [key,cb] : m_upcallCbs)

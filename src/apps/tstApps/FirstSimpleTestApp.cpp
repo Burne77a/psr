@@ -144,10 +144,10 @@ OSAStatusCode FirstSimpleTestApp::AppTaskMethod()
     m_isRunning = true;
     if(m_isPrimary)
     {
-      if(!m_arf.RegisterAppForStateStorage(m_appId,m_nodeId,100,100))
+      if(!m_arf.RegisterAppForStateStorage(m_appId,m_nodeId,m_bytesToSync,m_periodInMs))
       {
         LogMsg(LogPrioError, "ERROR FirstSimpleTestApp::AppTaskMethod failed to register state storage need with ARF %u", m_appId,m_nodeId);
-        return OSA_ERROR;
+       // return OSA_ERROR;
       }
       if(!m_arf.SetAsPrimary(m_appId))
       {

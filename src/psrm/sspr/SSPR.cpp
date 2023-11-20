@@ -127,7 +127,7 @@ bool SSPR::PostRequestToCCM(const std::shared_ptr<ISerializable>& pPayload, cons
   }
   else
   {
-    LogMsg(LogPrioCritical, "ERROR: pSerPay::PostRequestToCCM failed to register request. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
+    LogMsg(LogPrioCritical, "ERROR: PostRequestToCCM::PostRequestToCCM failed to register request. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
   }
   return isRequestSuccessfullyPosted;
 }

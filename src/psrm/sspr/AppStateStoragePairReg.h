@@ -14,6 +14,7 @@ class AppStateStoragePairReg
     void RemoveEntry(const unsigned int appId);
     std::optional<AppStateStoragePair> GetEntry(const unsigned int appId) const;
     std::optional<unsigned int> FindLowestUsedStateStorage(unsigned int &usingAppsCount) const;
+    std::optional<unsigned int> FindLowestUsedStateStorageOnDifferentNode(unsigned int &usingAppsCount,const unsigned int nodeId) const;
     void GetAllAppIdThatUseThisStorageId(const unsigned int storageId, std::vector<unsigned int>& appIds) const;
     void Print() const;
   private:

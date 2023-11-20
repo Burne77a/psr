@@ -53,7 +53,7 @@ bool CSA::SendReplyToClient(ClientMessage & msg)
 
 bool CSA::ReplicateRequest(const ClientMessage & msg)
 {
-  std::lock_guard<std::mutex> lock(m_mutex); 
+  std::lock_guard<std::mutex> lock(m_oneReqAtTheTimeMutex); 
   if(!msg.GetReqId().IsValid())
   {
     LogMsg(LogPrioError, "ERROR: CSA::ReplicateRequest failed - msg do not contain a valid request ID.");
@@ -71,7 +71,7 @@ bool CSA::ReplicateRequest(const ClientMessage & msg)
 
 ClientRequestId CSA::CreateUniqueId()
 {
-  std::lock_guard<std::mutex> lock(m_mutex); 
+  std::lock_guard<std::mutex> lock(m_oneReqAtTheTimeMutex); 
   static unsigned int reqNumber = ClientRequestId::LowestValidReqId;
   
   reqNumber++;

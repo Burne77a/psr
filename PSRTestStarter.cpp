@@ -31,7 +31,7 @@ static const int g_BackupNodeId = 3;
 
 static int g_thisNodeId = 0;
 
-static bool g_IsToRegisterStorageOnlyOnBackup{true};
+static bool g_IsToRegisterStorageOnlyOnBackup{false};
 
 static bool g_isStorageRegistred = false;
 static bool g_isAppStarted = false;
@@ -127,7 +127,6 @@ void RegisterStorageForThisNode()
     {
       if(iterationCnt >= IterationsToWaitBeforeReg)
       {
-      
         if(!g_IsToRegisterStorageOnlyOnBackup || ((g_IsToRegisterStorageOnlyOnBackup) && (g_thisNodeId == g_BackupNodeId)))
         {
           AddStorage(10 + g_thisNodeId);
