@@ -36,7 +36,7 @@ class DummyStateData : public ISerializable
     mutable TheData m_data;
     mutable std::vector<uint8_t> m_serializedData;
     mutable std::vector<uint8_t> m_payload;
-    static const unsigned int MAX_PAYLOAD_SIZE{2500};
+    static const unsigned int MAX_PAYLOAD_SIZE{9000};
     
   
 };

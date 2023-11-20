@@ -3,9 +3,9 @@
 #include "Logger.h"
 #include <errnoLib.h>
 
-std::unique_ptr<TestAppManager> TestAppManager::CreateTestAppManager(const int nodeId,const int backupNodeId,ARF &arf, std::string_view backupNodeIpAddr)
+std::unique_ptr<TestAppManager> TestAppManager::CreateTestAppManager(const int nodeId,const int backupNodeId,ARF &arf, std::string_view backupNodeIpAddr,const unsigned int period, const unsigned int bytes)
 {
-  std::unique_ptr<TestAppManager> pTstAppMgr = std::make_unique<TestAppManager>(nodeId,backupNodeId,arf,backupNodeIpAddr);
+  std::unique_ptr<TestAppManager> pTstAppMgr = std::make_unique<TestAppManager>(nodeId,backupNodeId,arf,backupNodeIpAddr,period, bytes);
   if(!pTstAppMgr)
   {
     LogMsg(LogPrioCritical, "ERROR: TestAppManager::CreateTestAppManager failed to create TestAppManager. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -14,14 +14,14 @@ std::unique_ptr<TestAppManager> TestAppManager::CreateTestAppManager(const int n
   return pTstAppMgr;
 }
 
-TestAppManager::TestAppManager(const int nodeId,const int backupNodeId,ARF &arf,std::string_view backupNodeIpAddr) : 
+TestAppManager::TestAppManager(const int nodeId,const int backupNodeId,ARF &arf,std::string_view backupNodeIpAddr, const unsigned int period, const unsigned int bytes) : 
     m_nodeId{nodeId},m_arf{arf},m_backupNodeIpAddr{backupNodeIpAddr},m_backupNodeId{(unsigned int)backupNodeId}
 {
   // appId, primaryNodeId,periodInMs, bytesToSyncEachPeriod, isPrimary,pApp
-  m_appsAndInfo[1] = {1,1,40,1000,false,nullptr};
-  m_appsAndInfo[2] = {2,1,40,1000,false,nullptr};
-  m_appsAndInfo[3] = {3,2,40,1000,false,nullptr};
-  m_appsAndInfo[4] = {4,2,40,1000,false,nullptr};
+  m_appsAndInfo[1] = {1,1,period,bytes,false,nullptr};
+  m_appsAndInfo[2] = {2,1,period,bytes,false,nullptr};
+  m_appsAndInfo[3] = {3,2,period,bytes,false,nullptr};
+  m_appsAndInfo[4] = {4,2,period,bytes,false,nullptr};
   
 }
 

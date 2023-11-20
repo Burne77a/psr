@@ -35,9 +35,27 @@ static bool g_IsToRegisterStorageOnlyOnBackup{false};
 
 static bool g_isStorageRegistred = false;
 static bool g_isAppStarted = false;
+static const unsigned int g_IterationsToWaitBeforeReg = 4U;
+static const unsigned int g_MaxNumberOfNodes = 6U;
 
 static void RegisterStorageForThisNode();
 static void StartTestAppsForThisNode();
+
+static unsigned int g_periodToUseForTestApps = 40U; //in ms
+static unsigned int g_bytesToSyncEachPeriod = 1024U; 
+
+
+void SetOneBackupStorage()
+{
+  g_IsToRegisterStorageOnlyOnBackup = true;
+}
+
+void SetPeriodAndBytes(const unsigned int period, const unsigned int bytes)
+{
+  g_periodToUseForTestApps = period;
+  g_bytesToSyncEachPeriod = bytes;
+}
+
 
 OSAStatusCode StartPSRTest(const int id)
 {
@@ -118,7 +136,7 @@ OSAStatusCode StartPSRTest(const int id)
 
 void RegisterStorageForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 4;
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * g_IterationsToWaitBeforeReg;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader())
@@ -140,7 +158,7 @@ void RegisterStorageForThisNode()
 
 void StartTestAppsForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 25;
+  static const unsigned int IterationsToWaitBeforeReg = (g_thisNodeId + g_MaxNumberOfNodes) * g_IterationsToWaitBeforeReg;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader() && g_isStorageRegistred)
@@ -174,7 +192,7 @@ void Print()
 
 void StartTestApps()
 {
-  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId,g_BackupNodeId, *g_pArf,g_backupIpAddr);
+  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId,g_BackupNodeId, *g_pArf,g_backupIpAddr,g_periodToUseForTestApps,g_bytesToSyncEachPeriod);
   if(!g_pTstAppMgr)
   {
    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));

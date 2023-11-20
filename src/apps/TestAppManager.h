@@ -20,8 +20,8 @@ class TestAppManager
       std::unique_ptr<IApp> pApp{nullptr};
     };
   public:
-    static std::unique_ptr<TestAppManager> CreateTestAppManager(const int nodeId,const int backupNodeId, ARF &arf,std::string_view backupNodeIpAddr);
-    TestAppManager(const int nodeId,const int backupNodeId,ARF &arf,std::string_view backupNodeIpAddr);
+    static std::unique_ptr<TestAppManager> CreateTestAppManager(const int nodeId,const int backupNodeId, ARF &arf,std::string_view backupNodeIpAddr, const unsigned int period, const unsigned int bytes);
+    TestAppManager(const int nodeId,const int backupNodeId,ARF &arf,std::string_view backupNodeIpAddr, const unsigned int period, const unsigned int bytes);
     ~TestAppManager() = default;
     void CreateApps();
     void TriggerShutdownOfAppsOnThisNode();
