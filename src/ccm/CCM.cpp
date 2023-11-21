@@ -17,6 +17,9 @@ std::shared_ptr<CCM> CCM::CreateAndInitForTest(const int myId)
   pGmm->AddMember(1, "Instance 1", "192.168.43.101");
   pGmm->AddMember(2, "Instance 2", "192.168.43.102");
   pGmm->AddMember(3, "Instance 3", "192.168.43.103");
+  pGmm->AddMember(4, "Instance 4", "192.168.43.104");
+  pGmm->AddMember(5, "Instance 5", "192.168.43.105");
+  pGmm->AddMember(6, "Instance 6", "192.168.43.106");
   
   std::unique_ptr<FD> pFd = FD::CreateFD(*pGmm);
   if(!pFd)

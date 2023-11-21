@@ -57,7 +57,7 @@ void FirstSimpleTestApp::InitiateCountdownToShutdown()
   }
   else
   {
-    LogMsg(LogPrioInfo, "FirstSimpleTestApp::InitiateCountdownToShutdown count down to shutdown started &u", m_appId);
+    LogMsg(LogPrioInfo, "FirstSimpleTestApp::InitiateCountdownToShutdown count down to shutdown started %u", m_appId);
     m_isCountDownStartRequested = true;
   }
 }

@@ -23,7 +23,7 @@ class ASSP
     //Called from AIR
     void ApplicationRemoved(const unsigned int appId);
     void ApplicationAdded(const unsigned int appId);
-    //Calle from SR
+    //Called from SR
     void StorageRemoved(const unsigned int storageId);
     void StorageAdded(const unsigned int storageId);
     

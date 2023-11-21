@@ -22,6 +22,12 @@ TestAppManager::TestAppManager(const int nodeId,const int backupNodeId,ARF &arf,
   m_appsAndInfo[2] = {2,1,period,bytes,false,nullptr};
   m_appsAndInfo[3] = {3,2,period,bytes,false,nullptr};
   m_appsAndInfo[4] = {4,2,period,bytes,false,nullptr};
+  m_appsAndInfo[5] = {5,3,period,bytes,false,nullptr};
+  m_appsAndInfo[6] = {6,3,period,bytes,false,nullptr};
+  m_appsAndInfo[7] = {7,4,period,bytes,false,nullptr};
+  m_appsAndInfo[8] = {8,4,period,bytes,false,nullptr};
+  m_appsAndInfo[9] = {9,5,period,bytes,false,nullptr};
+  m_appsAndInfo[10] = {10,5,period,bytes,false,nullptr};
   
 }
 
@@ -32,7 +38,7 @@ void TestAppManager::StartApps()
     if(entry.second.pApp)
     {
       entry.second.pApp->Start(entry.second.isPrimary);
-      OSATaskSleep(5000);
+      OSATaskSleep(2000);
     }
   }
 }

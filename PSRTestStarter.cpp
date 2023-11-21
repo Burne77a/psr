@@ -24,10 +24,11 @@ static std::unique_ptr<TestAppManager> g_pTstAppMgr;
 
 static bool g_isRunning = false;
 
-static const std::string g_backupIpAddr{"192.168.43.103"};
+static const std::string g_backupIpAddr{"192.168.43.106"};
 
 
-static const int g_BackupNodeId = 3;
+static const int g_BackupNodeId = 6;
+static const int g_NumberOfBackupStorages = 4;
 
 static int g_thisNodeId = 0;
 
@@ -35,8 +36,8 @@ static bool g_IsToRegisterStorageOnlyOnBackup{false};
 
 static bool g_isStorageRegistred = false;
 static bool g_isAppStarted = false;
-static const unsigned int g_IterationsToWaitBeforeReg = 4U;
-static const unsigned int g_MaxNumberOfNodes = 6U;
+static const unsigned int g_IterationsToWaitBeforeReg = 6U;
+static const unsigned int g_MaxNumberOfNodes = 10U;
 
 static void RegisterStorageForThisNode();
 static void StartTestAppsForThisNode();
@@ -242,25 +243,28 @@ void AddStorage(unsigned int id)
   static const std::string ipAddr{g_pCcm->GetIp(g_thisNodeId)};
   if(!g_pPsrm->RegisterStorage(id,g_thisNodeId, ipAddr, size, bandwidth))
   {
-   LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
+    LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
   }
   else
   {
-   LogMsg(LogPrioInfo, "Successfully registered storage %u on node %u",id,g_thisNodeId);
-   if(g_IsToRegisterStorageOnlyOnBackup && g_BackupNodeId == g_thisNodeId)
-   {
-     const unsigned int additionalStorageId = id+1;
-     LogMsg(LogPrioInfo, "This node is the sole storage, register one more storage"); 
-     OSATaskSleep(1000);
-     if(!g_pPsrm->RegisterStorage(additionalStorageId,g_thisNodeId, ipAddr, size, bandwidth))
-     {
-       LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
-     }
-     else
-     {
-       LogMsg(LogPrioInfo, "Successfully registered additional storage %u on this backup node  %u",additionalStorageId ,g_thisNodeId);
-     }
-   }
+    LogMsg(LogPrioInfo, "Successfully registered storage %u on node %u",id,g_thisNodeId);
+    if(g_IsToRegisterStorageOnlyOnBackup && g_BackupNodeId == g_thisNodeId)
+    {
+      for(int i = 0; i < g_NumberOfBackupStorages; i++)
+      {
+        const unsigned int additionalStorageId = id+1+i;
+        LogMsg(LogPrioInfo, "This node is the sole storage, register one more storage"); 
+        OSATaskSleep(1000);
+        if(!g_pPsrm->RegisterStorage(additionalStorageId,g_thisNodeId, ipAddr, size, bandwidth))
+        {
+          LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
+        }
+        else
+        {
+          LogMsg(LogPrioInfo, "Successfully registered additional storage %u on this backup node  %u",additionalStorageId ,g_thisNodeId);
+        }
+      }
+    }
   }
 }
 void DelStorage(unsigned int id)
