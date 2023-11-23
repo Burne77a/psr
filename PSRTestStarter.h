@@ -7,10 +7,13 @@
 extern "C" {
 #endif
 
+void SetOneBackupStorage();
+void SetPeriodAndBytes(const unsigned int period, const unsigned int bytes);
 OSAStatusCode StartPSRTest(const int id);
 
 void Print();
 void StartTestApps();
+void TriggerShutdown();
 
 void AddApp(unsigned int id);
 void DelApp(unsigned int id);

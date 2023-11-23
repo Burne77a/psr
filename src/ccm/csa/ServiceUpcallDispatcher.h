@@ -4,6 +4,7 @@
 #include "ClientMessage.h"
 #include "UpcallCallback.h"
 #include <unordered_map>
+#include <mutex>
 
 class ServiceUpcallDispatcher
 {
@@ -15,6 +16,7 @@ class ServiceUpcallDispatcher
     void Print() const;
   private:
     std::unordered_map<int, UpcallCallbackType> m_upcallCbs;
+    mutable std::mutex m_mutex{};
 };
 
 

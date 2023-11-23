@@ -24,20 +24,39 @@ static std::unique_ptr<TestAppManager> g_pTstAppMgr;
 
 static bool g_isRunning = false;
 
-static const std::string g_backupIpAddr{"192.168.43.103"};
+static const std::string g_backupIpAddr{"192.168.43.106"};
 
 
-static const int g_BackupNodeId = 3;
+static const int g_BackupNodeId = 6;
+static const int g_NumberOfBackupStorages = 4;
 
 static int g_thisNodeId = 0;
 
-static bool g_IsToRegisterStorageOnlyOnBackup{true};
+static bool g_IsToRegisterStorageOnlyOnBackup{false};
 
 static bool g_isStorageRegistred = false;
 static bool g_isAppStarted = false;
+static const unsigned int g_IterationsToWaitBeforeReg = 6U;
+static const unsigned int g_MaxNumberOfNodes = 10U;
 
 static void RegisterStorageForThisNode();
 static void StartTestAppsForThisNode();
+
+static unsigned int g_periodToUseForTestApps = 40U; //in ms
+static unsigned int g_bytesToSyncEachPeriod = 1024U; 
+
+
+void SetOneBackupStorage()
+{
+  g_IsToRegisterStorageOnlyOnBackup = true;
+}
+
+void SetPeriodAndBytes(const unsigned int period, const unsigned int bytes)
+{
+  g_periodToUseForTestApps = period;
+  g_bytesToSyncEachPeriod = bytes;
+}
+
 
 OSAStatusCode StartPSRTest(const int id)
 {
@@ -118,7 +137,7 @@ OSAStatusCode StartPSRTest(const int id)
 
 void RegisterStorageForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 3;
+  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * g_IterationsToWaitBeforeReg;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader())
@@ -127,7 +146,6 @@ void RegisterStorageForThisNode()
     {
       if(iterationCnt >= IterationsToWaitBeforeReg)
       {
-      
         if(!g_IsToRegisterStorageOnlyOnBackup || ((g_IsToRegisterStorageOnlyOnBackup) && (g_thisNodeId == g_BackupNodeId)))
         {
           AddStorage(10 + g_thisNodeId);
@@ -141,7 +159,7 @@ void RegisterStorageForThisNode()
 
 void StartTestAppsForThisNode()
 {
-  static const unsigned int IterationsToWaitBeforeReg = g_thisNodeId * 8;
+  static const unsigned int IterationsToWaitBeforeReg = (g_thisNodeId + g_MaxNumberOfNodes) * g_IterationsToWaitBeforeReg;
   static unsigned int iterationCnt = 0;
 
   if(g_pCsaIf->IsThereALeader() && g_isStorageRegistred)
@@ -175,7 +193,7 @@ void Print()
 
 void StartTestApps()
 {
-  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId, *g_pArf,g_backupIpAddr);
+  g_pTstAppMgr = TestAppManager::CreateTestAppManager(g_thisNodeId,g_BackupNodeId, *g_pArf,g_backupIpAddr,g_periodToUseForTestApps,g_bytesToSyncEachPeriod);
   if(!g_pTstAppMgr)
   {
    LogMsg(LogPrioCritical, "ERROR: StartPSRTest CreateTestAppManager failed. Errno: 0x%x (%s)",errnoGet(),strerror(errnoGet()));
@@ -184,7 +202,12 @@ void StartTestApps()
   
   g_pTstAppMgr->CreateApps();
   
-  g_pTstAppMgr->StartApps(g_thisNodeId != g_BackupNodeId);
+  g_pTstAppMgr->StartApps();
+}
+
+void TriggerShutdown()
+{
+  g_pTstAppMgr->TriggerShutdownOfAppsOnThisNode();
 }
 
 void AddApp(unsigned int id)
@@ -220,11 +243,28 @@ void AddStorage(unsigned int id)
   static const std::string ipAddr{g_pCcm->GetIp(g_thisNodeId)};
   if(!g_pPsrm->RegisterStorage(id,g_thisNodeId, ipAddr, size, bandwidth))
   {
-   LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
+    LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
   }
   else
   {
-   LogMsg(LogPrioInfo, "Successfully registered storage %u on node %u",id,g_thisNodeId);
+    LogMsg(LogPrioInfo, "Successfully registered storage %u on node %u",id,g_thisNodeId);
+    if(g_IsToRegisterStorageOnlyOnBackup && g_BackupNodeId == g_thisNodeId)
+    {
+      for(int i = 0; i < g_NumberOfBackupStorages; i++)
+      {
+        const unsigned int additionalStorageId = id+1+i;
+        LogMsg(LogPrioInfo, "This node is the sole storage, register one more storage"); 
+        OSATaskSleep(1000);
+        if(!g_pPsrm->RegisterStorage(additionalStorageId,g_thisNodeId, ipAddr, size, bandwidth))
+        {
+          LogMsg(LogPrioCritical, "ERROR: Failed to register storage");
+        }
+        else
+        {
+          LogMsg(LogPrioInfo, "Successfully registered additional storage %u on this backup node  %u",additionalStorageId ,g_thisNodeId);
+        }
+      }
+    }
   }
 }
 void DelStorage(unsigned int id)

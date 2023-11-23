@@ -24,15 +24,13 @@ class CSA
     
     void MakeUpcall(std::shared_ptr<ClientMessage> pCmsg) 
     {
-      std::lock_guard<std::mutex> lock(m_mutex); 
-      m_pSrvDispatcher->MakeUpcall(pCmsg);
+       m_pSrvDispatcher->MakeUpcall(pCmsg);
     }
     
 
     bool ReplicateRequest(const ClientMessage & msg) ;
     bool RegisterService(const unsigned int serviceId,UpcallCallbackType upcallCb)
     {
-      std::lock_guard<std::mutex> lock(m_mutex); 
       return m_pSrvDispatcher->RegisterService(serviceId, upcallCb);
     }
     ClientRequestId CreateUniqueId();
@@ -43,7 +41,7 @@ class CSA
     GMM& m_gmm;
     std::unique_ptr<ServiceUpcallDispatcher> m_pSrvDispatcher;
     std::unique_ptr<LeaderCommunicator> m_pLeaderComm;
-   mutable std::mutex m_mutex{};
+   mutable std::mutex m_oneReqAtTheTimeMutex{};
 };
 
 #endif //CCM_CSA_H

@@ -50,7 +50,7 @@ class StateDataMsg : public ISerializable
   private:
     mutable StateData m_data;
     mutable std::vector<uint8_t> m_dataAndPayloadSerialized;
-    static const unsigned int MAX_PAYLOAD_SIZE{3000U};
+    static const unsigned int MAX_PAYLOAD_SIZE{10000U};
 };
 
 #endif //ARF_ASR_STATEDATAMSG_H

@@ -9,7 +9,12 @@ Electing::Electing(std::vector<std::unique_ptr<ISender>> &senders) : m_senders(s
 
 void Electing::HandleActivity(std::unique_ptr<LeaderElectionMsg> &pMsg, StateBaseLE::StateValue &nextState, GMM &gmm) 
 {
-  if(gmm.IsAnyMemberQuorumConnected())
+  if(gmm.IsLeaderAvailable())
+  {
+    gmm.SetMyViewNumber(gmm.GetViewNumber(gmm.GetLeaderId()));
+    nextState = StateValue::Follower;
+  }
+  else if(gmm.IsAnyMemberQuorumConnected())
   {
     PerformFirstTimeInStateActionsIfNeeded(gmm);
     Vote(gmm);
