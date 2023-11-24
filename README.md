@@ -1,6 +1,6 @@
 # PSR (Partible State Replication) for VxWorks
 
-Hello and welcome to the somewhat humble abode of PSR - Partible State Replication. It's a one-man show here, so expect the charm of a solo project!
+Hello and welcome to the somewhat humble abode of PSR - Partible State Replication. It's a one-man show here, so expect the charm of a solo project (or even much worse, since it has been done in haste to test this concept)!
 
 ## What's PSR All About?
 
