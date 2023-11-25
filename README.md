@@ -1,28 +1,30 @@
 # PSR (Partible State Replication) for VxWorks
 
-Hello and welcome to the somewhat humble abode of PSR - Partible State Replication. It's a one-man show here, so expect the charm of a solo project (or even much worse, since it has been done in haste to test this concept)!
+Welcome to the PSR (Partible State Replication) project, a solo-developed prototype implemented for VxWorks.
 
-## What's PSR All About?
+## Overview
 
-PSR is a daring little project implemented for VxWorks, aiming to explore the vast universe of state replication. It's a bit like trying to build a spaceship in your backyard - ambitious, a bit quirky, but full of potential.
+PSR is a exploration into state replication within distributed systems trageting control system. Developed as a concept test, this project includes a prototype implementation of VSR-QC (View Stamped Replication - Quorum Connected), aimed at maintaining consistency in distributed environments.
 
-### A One-Person Orchestra 🎻
+### Solo Development and Project Status
 
-This entire project is the brainchild of a single developer (yours truly). So, when you stumble across shortcuts or "creative" coding solutions, remember it's a solo journey. I've worn many hats to bring PSR to life, and each line of code has its own story.
+This project is the result of individual effort, and as such, it is full of quick-and-dirty solutions and shortcuts implemented to get the prototype up and running. While functional, the code reflects the --challenges and limitations of a one-person development process with very limited time.
 
-### Disclaimer: Proceed with Caution 🚧
+### Disclaimer
 
-Embarking on a journey with PSR? That's brave! Just a heads-up: use it at your own risk. It's an experimental project, after all. If things go south, we're here in spirit but not in liability.
+Please note that this is an experimental implementation. If you choose to use or experiment with PSR, you do so at your own risk.
 
-### Introducing VSR-QC (View Stamped Replication - Quorum Connected)
+### OS Abstraction Layer
 
-Nestled within PSR, you'll find our prototype implementation of VSR-QC. It's our attempt at achieving consensus in a distributed system - think of it as a diplomatic effort to maintain order amongst independent entities.
+PSR is built with an OS abstraction layer, making it potentially easy to port to other systems. This aspect is particularly significant for those interested in adapting the project to different environments.
 
-### Forthcoming Paper 📜
+### Upcoming Paper
 
-There's a paper on the horizon that delves into the nitty-gritty of the PSR architecture. It's crafted with care (and a bit of caffeine) to provide insights into what makes PSR tick.
+A detailed paper describing the PSR architecture is in the works and will be published soon. Once available, a link to the paper will be provided here for those interested in a deeper dive into the project's theoretical foundations.
 
-## Getting Started
+## Getting Involved
 
-Ready to dive in? Here's how to get your hands on PSR:
+Contributions to PSR are highly welcome, especially in the areas of code cleanup and refinement. The first step for contributors would be addressing the quick and dirty fixes to enhance stability and functionality.
+
+To get started with PSR:
 
